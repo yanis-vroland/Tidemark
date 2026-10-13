@@ -1,24 +1,46 @@
-# Nestjs specific
-/dist
-/node_modules
-/build
-/tmp
+# Flutter et Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
+
+# Android
+**/android/.gradle/
+**/android/captures/
+**/android/local.properties
+**/android/key.properties
+*.jks
+*.keystore
+
+# iOS
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+xcuserdata/
+
+# Modèles d'IA locaux : téléchargés, jamais versionnés
+*.gguf
+*.task
+*.bin
+*.tflite
+
+# IDE et système
+.idea/
+*.iml
+.vscode/
+.DS_Store
 
 # Logs
-logs
 *.log
-npm-debug.log*
-pnpm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
 
-# dotenv environment variable files
+# Variables d'environnement
 .env
-.env.development
-.env.test
-.env.production
-
-# temp directory
-.temp
-.tmp
+.env.*
+!.env.example
+.claude/settings.local.json
