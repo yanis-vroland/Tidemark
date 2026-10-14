@@ -6,10 +6,10 @@ Plan du projet, du 2026-10-13 au **2026-11-03** (3 semaines, date ferme). Il est
 
 Deux preuves, par ordre de priorité :
 
-1. **La méthode sur mobile** : plan, spec avec maquettes, tests d'abord, implémentation, chacun par une PR relue, avec la chaîne P1.
+1. **La méthode sur mobile** : plan, spec avec maquettes, tests d'abord, implémentation, chacun par une PR relue, avec la chaîne [agentic-dev-workflow](https://github.com/yanis-vroland/agentic-dev-workflow) (la « chaîne P1 », premier projet du portfolio).
 2. **Une IA sur l'appareil, sans fuite de données** : étiquetage et bilan produits par un modèle local, garde-fou de détresse testé.
 
-Le 2026-11-03, le projet s'arrête où il en est : README à jour, limites écrites, retour à P2 de FieldOps. Une fonctionnalité inachevée est retirée ou marquée comme telle, jamais présentée comme livrée.
+Le 2026-11-03, le projet s'arrête où il en est : README à jour, limites écrites, retour à P2 (application Flutter du produit fictif FieldOps, deuxième projet du portfolio). Une fonctionnalité inachevée est retirée ou marquée comme telle, jamais présentée comme livrée.
 
 ## Règles d'exécution
 
@@ -28,6 +28,7 @@ Le MVP proposé au lancement du projet est trié en trois niveaux. « Si le temp
 | --- | --- | --- | --- |
 | Indispensable | Saisie d'une entrée : humeur de 1 à 5 et texte libre, stockage local chiffré | — | D |
 | Indispensable | Détection de détresse → écran d'aide fixe (3114) | Règles déterministes | E |
+| Indispensable | Téléchargement du modèle, seul accès réseau admis | — | F |
 | Indispensable | Étiquetage automatique (émotions, thèmes) | LLM local, JSON validé | F |
 | Indispensable | Export et suppression totale | — | G |
 | Si le temps le permet | Bilan de la semaine | LLM local + calculs en Dart | H |
@@ -44,7 +45,7 @@ Hors périmètre : comptes, synchronisation, cloud, notifications, thèmes perso
 | 2 | 20 → 26 oct. | D, E, F | Saisie, garde-fou et étiquetage livrés |
 | 3 | 27 oct. → 3 nov. | G, H, I | Export et suppression livrés, README final, dépôt public |
 
-Point d'arrêt le **2026-10-24** : si le lot C n'est pas mergé, Yanis décide entre réduire à Android seul ou couper le lot F.
+Point d'arrêt le **2026-10-24** : si le lot C n'est pas mergé, Yanis décide entre réduire à Android seul ou couper le lot G (export et suppression). Le lot F n'est pas une option de coupe : sans lui, la preuve n° 2 tombe.
 
 ## Tâches de Yanis
 
@@ -60,14 +61,14 @@ Point d'arrêt le **2026-10-24** : si le lot C n'est pas mergé, Yanis décide e
 Branche : `docs/plan-projet` (cette PR), puis `docs/cahier-des-charges`.
 
 - [x] Plan du projet (`docs/plan.md`).
-- [ ] Cahier des charges : objectif et périmètre, acteur unique (la personne qui tient son journal), glossaire (entrée, humeur, étiquette, bilan, détresse), règles métier tranchées, fonctionnalités du tableau ci-dessus au statut « à spécifier ». Les règles non tranchées vont dans les questions ouvertes.
+- [ ] Cahier des charges : objectif et périmètre, acteur unique (la personne qui tient son journal), glossaire (entrée, humeur, étiquette, bilan, détresse), règles métier tranchées, fonctionnalités du tableau ci-dessus au statut « à spécifier ». Les règles non tranchées vont dans les questions ouvertes, et les questions 1 et 2 de ce plan y migrent, avec un simple renvoi ici.
 - [x] README : renvoi vers le plan.
 
 ## Lot B : spike du moteur d'IA local (2 jours)
 
 Branche : `spike/moteur-ia`. Le code du spike n'est pas mergé : seuls l'ADR et ses mesures le sont.
 
-Candidats : `flutter_gemma` et `llama_cpp_dart`. Foundation Models d'Apple est écarté d'office, puisqu'il n'existe pas sur Android (décision iOS + Android du 2026-10-13) ; l'ADR le mentionne comme option rejetée.
+Candidats : `flutter_gemma` et `llama_cpp_dart`. Foundation Models d'Apple est écarté d'office, puisqu'il n'existe pas sur Android (décision iOS + Android du 2026-10-13) ; l'ADR le mentionne comme option rejetée. À réexaminer seulement si la question 3 ramène la cible à iOS seul.
 
 - [ ] Pour chaque candidat, sur un iPhone et un Android physiques (pas de simulateur pour les mesures) : étiquetage d'une entrée fictive en JSON.
 - [ ] Mesures consignées dans l'ADR, avec l'appareil et le modèle utilisés : taille du modèle téléchargé, mémoire, temps de chargement, temps d'étiquetage, taux de JSON valide sur 20 entrées fictives.
@@ -81,7 +82,7 @@ Branche : `chore/socle-flutter`. Après acceptation de l'ADR-001.
 
 - [ ] Mise à jour de Flutter (3.35.3 installé, daté de septembre 2025) et création du projet, iOS + Android.
 - [ ] Interface `MoodAnalyzer` (nom à confirmer par le glossaire) et son implémentation factice, seule utilisée par les tests et la CI.
-- [ ] Stockage local chiffré : choix de la base et de la gestion de la clé (trousseau iOS, Keystore Android). Choix structurant : ADR-002, au statut « proposé ».
+- [ ] Stockage local chiffré : choix de la base et de la gestion de la clé (trousseau iOS, Keystore Android). Choix structurant : ADR-002, au statut « proposé ». La numérotation des ADR est propre à Tidemark : les ADR de la chaîne sont toujours cités avec leur lien vers `agentic-dev-workflow`.
 - [ ] Workflow CI Flutter : `dart format --set-exit-if-changed`, `dart analyze`, `flutter test`.
 - [ ] `.claude/quality.json` renseigné, section « Stack et commandes » et « Architecture » du `CLAUDE.md` complétées.
 - [ ] Architecture technique : vue d'ensemble, modèle de données, sécurité.
@@ -99,7 +100,7 @@ Chaque lot suit la même séquence, en PR séparées si la spec est longue à va
 | --- | --- | --- |
 | D | `feat/saisie-entree` | Données chiffrées au repos ; aucune permission réseau utilisée par le code de l'app. |
 | E | `feat/garde-fou-detresse` | Avant le lot F : aucune entrée en détresse n'atteint le modèle. Écran d'aide fixe, jamais généré. Contrôle par mutation sur chaque règle. Liste de termes rédigée pour le projet et validée par Yanis. |
-| F | `feat/etiquetage` | Sortie JSON validée contre un schéma ; sortie invalide → entrée sans étiquette, jamais de plantage. Tests sur l'implémentation factice uniquement. |
+| F | `feat/modele-local` puis `feat/etiquetage` | Deux specs. Téléchargement : consentement, taille annoncée, progression, échec réseau et reprise, empreinte du fichier vérifiée, état « modèle absent » ; un seul hôte contacté, aucune donnée de l'utilisateur dans la requête. Étiquetage : sortie JSON validée contre un schéma ; sortie invalide → entrée sans étiquette, jamais de plantage. Tests sur l'implémentation factice uniquement. |
 | G | `feat/export-suppression` | Suppression totale : base, clé, modèle téléchargé. Format d'export à trancher dans la spec. |
 | H | `feat/bilan-semaine` | Chiffres calculés en Dart, le modèle ne fait que les mettre en mots ; aucun chiffre du bilan ne vient du modèle. |
 
@@ -108,13 +109,13 @@ Chaque lot suit la même séquence, en PR séparées si la spec est longue à va
 Branche : `docs/readme-final`.
 
 - [ ] README lisible en 2 minutes : démo (GIF sur appareil), schéma, notions IA, lancement en 3 commandes, mesures du spike, limites.
-- [ ] Vérification : aucune donnée réelle, aucun secret dans l'historique (gitleaks), licences du modèle et des dépendances.
+- [ ] Vérification : aucune donnée réelle, aucun secret dans l'historique (gitleaks), licences du modèle et des dépendances, aucune référence à l'espace de travail privé (`docs/projets/`) restée sans explication.
 - [ ] Frictions de la chaîne remontées en issues dans `agentic-dev-workflow`.
 - [ ] `docs/projets/tidemark.md` de l'espace de travail mis à jour : bilan et retour à P2.
 
 ## Questions pour Yanis
 
-1. **Dictée** : sur Android, la reconnaissance vocale du système peut passer par les serveurs de Google, ce qui contredit « rien ne quitte l'appareil ». Proposition : la sortir du MVP. Sinon, il faut un modèle de transcription local (un second modèle à embarquer) et un ADR.
+1. **Dictée** : la reconnaissance vocale du système peut envoyer l'audio à un serveur sur les deux plateformes, ce qui contredit « rien ne quitte l'appareil ». Sur iOS, elle passe par les serveurs d'Apple par défaut, et la reconnaissance locale (`requiresOnDeviceRecognition`) n'existe que pour certaines langues et certains appareils ; sur Android, elle peut passer par les serveurs de Google. Proposition : la sortir du MVP. Sinon, il faut un modèle de transcription local (un second modèle à embarquer) et un ADR.
 2. **Classifieur de détresse** : un modèle ajoute des faux négatifs difficiles à tester et du temps de spike. Proposition : règles déterministes seules dans le MVP, classifieur en piste d'amélioration documentée.
 3. **Appareils de test** : quels iPhone et Android physiques sont disponibles pour le spike ? Sans iPhone physique, les mesures iOS sont impossibles et la décision iOS + Android est à revoir.
 
