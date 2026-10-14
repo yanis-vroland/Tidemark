@@ -1,0 +1,61 @@
+# ADR-001 : Moteur d'IA local
+
+Statut : proposé (brouillon : mesures sur iPhone 15 Pro à venir)
+Date : 2026-10-14
+
+Contexte : Tidemark étiquette chaque entrée (émotions, thèmes) avec un modèle de langage qui tourne sur le téléphone, sans aucun appel réseau autre que le téléchargement du modèle (RM1, RM11). L'app cible iOS et Android (décision de Yanis du 2026-10-13), en français seulement (RM22). Les étiquettes viennent d'une liste fermée (RM19) ; une sortie non conforme laisse l'entrée sans étiquette (RM9). Il faut choisir le paquet Flutter qui exécute le modèle, et le modèle.
+
+Ce choix repose sur un spike de deux jours (branche `spike/moteur-ia`, non mergée) : une app de mesure fait étiqueter 20 entrées fictives en français par chaque configuration, avec le même prompt, et mesure le chargement, le temps par entrée, la mémoire, le taux de JSON valide et le rappel des étiquettes attendues.
+
+## 1. Paquet
+
+Options envisagées :
+- **`flutter_gemma`** : prévu par le plan, mais abandonné sur pub.dev depuis le 2026-10-05, renommé `flutter_edge_ai`. Écarté.
+- **`llama_cpp_dart`** : prévu par le plan. Sa version publiée (0.2.2) est ancienne ; la réécriture (0.9.0-dev) fait planter l'app dès qu'une grammaire contraint la sortie, correction disponible seulement sur GitHub (issue #112). Écarté.
+- **`fllama`** : licence GPL v2, incompatible avec un dépôt MIT. Écarté.
+- **Foundation Models d'Apple** : iOS seulement. Écarté par la cible iOS + Android.
+- **`flutter_edge_ai`** 2.3.2 + `flutter_edge_ai_litertlm` 1.13.2 (LiteRT-LM de Google, fichiers `.litertlm`) : sortie libre, ou contrainte par un appel de fonction. Mesuré.
+- **`llamadart`** 0.12.0 (llama.cpp, fichiers GGUF ; lit aussi les `.litertlm`) : sortie contrainte par un schéma JSON. Mesuré.
+
+## 2. Modèle
+
+Seuls des modèles sous licence Apache-2.0, téléchargeables sans compte ni jeton, ont été retenus : les licences Gemma et Llama ajoutent des politiques d'usage, sensibles sur un sujet de santé mentale, et un jeton dans l'app est exclu (RM1).
+
+- **Qwen3-0.6B** (`.litertlm`, 329 Mo) : trop petit. Sans contrainte, il invente des étiquettes hors liste (1 à 2 réponses valides sur 20) ; contraint, il répond presque toujours « travail » ou « famille » (rappel 0,14 à 0,17).
+- **Qwen2.5-1.5B-Instruct** : GGUF Q4_K_M (1 066 Mo) pour `llamadart`, `.litertlm` q8 (1 524 Mo, seule quantification publiée) pour `flutter_edge_ai`. Retenu pour la comparaison.
+
+## 3. Mesures
+
+### Émulateur Android et simulateur iOS (2026-10-14)
+
+Même modèle (Qwen2.5-1.5B), configurations mesurées l'une après l'autre. Émulateur Android Pixel 7 API 35 arm64 (6 Go, release) et simulateur iPhone 17 Pro iOS 26.5 (debug), sur un Mac Apple Silicon. Processeur seul pour `llamadart` : son accélération GPU bloque le chargement sur l'émulateur, sans erreur.
+
+| Configuration | JSON valides (iOS / Android) | Rappel | Médiane par entrée | Chargement | RSS après chargement |
+| --- | --- | --- | --- | --- | --- |
+| `llamadart` + schéma JSON | 20/20, 20/20 | 0,52 / 0,49 | 0,8 s / 0,9 s | 2 s / 10 s | 1,8 / 2,2 Go |
+| `llamadart` sans contrainte | 17/20, 18/20 | 0,50 / 0,53 | 0,7 s / 0,8 s | 2 s / 3 s | 2,1 / 2,2 Go |
+| `flutter_edge_ai` + appel de fonction | 19/20, 19/20 | 0,49 / 0,49 | 2,0 s / 4,7 s | 11 s / 10 s | 1,2 / 0,8 Go |
+| `flutter_edge_ai` sans contrainte | 18/20, 18/20 | 0,64 / 0,66 | 1,8 s / 2,8 s | 2 s / 1 s | 0,5 / 0,6 Go |
+
+Ces temps viennent du processeur du Mac : ils comparent les configurations entre elles, pas ce que vivra un utilisateur. La RSS ne compte peut-être pas toute la mémoire de LiteRT-LM. Le rappel est mesuré sur des étiquettes attendues choisies pour le spike : c'est un indicateur de comparaison, pas une qualité absolue.
+
+### iPhone 15 Pro
+
+À venir : temps de chargement et par entrée, mémoire (Instruments), accélération GPU (Metal), entitlement `increased-memory-limit` avec un compte Apple gratuit.
+
+## Décision
+
+Proposée par l'agent, à trancher par Yanis après les mesures sur iPhone : **`llamadart`, avec Qwen2.5-1.5B-Instruct Q4_K_M et une sortie contrainte par schéma JSON.**
+
+- C'est la seule configuration sans aucune réponse invalide (40 sur 40) : RM9 devient un filet de sécurité, pas un cas courant.
+- C'est la plus rapide à modèle égal, de 2 à 5 fois.
+- Le schéma JSON porte la liste fermée des étiquettes (RM19) : le modèle ne peut pas en inventer.
+- Un seul paquet, qui lit aussi le format `.litertlm` si un meilleur modèle n'existe que sous ce format.
+
+Conséquences :
+- **Qualité limitée** : environ la moitié des étiquettes attendues retrouvées. Le README le dit ; l'étiquetage reste une aide, jamais un diagnostic (RM4).
+- **Contre-argument** : `flutter_edge_ai` sans contrainte retrouve plus d'étiquettes (0,65), mais perd une réponse sur dix, et son modèle est moins compressé (q8 contre Q4). Un GGUF q8 avec `llamadart` permettrait de départager.
+- **Paquet jeune** : `llamadart` 0.12.0 est sorti le 2026-10-14 et compte plus de 130 issues ouvertes. Version épinglée exactement ; l'interface `MoodAnalyzer` permet d'en changer sans toucher au reste de l'app.
+- **Plateformes minimales** : iOS 16.4, Android API 30 (arm64).
+- **Téléchargement** : environ 1,1 Go au premier usage (RM18), URL épinglée sur une révision Hugging Face, empreinte SHA-256 vérifiée (RM11).
+- **Android** : performances mesurées seulement sur émulateur (aucun appareil Android physique, décision du 2026-10-14).
