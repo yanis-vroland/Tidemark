@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Bilan de la semaine</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&amp;family=Figtree:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f6b}a:hover{color:#13272c}
+</style>
+</helmet>
+<div style="width: 393px; height: {{rootH}}; box-sizing: border-box; padding: 64px 16px 40px; display: flex; flex-direction: column; gap: 16px; background: {{t.surface}}; color: {{t.ink}}; font-family: Figtree, system-ui, sans-serif; overflow: hidden;">
+  <a href="ListeBilan.dc.html" style="align-self: flex-start; height: 44px; display: flex; align-items: center; gap: 4px; color: {{t.tide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+    Journal
+  </a>
+
+  <div style="display: flex; flex-direction: column; gap: 8px;">
+    <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 34px; line-height: 38px; letter-spacing: -0.5px;">Ta semaine</h1>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <button type="button" aria-label="Semaine précédente" disabled="{{prevDisabled}}" onClick="{{goPrev}}" style="{{prevStyle}}">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+      <div aria-live="polite" style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; text-align: center;">
+        <span style="font-size: 17px; line-height: 24px; font-weight: 600;">{{week.range}}</span>
+        <span style="font-size: 13px; line-height: 18px; color: {{t.muted}};">{{week.caption}}</span>
+      </div>
+      <button type="button" aria-label="Semaine suivante" disabled="{{nextDisabled}}" onClick="{{goNext}}" style="{{nextStyle}}">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg>
+      </button>
+    </div>
+  </div>
+
+  <sc-if value="{{loading}}" hint-placeholder-val="{{false}}">
+    <div role="status" style="display: flex; align-items: center; gap: 8px; padding: 16px 0;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="{{t.tideSoft}}" stroke-width="3"></circle><path d="M21 12a9 9 0 0 0-9-9" stroke="{{t.tide}}" stroke-width="3" stroke-linecap="round"></path></svg>
+      <span style="font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0.1px; color: {{t.muted}};">Calcul du bilan sur ton téléphone…</span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{failed}}" hint-placeholder-val="{{false}}">
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div role="alert" style="display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: 8px; border: 1px solid {{t.danger}}; background: {{t.raised}};">
+        <span style="font-size: 17px; line-height: 24px; font-weight: 600; color: {{t.danger}};">Ton bilan n'a pas pu être calculé</span>
+        <span style="font-size: 16px; line-height: 24px;">Tes entrées sont toujours sur le téléphone. Rien n'a été effacé. Réessaie.</span>
+      </div>
+      <button type="button" style="height: 52px; border: 0; border-radius: 999px; background: {{t.tide}}; color: {{t.onTide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; cursor: pointer;">Réessayer</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{insufficient}}" hint-placeholder-val="{{false}}">
+    <div style="display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 16px; background: {{t.raised}};">
+      <span style="font-size: 17px; line-height: 24px; font-weight: 600;">Pas encore de bilan pour cette semaine</span>
+      <span style="font-size: 16px; line-height: 24px; color: {{t.muted}};">Le bilan demande au moins 3 entrées dans la semaine ; celle-ci en compte {{week.count}}.</span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ready}}" hint-placeholder-val="{{true}}">
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <section aria-label="Bilan en quelques mots" style="display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 16px; background: {{t.raised}};">
+        <sc-if value="{{writing}}" hint-placeholder-val="{{false}}">
+          <div role="status" style="display: flex; align-items: center; gap: 8px; min-height: 44px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="{{t.tideSoft}}" stroke-width="3"></circle><path d="M21 12a9 9 0 0 0-9-9" stroke="{{t.tide}}" stroke-width="3" stroke-linecap="round"></path></svg>
+            <span style="font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0.1px; color: {{t.muted}};">Mise en mots sur ton téléphone…</span>
+          </div>
+          <span style="font-size: 13px; line-height: 18px; color: {{t.muted}};">Les chiffres ci-dessous sont déjà complets.</span>
+        </sc-if>
+        <sc-if value="{{hasText}}" hint-placeholder-val="{{true}}">
+          <p style="margin: 0; font-size: 16px; line-height: 24px;">Une semaine notée presque chaque jour, le plus souvent du côté de « Bien ». La fatigue et le travail reviennent souvent, le calme aussi.</p>
+          <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; line-height: 18px; color: {{t.muted}};">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+            Mis en mots sur ton téléphone, à partir des chiffres ci-dessous
+          </span>
+        </sc-if>
+        <sc-if value="{{noTextWeek}}" hint-placeholder-val="{{false}}">
+          <p style="margin: 0; font-size: 16px; line-height: 24px; color: {{t.muted}};">Pas de texte pour cette semaine : le bilan s'en tient aux chiffres.</p>
+        </sc-if>
+        <sc-if value="{{noModel}}" hint-placeholder-val="{{false}}">
+          <p style="margin: 0; font-size: 16px; line-height: 24px; color: {{t.muted}};">Pas de texte : le modèle local n'est pas sur ce téléphone. Les chiffres sont calculés sans lui.</p>
+        </sc-if>
+      </section>
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: 16px; background: {{t.raised}};">
+          <span style="font-size: 13px; line-height: 18px; color: {{t.muted}};">Entrées</span>
+          <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 22px; line-height: 28px; font-weight: 600;">{{week.count}}</span>
+          <span style="font-size: 13px; line-height: 18px; color: {{t.muted}};">{{week.daysText}}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: 16px; background: {{t.raised}};">
+          <span style="font-size: 13px; line-height: 18px; color: {{t.muted}};">Humeur moyenne</span>
+          <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 22px; line-height: 28px; font-weight: 600;">{{week.avg}}</span>
+          <span style="font-size: 13px; line-height: 18px; color: {{t.muted}};">sur 5</span>
+        </div>
+      </div>
+
+      <sc-if value="{{week.hasEvo}}" hint-placeholder-val="{{true}}">
+        <section aria-labelledby="evo-titre" style="display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 16px; background: {{t.raised}};">
+          <h2 id="evo-titre" style="margin: 0; font-size: 17px; line-height: 24px; font-weight: 600;">Par rapport à la semaine précédente</h2>
+          <p style="margin: 0; font-size: 16px; line-height: 24px;">Humeur moyenne : {{week.avg}}, contre {{week.prevAvg}}. {{week.evoText}}</p>
+          <p style="margin: 0; font-size: 16px; line-height: 24px;">Entrées : {{week.count}}, contre {{week.prevCount}}.</p>
+        </section>
+      </sc-if>
+
+      <section aria-labelledby="rep-titre" style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 16px; background: {{t.raised}};">
+        <h2 id="rep-titre" style="margin: 0; font-size: 17px; line-height: 24px; font-weight: 600;">Répartition des humeurs</h2>
+        <p style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); margin: 0;">{{week.distText}}</p>
+        <div aria-hidden="true" style="display: flex; flex-direction: column; gap: 8px;">
+          <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="{{r.dot}}">{{r.mood}}</span>
+              <span style="width: 72px; flex-shrink: 0; font-size: 14px; line-height: 20px; font-weight: 500;">{{r.label}}</span>
+              <span style="flex-grow: 1; height: 8px; border-radius: 999px; background: {{t.surface}}; display: flex;">
+                <span style="{{r.bar}}"></span>
+              </span>
+              <span style="width: 16px; flex-shrink: 0; text-align: right; font-size: 14px; line-height: 20px; font-weight: 500;">{{r.count}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section aria-labelledby="jours-titre" style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 16px; background: {{t.raised}};">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+          <h2 id="jours-titre" style="margin: 0; font-size: 17px; line-height: 24px; font-weight: 600;">Jours notés</h2>
+          <span style="font-size: 13px; line-height: 18px; color: {{t.muted}};">{{week.daysShort}}</span>
+        </div>
+        <p style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); margin: 0;">{{week.daysA11y}}</p>
+        <div aria-hidden="true" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px;">
+          <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+            <span style="{{d.cell}}">{{d.letter}}</span>
+          </sc-for>
+        </div>
+      </section>
+
+      <section aria-labelledby="tags-titre" style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 16px; background: {{t.raised}};">
+        <h2 id="tags-titre" style="margin: 0; font-size: 17px; line-height: 24px; font-weight: 600;">Étiquettes fréquentes</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <sc-for list="{{tags}}" as="g" hint-placeholder-count="3">
+            <span aria-label="{{g.a11y}}" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 999px; background: {{t.tideSoft}}; color: {{t.ink}}; font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0.1px;">{{g.label}}<span style="color: {{t.muted}};">· {{g.count}}</span></span>
+          </sc-for>
+        </div>
+        <span style="font-size: 13px; line-height: 18px; color: {{t.muted}};">Analysé sur ton téléphone</span>
+      </section>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"state":{"editor":"enum","options":["nominal","ecriture","sans-texte","modele-absent","insuffisant","chargement","erreur"],"default":"nominal"},"$preview":{"width":393,"height":1320}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { week: 0 };
+  }
+  renderVals() {
+    const LIGHT = { surface: '#f3f6f5', raised: '#ffffff', ink: '#13272c', muted: '#4b5e64', line: '#76898d', tide: '#1d5f6b', onTide: '#ffffff', tideSoft: '#dbeae9', danger: '#a3392a', moods: ['#3c4f7c', '#6684b0', '#86b2ab', '#e2b55a', '#ef8c59'], onMood1: '#ffffff', onMood: '#13272c' };
+    const DARK = { surface: '#0e191c', raised: '#172529', ink: '#e4eeec', muted: '#9db0b1', line: '#5d7579', tide: '#7cc5c9', onTide: '#0a2226', tideSoft: '#1e383c', danger: '#f39582', moods: ['#8fa3d6', '#7f9cc8', '#86b9b1', '#e6be6a', '#f29a6a'], onMood1: '#0e191c', onMood: '#0e191c' };
+    const t = this.props.dark ? DARK : LIGHT;
+    const state = this.props.state ?? 'nominal';
+    const labels = ['Très bas', 'Bas', 'Neutre', 'Bien', 'Très bien'];
+    const dayNames = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+    const weeks = [
+      { range: '12 – 18 octobre', caption: 'Semaine en cours', count: 7, moods: [0, 1, 2, 3, 1], avg: '3,6', days: [1, 1, 0, 1, 0, 1, 1], tags: [['fatigue', 3], ['travail', 3], ['calme', 2]], sensitive: false, hasEvo: true, prevAvg: '3,0', prevCount: 5, evoText: 'En hausse de 0,6.' },
+      { range: '5 – 11 octobre', caption: 'Semaine dernière', count: 5, moods: [1, 0, 2, 2, 0], avg: '3,0', days: [1, 0, 1, 0, 1, 0, 1], tags: [['travail', 2], ['famille', 1], ['fatigue', 1]], sensitive: true, hasEvo: false },
+      { range: '28 septembre – 4 octobre', caption: '', count: 2, moods: [0, 0, 1, 1, 0], avg: '', days: [0, 1, 0, 0, 1, 0, 0], tags: [], sensitive: false, hasEvo: false }
+    ];
+    const index = state === 'insuffisant' ? 2 : (state === 'nominal' ? this.state.week : 0);
+    const w = weeks[index];
+    const noted = w.days.reduce((a, b) => a + b, 0);
+    const notedNames = dayNames.filter((_, i) => w.days[i]);
+    const week = Object.assign({}, w, {
+      daysText: 'sur ' + noted + (noted > 1 ? ' jours' : ' jour'),
+      daysShort: noted + (noted > 1 ? ' jours' : ' jour') + ' sur 7',
+      daysA11y: 'Jours notés : ' + notedNames.join(', ') + '.',
+      distText: 'Répartition des humeurs : ' + w.moods.map((c, i) => labels[i] + ', ' + c + (c > 1 ? ' entrées' : ' entrée')).join(' ; ') + '.'
+    });
+    const max = Math.max.apply(null, w.moods.concat([1]));
+    const rows = w.moods.map((c, i) => ({
+      mood: i + 1, label: labels[i], count: c,
+      dot: 'width: 40px; height: 40px; flex-shrink: 0; border-radius: 999px; display: grid; place-items: center; background: ' + t.moods[i] + '; color: ' + (i === 0 ? t.onMood1 : t.onMood) + "; font: 700 19px/1 'Bricolage Grotesque', system-ui, sans-serif;",
+      bar: 'height: 8px; border-radius: 999px; width: ' + Math.round(c / max * 100) + '%; background: ' + t.moods[i] + ';'
+    }));
+    const days = ['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((letter, i) => ({
+      letter,
+      cell: w.days[i]
+        ? 'height: 40px; box-sizing: border-box; border-radius: 8px; display: grid; place-items: center; background: ' + t.tideSoft + '; color: ' + t.ink + '; font-size: 14px; line-height: 20px; font-weight: 600;'
+        : 'height: 40px; box-sizing: border-box; border-radius: 8px; display: grid; place-items: center; border: 1px dashed ' + t.line + '; color: ' + t.muted + '; font-size: 14px; line-height: 20px; font-weight: 500;'
+    }));
+    const tags = w.tags.map(([label, count]) => ({ label, count, a11y: label + ', ' + count + (count > 1 ? ' entrées' : ' entrée') }));
+    const fullHeight = ['insuffisant', 'chargement', 'erreur'].indexOf(state) === -1;
+    const insufficient = state === 'insuffisant' || (fullHeight && w.count < 3);
+    const ready = fullHeight && !insufficient;
+    const writing = ready && state === 'ecriture';
+    const noModel = ready && state === 'modele-absent';
+    const noTextWeek = ready && !writing && !noModel && (state === 'sans-texte' || w.sensitive);
+    const hasText = ready && !writing && !noModel && !noTextWeek;
+    const btn = (enabled) => 'width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 999px; display: grid; place-items: center; background: transparent; padding: 0; cursor: ' + (enabled ? 'pointer' : 'default') + '; color: ' + (enabled ? t.tide : t.line) + ';';
+    const prevEnabled = state === 'nominal' ? index < 2 : state !== 'insuffisant';
+    const nextEnabled = state === 'nominal' ? index > 0 : state === 'insuffisant';
+    return {
+      t, week, rows, days, tags,
+      rootH: fullHeight ? '1320px' : '852px',
+      loading: state === 'chargement',
+      failed: state === 'erreur',
+      insufficient,
+      ready, writing, hasText, noTextWeek, noModel,
+      prevDisabled: !prevEnabled, nextDisabled: !nextEnabled,
+      prevStyle: btn(prevEnabled), nextStyle: btn(nextEnabled),
+      goPrev: () => { if (state === 'nominal' && index < 2) this.setState({ week: index + 1 }); },
+      goNext: () => { if (state === 'nominal' && index > 0) this.setState({ week: index - 1 }); }
+    };
+  }
+}
+</script>
+</body>
+</html>
