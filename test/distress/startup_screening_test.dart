@@ -7,6 +7,7 @@ import 'package:tidemark/entries/entry_repository.dart';
 import 'package:tidemark/main.dart';
 
 import '../support/fake_entry_repository.dart';
+import '../support/fake_model_downloader.dart';
 import '../support/fake_settings_repository.dart';
 import '../support/ui_harness.dart';
 
@@ -196,8 +197,11 @@ void main() {
     Future<Widget> start(WidgetTester tester, FakeEntryRepository repo) async {
       final app = await tester.runAsync(
         () => startApp(
-          open: () async =>
-              Journal(entries: repo, settings: FakeSettingsRepository()),
+          open: () async => Journal(
+            entries: repo,
+            settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(),
+          ),
         ),
       );
       return app!;

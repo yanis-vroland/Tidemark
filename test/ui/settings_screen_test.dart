@@ -10,6 +10,7 @@ import 'package:tidemark/ui/screens/settings_screen.dart';
 import 'package:tidemark/ui/theme/tidemark_colors.dart';
 
 import '../support/distress_harness.dart';
+import '../support/fake_model_downloader.dart';
 import '../support/fake_settings_repository.dart';
 import '../support/ui_harness.dart';
 
@@ -19,7 +20,10 @@ Future<void> showSettings(
   double textScale = 1.0,
 }) async {
   await tester.pumpWidget(
-    testApp(SettingsScreen(settings: settings), textScale: textScale),
+    testApp(
+      SettingsScreen(settings: settings, downloader: FakeModelDownloader()),
+      textScale: textScale,
+    ),
   );
   await settle(tester);
 }

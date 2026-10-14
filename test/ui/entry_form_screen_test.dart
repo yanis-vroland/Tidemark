@@ -10,6 +10,7 @@ import 'package:tidemark/main.dart';
 import 'package:tidemark/ui/screens/entry_form_screen.dart';
 
 import '../support/fake_entry_repository.dart';
+import '../support/fake_model_downloader.dart';
 import '../support/ui_harness.dart';
 
 const emptyListTitle = 'Ta première entrée apparaîtra ici';
@@ -39,6 +40,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(),
           ),
         ),
       );
@@ -57,6 +59,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(),
           ),
         ),
       );
@@ -76,6 +79,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(),
           ),
         ),
       );
@@ -95,6 +99,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(),
           ),
         ),
       );
@@ -121,6 +126,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(),
           ),
         ),
       );
@@ -138,6 +144,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(),
           ),
         ),
       );
@@ -160,6 +167,7 @@ void main() {
             EntryFormScreen(
               repository: env.repo,
               settings: FakeSettingsRepository(),
+              downloader: FakeModelDownloader(),
             ),
           ),
         );
@@ -181,6 +189,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(),
           ),
         ),
       );
@@ -198,6 +207,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(),
           ),
         ),
       );
@@ -216,6 +226,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(),
           ),
         ),
       );
@@ -233,6 +244,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(),
           ),
         ),
       );
@@ -251,6 +263,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(),
           ),
         ),
       );
@@ -266,6 +279,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(),
           ),
         ),
       );
@@ -283,6 +297,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(),
           ),
         ),
       );
@@ -305,6 +320,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(),
           ),
         ),
       );
@@ -526,7 +542,11 @@ void main() {
       );
       await tester.pumpWidget(
         testApp(
-          EntryFormScreen(repository: repo, settings: FakeSettingsRepository()),
+          EntryFormScreen(
+            repository: repo,
+            settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(),
+          ),
         ),
       );
       await tester.pump();
@@ -559,6 +579,7 @@ void main() {
           repository: repo,
           settings: FakeSettingsRepository(),
           clock: () => fixedNow,
+          downloader: FakeModelDownloader(),
         ),
       );
       await tester.pump();
@@ -595,6 +616,7 @@ void main() {
           repository: repo,
           settings: FakeSettingsRepository(),
           clock: () => fixedNow,
+          downloader: FakeModelDownloader(),
         ),
       );
       await tester.pump();

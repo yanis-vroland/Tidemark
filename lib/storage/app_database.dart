@@ -241,6 +241,15 @@ class DriftSettingsRepository implements SettingsRepository {
       _parse(await _row.getSingleOrNull());
 
   @override
+  Stream<bool> watchModelOfferShown() => throw UnimplementedError();
+
+  @override
+  Future<bool> readModelOfferShown() => throw UnimplementedError();
+
+  @override
+  Future<void> setModelOfferShown() => throw UnimplementedError();
+
+  @override
   Future<void> setLowMoodSensitivity(LowMoodSensitivity sensitivity) => db
       .into(db.settings)
       .insertOnConflictUpdate(
