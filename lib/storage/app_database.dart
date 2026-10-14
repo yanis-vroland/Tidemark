@@ -4,8 +4,8 @@ import 'package:characters/characters.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 
-import '../entries/entry.dart';
 import '../distress/distress_detector.dart';
+import '../entries/entry.dart';
 import '../entries/entry_repository.dart';
 import '../settings/settings_repository.dart';
 

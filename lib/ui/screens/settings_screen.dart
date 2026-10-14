@@ -39,11 +39,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
       .watchLowMoodSensitivity();
   bool _failed = false;
 
+  /// Dernier degré enregistré avec succès : affiché si la lecture est en échec,
+  /// pour que l'écran ne contredise pas le degré appliqué.
+  LowMoodSensitivity? _saved;
+
   Future<void> _choose(LowMoodSensitivity? value) async {
     if (value == null) return;
     try {
       await widget.settings.setLowMoodSensitivity(value);
-      if (mounted) setState(() => _failed = false);
+      if (mounted) {
+        setState(() {
+          _failed = false;
+          _saved = value;
+        });
+      }
     } catch (_) {
       // Le degré coché vient de la base : le précédent reste coché (CA20).
       if (mounted) setState(() => _failed = true);
@@ -59,7 +68,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           builder: (context, snapshot) {
             // Lecture impossible : le degré appliqué est « Normale » (CA21).
             final current = snapshot.hasError
-                ? LowMoodSensitivity.normal
+                ? _saved ?? LowMoodSensitivity.normal
                 : snapshot.data;
             // Tout l'écran est construit : à 200 %, le bandeau d'erreur reste dans
             // l'arbre même après avoir défilé jusqu'aux degrés (CA25).

@@ -126,3 +126,35 @@ Revues `reviewer` et `security-reviewer`, essai sur simulateur, puis PR.
 ### Prochaine étape
 
 Ouvrir la PR, traiter la revue IA, puis le test humain par Yanis.
+
+## 2026-10-14 21:27
+
+### Fait
+
+- CI rouge sur deux tests de CA13 : `FakeEntryRepository` fixait le décalage horaire à +2 h, alors que la CI tourne en UTC. Le faux prend désormais le décalage de son horloge, comme le vrai dépôt, et son horloge par défaut est en heure locale. Les 438 tests passent en UTC, à Paris et à New York.
+- Suites de la revue IA de la PR #19 :
+  - RM29 complétée dans le cahier des charges : une erreur de lecture des dernières entrées n'empêche pas l'enregistrement, et la détection par le texte s'applique toujours ;
+  - Réglages : après une lecture en échec, le dernier degré enregistré reste affiché (test complété, mutation détectée) ;
+  - le test de configuration native refuse aussi `android.intent.action.DIAL` ;
+  - imports triés.
+- Essai sur l'émulateur Android (Pixel 7, API 35), avec le code du plugin `url_launcher_android` 6.3.33 vérifié (`startActivity` direct, sans `<queries>`) :
+  - lot E installé, entrée « Neutre » avec « je veux mourir » enregistrée « en attente » ;
+  - branche installée par-dessus : migration réussie, entrée conservée, aucun écran d'aide au démarrage (CA15) ;
+  - nouvelle entrée en détresse : écran d'aide (CA1, CA10) ;
+  - « Appeler le 3114 » et « Appeler le 112 » ouvrent le composeur sur le bon numéro, sans appeler (CA11) ;
+  - au retour, l'écran d'aide est toujours affiché ; « Revenir à mon journal » mène à la liste, nouvelle entrée en tête (CA13) ;
+  - Réglages conformes à la maquette.
+
+### Décisions
+
+- Le test humain sur l'iPhone 15 Pro reste à faire par Yanis. L'essai Android de l'agent sur l'émulateur couvre le risque relevé par la revue IA (composeur sans `<queries>`, migration) (agent).
+
+### Corrections et limites
+
+- `test/support/fake_entry_repository.dart` modifié (décalage horaire) : support des tests, aucune vérification changée.
+- `test/ui/settings_screen_test.dart` : deux vérifications ajoutées au test « lecture du degré impossible ».
+- L'essai Android est fait par l'agent, à l'émulateur ; ce n'est pas le test humain prévu par la définition du « done ».
+
+### Prochaine étape
+
+Réponse à la revue IA sur la PR #19, puis test humain par Yanis sur l'iPhone et merge.

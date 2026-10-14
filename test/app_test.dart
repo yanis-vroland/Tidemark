@@ -3,9 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/main.dart';
 import 'package:tidemark/ui/theme/tidemark_colors.dart';
 
-import 'support/fake_settings_repository.dart';
-
 import 'support/fake_entry_repository.dart';
+import 'support/fake_settings_repository.dart';
 
 void main() {
   for (final brightness in Brightness.values) {

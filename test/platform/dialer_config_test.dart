@@ -21,10 +21,10 @@ void main() {
   test(
     'CA11 : aucune déclaration du schéma tel, ni sur Android ni sur iOS',
     () {
-      expect(
-        File('android/app/src/main/AndroidManifest.xml').readAsStringSync(),
-        isNot(contains('android:scheme="tel"')),
-      );
+      final manifest = File('android/app/src/main/AndroidManifest.xml')
+          .readAsStringSync();
+      expect(manifest, isNot(contains('android:scheme="tel"')));
+      expect(manifest, isNot(contains('android.intent.action.DIAL')));
       expect(
         File('ios/Runner/Info.plist').readAsStringSync(),
         isNot(contains('LSApplicationQueriesSchemes')),
