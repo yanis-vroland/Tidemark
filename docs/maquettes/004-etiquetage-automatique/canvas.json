@@ -19,7 +19,11 @@
   "DetailModeleAbsent.dc.html": { "x": 1892, "y": 1300, "w": 393, "h": 852, "title": "Détail · modèle absent · clair", "radius": 48 },
   "DetailModeleAbsentSombre.dc.html": { "x": 2365, "y": 1300, "w": 393, "h": 852, "title": "Détail · modèle absent · sombre", "radius": 48 },
   "DetailSansEtiquette.dc.html": { "x": 2838, "y": 1300, "w": 393, "h": 852, "title": "Détail · aucune étiquette · clair", "radius": 48 },
-  "DetailSansEtiquetteSombre.dc.html": { "x": 3311, "y": 1300, "w": 393, "h": 852, "title": "Détail · aucune étiquette · sombre", "radius": 48 }
+  "DetailSansEtiquetteSombre.dc.html": { "x": 3311, "y": 1300, "w": 393, "h": 852, "title": "Détail · aucune étiquette · sombre", "radius": 48 },
+  "DetailEnAttente.dc.html": { "x": 3784, "y": 1300, "w": 393, "h": 852, "title": "Détail · en attente d'analyse · clair", "radius": 48 },
+  "DetailEnAttenteSombre.dc.html": { "x": 4257, "y": 1300, "w": 393, "h": 852, "title": "Détail · en attente d'analyse · sombre", "radius": 48 },
+  "DetailIndisponible.dc.html": { "x": 4730, "y": 1300, "w": 393, "h": 852, "title": "Détail · modèle impossible à charger · clair", "radius": 48 },
+  "DetailIndisponibleSombre.dc.html": { "x": 5203, "y": 1300, "w": 393, "h": 852, "title": "Détail · modèle impossible à charger · sombre", "radius": 48 }
  },
  "order": [
   "Main.dc.html",
@@ -31,11 +35,15 @@
   "DetailModeleAbsent.dc.html",
   "DetailModeleAbsentSombre.dc.html",
   "DetailSansEtiquette.dc.html",
-  "DetailSansEtiquetteSombre.dc.html"
+  "DetailSansEtiquetteSombre.dc.html",
+  "DetailEnAttente.dc.html",
+  "DetailEnAttenteSombre.dc.html",
+  "DetailIndisponible.dc.html",
+  "DetailIndisponibleSombre.dc.html"
  ],
  "notes": {
   "liste": { "x": 0, "y": -300, "text": "Liste : étiquettes sur les cartes (spec 004)", "kind": "title1", "maxW": 866 },
-  "detail": { "x": 0, "y": 1000, "text": "Détail : section « Étiquettes » dans ses quatre états (spec 004)", "kind": "title1", "maxW": 3704 }
+  "detail": { "x": 0, "y": 1000, "text": "Détail : section « Étiquettes » dans ses six états (spec 004)", "kind": "title1", "maxW": 5596 }
  },
  "designSystems": [
   {

@@ -20,7 +20,7 @@ Données d'exemple fictives : progression à 28 % (312 Mo), taille de 1,1 Go tir
 
 ## Limites
 
-- Captures PNG : absentes, comme pour les maquettes 001 et 002 (export depuis l'artefact, Partager, Exporter).
+- Captures PNG : absentes, comme pour les maquettes 001 et 002 (export depuis l'artefact, Partager, Exporter). Dette à suivre dans une issue, à créer avec l'accord de Yanis (proposée dans la réponse à la revue IA de la PR #18) ; la spec n'affiche donc pas encore de capture.
 - Lien et anneau de focus écrits en dur avec la valeur claire de `tide` dans la feuille de style de l'artefact, comme pour les maquettes 001 et 002 : sans effet sur l'app.
 - Réglages : artboards de 1 240 points de haut, pour montrer tout l'écran qui défile ; la section « Écran d'aide » est celle de la maquette 002, reprise à l'identique (degré « Normale »). L'état « chargement » des Réglages est celui de la maquette 002.
 - Pas d'état vide : le contenu de la proposition est fixe. La progression et la vérification sont les états de chargement, les trois échecs les états d'erreur.
