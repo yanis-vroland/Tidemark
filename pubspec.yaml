@@ -7,13 +7,20 @@ environment:
   sdk: ^3.13.5
 
 dependencies:
+  drift: 2.35.2
   flutter:
     sdk: flutter
+  flutter_secure_storage: 11.2.0
+  path: ^1.9.1
+  path_provider: ^2.1.6
+  sqlite3: 3.7.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  drift_dev: ^2.35.1
+  build_runner: ^2.16.2
 
 flutter:
   uses-material-design: true
@@ -27,3 +34,10 @@ flutter:
     - family: Figtree
       fonts:
         - asset: assets/fonts/Figtree-Variable.ttf
+
+# Base chiffrée par SQLite3MultipleCiphers (ADR-002) : le hook de sqlite3 télécharge
+# ce binaire au build, vérifié par empreinte. Aucun accès réseau de l'app (RM1).
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlite3mc

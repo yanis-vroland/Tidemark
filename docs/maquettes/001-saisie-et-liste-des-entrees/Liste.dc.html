@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Liste des entrées</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&amp;family=Figtree:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f6b}a:hover{color:#13272c}
+</style>
+</helmet>
+<div style="width: 393px; height: 852px; box-sizing: border-box; padding: 72px 16px 40px; display: flex; flex-direction: column; gap: 16px; background: {{t.surface}}; color: {{t.ink}}; font-family: Figtree, system-ui, sans-serif;">
+  <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 34px; line-height: 38px; letter-spacing: -0.5px;">Ton journal</h1>
+
+  <sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+    <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px; padding-bottom: 80px;">
+      <p style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 22px; line-height: 28px;">Ta première entrée apparaîtra ici</p>
+      <p style="margin: 0; font-size: 16px; line-height: 24px; color: {{t.muted}};">Note ton humeur en quelques secondes. Tout reste sur ton téléphone.</p>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{full}}" hint-placeholder-val="{{true}}">
+    <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 12px; overflow: hidden;">
+      <sc-for list="{{days}}" as="day" hint-placeholder-count="3">
+        <section style="display: flex; flex-direction: column; gap: 8px;">
+          <h2 style="margin: 8px 0 0; font-size: 14px; line-height: 20px; font-weight: 600; letter-spacing: 0.2px; color: {{t.muted}};">{{day.label}}</h2>
+          <sc-for list="{{day.entries}}" as="e" hint-placeholder-count="2">
+            <a href="Detail.dc.html" aria-label="{{e.aria}}" style="display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 16px; background: {{t.raised}}; color: {{t.ink}}; text-decoration: none;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span aria-hidden="true" style="{{e.dot}}">{{e.mood}}</span>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 17px; line-height: 24px; font-weight: 600;">{{e.label}}</span>
+                  <span style="font-size: 13px; line-height: 18px; color: {{t.muted}};">{{e.time}}</span>
+                </div>
+              </div>
+              <sc-if value="{{e.hasText}}" hint-placeholder-val="{{true}}">
+                <p style="margin: 0; font-size: 16px; line-height: 24px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{e.text}}</p>
+              </sc-if>
+            </a>
+          </sc-for>
+        </section>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <a href="Main.dc.html" style="height: 52px; flex-shrink: 0; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; background: {{t.tide}}; color: {{t.onTide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+    Nouvelle entrée
+  </a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"state":{"editor":"enum","options":["entrees","vide"],"default":"entrees"},"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const LIGHT = { surface: '#f3f6f5', raised: '#ffffff', ink: '#13272c', muted: '#4b5e64', tide: '#1d5f6b', onTide: '#ffffff', moods: ['#3c4f7c', '#6684b0', '#86b2ab', '#e2b55a', '#ef8c59'], onMood1: '#ffffff', onMood: '#13272c' };
+    const DARK = { surface: '#0e191c', raised: '#172529', ink: '#e4eeec', muted: '#9db0b1', tide: '#7cc5c9', onTide: '#0a2226', moods: ['#8fa3d6', '#7f9cc8', '#86b9b1', '#e6be6a', '#f29a6a'], onMood1: '#0e191c', onMood: '#0e191c' };
+    const t = this.props.dark ? DARK : LIGHT;
+    const labels = ['Très bas', 'Bas', 'Neutre', 'Bien', 'Très bien'];
+    const entry = (mood, time, text) => ({
+      mood,
+      time,
+      text,
+      hasText: !!text,
+      label: labels[mood - 1],
+      aria: labels[mood - 1] + ', humeur ' + mood + ' sur 5, ' + time + (text ? ', ' + text : ''),
+      dot: 'width: 40px; height: 40px; flex-shrink: 0; border-radius: 999px; display: grid; place-items: center; background: ' + t.moods[mood - 1] + '; color: ' + (mood === 1 ? t.onMood1 : t.onMood) + "; font: 700 19px/1 'Bricolage Grotesque', system-ui, sans-serif;"
+    });
+    const days = [
+      { label: "Aujourd'hui", entries: [entry(4, '21:40', "Longue journée au travail, mais la balade du soir au bord de l'eau m'a fait du bien."), entry(3, '08:15', '')] },
+      { label: 'Hier', entries: [entry(2, '22:05', 'Encore une nuit trop courte. Je traîne toute la journée et je repousse tout à demain.')] },
+      { label: 'Lundi 12 octobre', entries: [entry(5, '19:30', 'Week-end à la mer avec Léa. Pas de téléphone, juste le bruit des vagues.')] }
+    ];
+    const empty = (this.props.state ?? 'entrees') === 'vide';
+    return { t, days, empty, full: !empty };
+  }
+}
+</script>
+</body>
+</html>
