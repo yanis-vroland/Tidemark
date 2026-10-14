@@ -1,6 +1,6 @@
 # Spec 003 : téléchargement du modèle local
 
-Statut : validée (validation déléguée par Yanis à l'agent, 2026-10-14)
+Statut : validée (validation déléguée par Yanis à l'agent, 2026-10-14, par la consigne de session qui a lancé le lot G ; Yanis confirme dans la PR #18 avant le lancement de `test-writer`)
 Date : 2026-10-14
 
 ## Besoin
@@ -30,12 +30,18 @@ C'est le seul accès réseau de l'app (RM1). Ce lot ne fait encore aucune analys
 - **Adresse** : une seule URL HTTPS, épinglée sur une révision (commit) du dépôt `Qwen/Qwen2.5-1.5B-Instruct-GGUF` de Hugging Face, de la forme `https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/<commit>/qwen2.5-1.5b-instruct-q4_k_m.gguf`.
 - **Empreinte** : SHA-256 du fichier, en constante dans le code.
 - L'URL, le commit, l'empreinte et la taille exacte en octets ne figurent ni dans l'ADR-001 ni dans ses mesures. Ils sont **fixés à l'implémentation**, dans une seule constante (`ModelSource`), relevés sur la page du fichier à la révision choisie (empreinte « SHA256 » de Hugging Face), puis vérifiés une fois en téléchargeant le fichier (`shasum -a 256`) ; la PR d'implémentation donne la commande et son résultat. Un test vérifie la forme de la constante (CA27).
-- **Hôtes** : Hugging Face répond à `huggingface.co/…/resolve/…` par une redirection vers son stockage de fichiers, sur un autre hôte. « Un seul hôte » (plan, lot G) n'est donc pas tenable avec une URL stable ; la règle devient : **un seul fournisseur**. L'app suit elle-même les redirections, au plus 5, et seulement vers un hôte en HTTPS égal à `huggingface.co` ou qui finit par `.hf.co` (stockage de Hugging Face). Toute autre redirection est un échec réseau, sans requête vers l'hôte refusé.
+- **Hôtes** : Hugging Face répond à `huggingface.co/…/resolve/…` par une redirection vers son stockage de fichiers, sur un autre hôte. « Un seul hôte » (plan, lot G) n'est donc pas tenable avec une URL stable ; la règle devient : **un seul fournisseur** (plan mis à jour). L'app suit elle-même les redirections, au plus 5 :
+  - un `Location` relatif (`/api/resolve-cache/…`) est résolu sur l'URL courante, puis soumis à la même règle ;
+  - l'adresse obtenue doit être en `https`, sur le port par défaut, et son hôte (en minuscules) égal à `huggingface.co`, ou finir par `.huggingface.co` ou par `.hf.co` : comparaison par suffixe, **point compris**. `cdn-lfs.huggingface.co` et `cas-bridge.xethub.hf.co` sont admis ; `huggingface.co.evil.com`, `evilhf.co`, `hf.co.evil.com` et `http://huggingface.co` sont refusés ;
+  - toute autre redirection est un échec réseau, sans requête vers l'adresse refusée.
+  La chaîne réelle de redirections de la révision choisie est relevée à l'implémentation et consignée dans la PR.
+- **Pourquoi pas d'ADR** : RM1 admet déjà le téléchargement du modèle comme seul accès réseau, et l'ADR-001 fixe déjà la source (révision Hugging Face épinglée, empreinte vérifiée). Cette spec précise les hôtes de ce même téléchargement ; elle n'ouvre pas d'autre accès. Toute autre destination exigerait un ADR.
 
 ### Requête (RM1, RM30)
 
 - Une requête `GET` par hôte de la chaîne de redirections, sans corps, sans cookie, sans paramètre ajouté à l'URL, sans en-tête `Range` (un téléchargement repart toujours de zéro, RM26).
-- En-têtes envoyés, et seulement eux : `User-Agent: Tidemark` (sans version ni identifiant) et `Accept-Encoding: identity`. Le client HTTP n'ajoute rien d'autre.
+- En-têtes demandés par le téléchargeur à `ModelTransport`, et seulement eux : `User-Agent: Tidemark` (sans version ni identifiant) et `Accept-Encoding: identity`.
+- Sur le fil, `dart:io` ajoute au moins `Host` (et peut-être `Content-Length: 0`). La liste exacte des en-têtes reçus est fixée par le test de `IoModelTransport` sur la boucle locale (CA31) : tout autre en-tête (`Cookie`, `Authorization`, `Range`, identifiant) le fait échouer.
 - Aucune donnée de la personne, aucun identifiant d'appareil ou d'installation : la requête est la même sur tous les téléphones.
 
 ### Consentement et proposition (RM11, RM18, RM31)
@@ -75,8 +81,8 @@ Transitions : celles du cahier des charges (« Statuts et transitions »). Un é
 
 ### Téléchargement
 
-- CA7 : Étant donné la proposition, quand la personne touche « Télécharger le modèle (1,1 Go) », alors le modèle passe à `downloading`, l'écran passe à la progression, et une seule requête `GET` part vers l'URL de `ModelSource`, avec exactement les en-têtes `User-Agent: Tidemark` et `Accept-Encoding: identity`, sans corps ni en-tête `Range`.
-- CA8 : Étant donné une réponse de redirection vers un hôte HTTPS `huggingface.co` ou `*.hf.co`, quand elle arrive, alors l'app suit la redirection avec la même requête ; vers tout autre hôte, vers une adresse `http:`, ou au-delà de 5 redirections, alors aucune requête ne part vers cette adresse et le téléchargement échoue avec la cause « réseau ».
+- CA7 : Étant donné la proposition, quand la personne touche « Télécharger le modèle (1,1 Go) », alors le modèle passe à `downloading`, l'écran passe à la progression, et `ModelTransport` reçoit une seule demande, vers l'URL de `ModelSource`, avec exactement les en-têtes `User-Agent: Tidemark` et `Accept-Encoding: identity`, sans en-tête `Range`.
+- CA8 : Étant donné une réponse de redirection, quand elle arrive, alors l'app résout un `Location` relatif sur l'URL courante, puis suit la redirection avec la même requête si l'adresse est admise (« Hôtes ») : `https://cdn-lfs.huggingface.co/…`, `https://cas-bridge.xethub.hf.co/…`, `/api/resolve-cache/…`. Pour une adresse refusée (`https://huggingface.co.evil.com/…`, `https://evilhf.co/…`, `http://huggingface.co/…`, port explicite autre que 443) ou au-delà de 5 redirections, aucune requête ne part vers cette adresse et le téléchargement échoue avec la cause « réseau ».
 - CA9 : Étant donné un téléchargement en cours, quand des octets arrivent, alors l'écran montre le pourcentage entier, arrondi à l'inférieur (« 28 % »), la barre de progression et « 312 Mo sur 1,1 Go » (mégaoctets de 10⁶ octets, arrondis à l'inférieur), mis à jour à chaque point de pourcentage au moins.
 - CA10 : Étant donné un téléchargement en cours, quand un nouveau téléchargement est demandé (double appui, `start()` appelé de nouveau), alors aucune seconde requête ne part et la progression en cours continue ; pendant le téléchargement, ni les Réglages (CA23) ni le détail d'une entrée (spec 004) ne montrent de bouton de téléchargement.
 - CA11 : Étant donné un téléchargement en cours, quand la personne touche « Revenir à mon journal » ou fait un geste de retour, alors la liste s'affiche et le téléchargement continue ; la section des Réglages montre sa progression (CA23).
@@ -100,6 +106,7 @@ Transitions : celles du cahier des charges (« Statuts et transitions »). Un é
 
 - CA21 : Étant donné un fichier temporaire laissé par un téléchargement interrompu (app fermée, téléphone éteint), quand l'app démarre, alors il est effacé et le modèle est `absent` ; aucun téléchargement ne reprend de lui-même et la proposition ne s'ouvre pas.
 - CA22 : Étant donné le fichier définitif présent, quand l'app démarre, alors le modèle est `ready` s'il a la taille de `ModelSource` ; sinon il est effacé et le modèle est `absent`.
+- CA32 : Étant donné le modèle `ready` qui ne peut pas être chargé par l'analyseur (spec 004), quand `ModelDownloader.verifyAfterLoadFailure()` est appelé, alors l'empreinte du fichier est recalculée une fois : fausse, le fichier est effacé et le modèle repasse à `absent` (la personne peut le retélécharger) ; juste, le modèle reste `ready`.
 
 ### Réglages
 
@@ -108,8 +115,10 @@ Transitions : celles du cahier des charges (« Statuts et transitions »). Un é
 
 ### Seul accès réseau (RM1)
 
-- CA25 : Étant donné le code de l'app, quand les tests s'exécutent, alors aucun fichier de `lib/` hors de `lib/model/` n'ouvre de connexion (`HttpClient`, `Socket`, `WebSocket`, `package:http`, `dart:io` `HttpRequest`) : un garde-fou de `test/guards/` le vérifie, contrôlé par mutation.
+- CA25 : Étant donné le code de l'app, quand les tests s'exécutent, alors aucun fichier de `lib/` hors de `lib/model/` n'utilise `HttpClient`, `HttpRequest`, `Socket`, `RawSocket`, `SecureSocket`, `WebSocket`, `InternetAddress`, `Image.network`, `NetworkImage`, `package:http` ni `package:dio` ; `url_launcher` n'est admis qu'avec un schéma `tel:` (écran d'aide, spec 002). Un garde-fou de `test/guards/` le vérifie, contrôlé par mutation.
+- CA33 : Étant donné une PR qui ajoute une dépendance directe à `pubspec.yaml`, quand elle est relue, alors sa description dit si le paquet ouvre une connexion réseau ; un paquet qui en ouvre une, hors du téléchargement du modèle, exige un ADR (RM1). Limite assumée : depuis que la permission `INTERNET` est dans le manifeste principal, le garde-fou de CA25 ne voit pas le code des dépendances.
 - CA26 : Étant donné l'app installée, quand le système sauvegarde le téléphone, alors le dossier du modèle n'est pas inclus dans la sauvegarde (ADR-002).
+- CA31 : Étant donné `IoModelTransport` face à un `HttpServer` lancé par le test sur la boucle locale (`127.0.0.1`, rien ne sort du poste), quand il fait une demande, alors le serveur reçoit un `GET` sans corps dont les en-têtes sont exactement la liste fixée par le test (`host`, `user-agent: Tidemark`, `accept-encoding: identity`, et ce que `dart:io` ajoute sans identifiant), sans cookie ; et une réponse 302 est rendue au téléchargeur sans être suivie par le client HTTP.
 - CA27 : Étant donné `ModelSource`, quand les tests s'exécutent, alors son URL est en `https`, sur l'hôte `huggingface.co`, avec un commit de 40 caractères hexadécimaux dans le chemin (jamais `main`), son empreinte compte 64 caractères hexadécimaux et sa taille est positive.
 
 ### Accessibilité et thème
@@ -122,13 +131,14 @@ Transitions : celles du cahier des charges (« Statuts et transitions »). Un é
 
 Fixées par cette spec, puis reportées dans l'architecture technique avec l'implémentation.
 
-- **Source** (`ModelSource`, `lib/model/model_source.dart`) : URL, empreinte SHA-256, taille en octets, hôtes admis (`huggingface.co`, `*.hf.co`), nom du fichier.
+- **Source** (`ModelSource`, `lib/model/model_source.dart`) : URL, empreinte SHA-256, taille en octets, hôtes admis (`huggingface.co`, suffixes `.huggingface.co` et `.hf.co`), nom du fichier.
 - **État** (`LocalModelStatus`) : `absent`, `downloading`, `ready`. L'état complet exposé aux écrans est une classe scellée `ModelState` : `ModelAbsent` (avec la cause du dernier échec, `DownloadFailure` : `network`, `checksum`, `storage`, ou rien), `ModelDownloading` (octets reçus, taille attendue, vérification en cours ou non), `ModelReady` (chemin du fichier).
 - **Téléchargement** (`ModelDownloader`, `lib/model/model_downloader.dart`) : interface.
   - `Stream<ModelState> watch()` ; `Future<void> start()` (sans effet si un téléchargement tourne) ; `Future<void> cancel()` ; `Future<void> checkAtStartup()` (CA21, CA22) ; `Future<void> deleteModel()` (pour la suppression totale du lot H).
   - Implémentation `HttpModelDownloader` : calcule l'empreinte au fil de l'eau (`package:crypto`, déjà présent comme dépendance transitive, à déclarer en dépendance directe et à justifier dans la PR), et passe par une interface de transport.
   - `FakeModelDownloader` dans `test/support/`, pour les écrans.
-- **Transport** (`ModelTransport`) : `get(Uri url, Map<String, String> headers)` rend le statut HTTP, l'en-tête `Location` et un flux d'octets. Implémentation `IoModelTransport` sur `dart:io` `HttpClient`, avec `followRedirects = false` (l'app suit les redirections elle-même, CA8), `autoUncompress = false`, sans cookie ni proxy ajouté, et `userAgent` remplacé par `Tidemark`. `FakeModelTransport` dans `test/support/` : **aucune requête réseau dans les tests**, ni vers Internet ni en local. Les tests utilisent un dossier temporaire du système de fichiers.
+- **Transport** (`ModelTransport`) : `get(Uri url, Map<String, String> headers)` rend le statut HTTP, l'en-tête `Location` et un flux d'octets. Implémentation `IoModelTransport` sur `dart:io` `HttpClient`, avec `followRedirects = false` (l'app suit les redirections elle-même, CA8), `autoUncompress = false`, sans cookie ni proxy ajouté, et `userAgent` remplacé par `Tidemark`. `FakeModelTransport` dans `test/support/` pour tous les tests du téléchargeur : **aucune requête vers Internet dans les tests**. Seul le test de `IoModelTransport` (CA31) ouvre une connexion, vers un serveur local lancé par le test sur `127.0.0.1`. Les tests utilisent un dossier temporaire du système de fichiers.
+- **Vérification après échec de chargement** : `ModelDownloader.verifyAfterLoadFailure()` (CA32), appelée par la file d'analyse (spec 004).
 - **Réglages** (`SettingsRepository`, spec 002) : nouvelle valeur « proposition du modèle déjà affichée » (`watchModelOfferShown`, `setModelOfferShown`), colonne ajoutée à la table `settings` par une migration (version suivante du schéma). Effacée avec la base à la suppression totale (lot H).
 - **Android** : la permission `android.permission.INTERNET` passe dans le manifeste principal (`android/app/src/main/AndroidManifest.xml`) ; elle n'était jusqu'ici que dans les manifestes de débogage et de profil. Elle ne sert qu'à `IoModelTransport` (CA25).
 - **iOS** : aucune exception ATS : tout est en HTTPS.
@@ -143,6 +153,8 @@ Artefact Claude de type « Design » ([lien privé](https://claude.ai/artifact/U
 - **Réglages** : section « Analyse sur le téléphone » avec le modèle absent, en téléchargement et prêt ; la section « Écran d'aide » de la spec 002 suit, inchangée.
 
 Il n'y a pas d'état vide (le contenu de la proposition est fixe) ; la progression et la vérification sont les états de chargement, l'échec l'état d'erreur. L'état « chargement » des Réglages est celui de la spec 002 (titre seul).
+
+Captures PNG : absentes, comme pour les maquettes 001 et 002 ; à exporter depuis l'artefact (dette à suivre dans une issue, à créer avec l'accord de Yanis). En attendant, la copie HTML de `docs/maquettes/` fait foi.
 
 Jetons manquants, à ajouter à la charte, à `tokens.json` et au test de fidélité dans la PR d'implémentation : `progress-height` (8, hauteur de la barre de progression), en plus de `icon-md` (24) et `icon-button` (18) déjà demandés par la spec 002. La barre utilise `tide` sur un fond `tide-soft`, déjà dans la charte.
 
@@ -169,10 +181,13 @@ Jetons manquants, à ajouter à la charte, à `tokens.json` et au test de fidél
 
 Aucune. Décisions prises par l'agent, à la demande de Yanis (2026-10-14) :
 
-1. **Un seul fournisseur plutôt qu'un seul hôte** : Hugging Face redirige vers son stockage ; les redirections sont suivies par l'app, seulement vers `huggingface.co` et `*.hf.co`, en HTTPS (RM30).
+1. **Un seul fournisseur plutôt qu'un seul hôte** : Hugging Face redirige vers son stockage ; les redirections sont suivies par l'app, seulement vers `huggingface.co`, `*.huggingface.co` et `*.hf.co`, en HTTPS (RM30).
 2. **Proposition automatique une seule fois**, puis accès par les Réglages et le détail d'une entrée en attente : pas de relance répétée sur un sujet sensible (RM31).
 3. **Confirmation avant l'annulation** : un appui malheureux ne doit pas coûter un gigaoctet de forfait (CA12).
 4. **Retour au journal pendant le téléchargement**, sans téléchargement en arrière-plan du système : plus simple, sans paquet natif ; la limite est dite à l'écran (RM32).
 5. **Empreinte vérifiée une fois**, avant le renommage, et pas à chaque démarrage : la taille suffit ensuite (CA22). Recalculer 1,1 Go à chaque lancement coûterait plusieurs secondes.
 6. **Pas de vérification de la place libre** avant le téléchargement : l'erreur d'écriture est traitée (CA18).
 7. **URL, commit et empreinte** fixés à l'implémentation et vérifiés par CA27 et par un téléchargement manuel consigné dans la PR : ils ne figurent pas dans l'ADR-001.
+8. **Hôtes admis précisés** après la revue IA de la PR #18 : `Location` relatif résolu, suffixes `.huggingface.co` et `.hf.co` comparés point compris ; pas d'ADR, la source étant déjà fixée par RM1 et l'ADR-001.
+9. **Fichier `ready` mais impossible à charger** : empreinte recalculée une fois, effacement si elle est fausse (CA32).
+10. **Test de `IoModelTransport` sur la boucle locale** admis (CA31) : c'est le seul moyen de vérifier ce qui part réellement sur le fil.

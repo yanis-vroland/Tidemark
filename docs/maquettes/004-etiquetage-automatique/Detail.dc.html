@@ -76,6 +76,14 @@ Le vent était tombé, la lumière était belle. J'ai pensé à rien pendant une
       </button>
     </sc-if>
 
+    <sc-if value="{{queued}}" hint-placeholder-val="{{false}}">
+      <p style="margin: 0; font-size: 16px; line-height: 24px; color: {{t.muted}};">En attente d'analyse sur ton téléphone.</p>
+    </sc-if>
+
+    <sc-if value="{{unavailable}}" hint-placeholder-val="{{false}}">
+      <p style="margin: 0; font-size: 16px; line-height: 24px; color: {{t.muted}};">Pas encore analysée : le modèle n'a pas pu être chargé. Nouvel essai au prochain lancement de Tidemark.</p>
+    </sc-if>
+
     <sc-if value="{{untagged}}" hint-placeholder-val="{{false}}">
       <p style="margin: 0; font-size: 16px; line-height: 24px; color: {{t.muted}};">Aucune étiquette n'a été proposée pour cette entrée.</p>
     </sc-if>
@@ -84,14 +92,14 @@ Le vent était tombé, la lumière était belle. J'ai pensé à rien pendant une
   <button type="button" style="margin-top: auto; flex-shrink: 0; height: 52px; border-radius: 999px; border: 1px solid {{t.danger}}; background: {{t.raised}}; color: {{t.danger}}; font: 600 16px/20px Figtree, system-ui, sans-serif; cursor: pointer;">Supprimer cette entrée</button>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"state":{"editor":"enum","options":["etiquetee","en-cours","modele-absent","sans-etiquette"],"default":"etiquetee"},"$preview":{"width":393,"height":852}}'>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"state":{"editor":"enum","options":["etiquetee","en-cours","en-attente","modele-absent","indisponible","sans-etiquette"],"default":"etiquetee"},"$preview":{"width":393,"height":852}}'>
 class Component extends DCLogic {
   renderVals() {
     const LIGHT = { surface: '#f3f6f5', raised: '#ffffff', ink: '#13272c', muted: '#4b5e64', line: '#76898d', tide: '#1d5f6b', tideSoft: '#dbeae9', danger: '#a3392a', mood4: '#e2b55a', onMood: '#13272c' };
     const DARK = { surface: '#0e191c', raised: '#172529', ink: '#e4eeec', muted: '#9db0b1', line: '#5d7579', tide: '#7cc5c9', tideSoft: '#1e383c', danger: '#f39582', mood4: '#e6be6a', onMood: '#0e191c' };
     const t = this.props.dark ? DARK : LIGHT;
     const state = this.props.state ?? 'etiquetee';
-    return { t, tagged: state === 'etiquetee', analysing: state === 'en-cours', noModel: state === 'modele-absent', untagged: state === 'sans-etiquette' };
+    return { t, tagged: state === 'etiquetee', analysing: state === 'en-cours', noModel: state === 'modele-absent', queued: state === 'en-attente', unavailable: state === 'indisponible', untagged: state === 'sans-etiquette' };
   }
 }
 </script>
