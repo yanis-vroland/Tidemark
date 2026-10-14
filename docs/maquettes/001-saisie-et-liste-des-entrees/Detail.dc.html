@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Détail d'une entrée</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&amp;family=Figtree:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f6b}a:hover{color:#13272c}
+</style>
+</helmet>
+<div style="position: relative; width: 393px; height: 852px; box-sizing: border-box; padding: 64px 16px 40px; display: flex; flex-direction: column; gap: 24px; background: {{t.surface}}; color: {{t.ink}}; font-family: Figtree, system-ui, sans-serif; overflow: hidden;">
+  <a href="Liste.dc.html" style="align-self: flex-start; min-height: 44px; display: flex; align-items: center; gap: 4px; font: 500 14px/20px Figtree, system-ui, sans-serif; color: {{t.tide}}; text-decoration: none;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+    Journal
+  </a>
+
+  <div style="display: flex; flex-direction: column; gap: 4px;">
+    <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 22px; line-height: 28px;">Mercredi 14 octobre</h1>
+    <span style="font-size: 13px; line-height: 18px; color: {{t.muted}};">21:40</span>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 16px;">
+    <span aria-hidden="true" style="width: 72px; height: 72px; border-radius: 999px; display: grid; place-items: center; background: {{t.mood4}}; color: {{t.onMood}}; font: 700 40px/1 'Bricolage Grotesque', system-ui, sans-serif;">4</span>
+    <div style="display: flex; flex-direction: column;">
+      <span style="font-size: 17px; line-height: 24px; font-weight: 600;">Bien</span>
+      <span style="font-size: 13px; line-height: 18px; color: {{t.muted}};">Humeur 4 sur 5</span>
+    </div>
+  </div>
+
+  <sc-if value="{{hasText}}" hint-placeholder-val="{{true}}">
+    <p style="margin: 0; font-size: 16px; line-height: 24px; white-space: pre-line;">Longue journée au travail, mais la balade du soir au bord de l'eau m'a fait du bien.
+Le vent était tombé, la lumière était belle. J'ai pensé à rien pendant une heure.</p>
+  </sc-if>
+
+  <button type="button" style="margin-top: auto; height: 52px; border-radius: 999px; border: 1px solid {{t.danger}}; background: {{t.raised}}; color: {{t.danger}}; font: 600 16px/20px Figtree, system-ui, sans-serif; cursor: pointer;">Supprimer cette entrée</button>
+
+  <sc-if value="{{confirm}}" hint-placeholder-val="{{false}}">
+    <div aria-hidden="true" style="position: absolute; inset: 0; background: {{t.ink}}; opacity: 0.4;"></div>
+    <div role="dialog" aria-labelledby="confirm-title" style="position: absolute; left: 0; right: 0; bottom: 0; padding: 24px 16px 40px; border-radius: 16px 16px 0 0; background: {{t.raised}}; display: flex; flex-direction: column; gap: 12px;">
+      <h2 id="confirm-title" style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 22px; line-height: 28px;">Supprimer cette entrée ?</h2>
+      <p style="margin: 0 0 12px; font-size: 16px; line-height: 24px; color: {{t.muted}};">La suppression est définitive : l'entrée ne pourra pas être récupérée.</p>
+      <button type="button" style="height: 52px; border-radius: 999px; border: 1px solid {{t.danger}}; background: {{t.raised}}; color: {{t.danger}}; font: 600 16px/20px Figtree, system-ui, sans-serif;">Supprimer</button>
+      <button type="button" style="height: 52px; border-radius: 999px; border: 1px solid {{t.line}}; background: {{t.raised}}; color: {{t.tide}}; font: 600 16px/20px Figtree, system-ui, sans-serif;">Annuler</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"variant":{"editor":"enum","options":["texte","sans-texte","confirmation"],"default":"texte"},"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const LIGHT = { surface: '#f3f6f5', raised: '#ffffff', ink: '#13272c', muted: '#4b5e64', line: '#76898d', tide: '#1d5f6b', danger: '#a3392a', mood4: '#e2b55a', onMood: '#13272c' };
+    const DARK = { surface: '#0e191c', raised: '#172529', ink: '#e4eeec', muted: '#9db0b1', line: '#5d7579', tide: '#7cc5c9', danger: '#f39582', mood4: '#e6be6a', onMood: '#0e191c' };
+    const t = this.props.dark ? DARK : LIGHT;
+    const variant = this.props.variant ?? 'texte';
+    return { t, hasText: variant !== 'sans-texte', confirm: variant === 'confirmation' };
+  }
+}
+</script>
+</body>
+</html>
