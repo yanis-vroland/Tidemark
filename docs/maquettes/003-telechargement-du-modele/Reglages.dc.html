@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Réglages, analyse sur le téléphone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&amp;family=Figtree:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f6b}a:hover{color:#13272c}
+</style>
+</helmet>
+<div style="width: 393px; height: 1240px; box-sizing: border-box; padding: 64px 16px 40px; display: flex; flex-direction: column; gap: 16px; background: {{t.surface}}; color: {{t.ink}}; font-family: Figtree, system-ui, sans-serif;">
+  <a href="Main.dc.html" style="align-self: flex-start; height: 44px; display: flex; align-items: center; gap: 4px; color: {{t.tide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+    Journal
+  </a>
+  <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 34px; line-height: 38px; letter-spacing: -0.5px;">Réglages</h1>
+
+  <section aria-labelledby="analyse-titre" style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
+    <h2 id="analyse-titre" style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 22px; line-height: 28px;">Analyse sur le téléphone</h2>
+    <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 16px; background: {{t.raised}};">
+      <div style="display: flex; flex-direction: column;">
+        <span style="font-size: 17px; line-height: 24px; font-weight: 600;">Modèle d'analyse</span>
+        <sc-if value="{{absent}}" hint-placeholder-val="{{true}}">
+          <span style="font-size: 16px; line-height: 24px; color: {{t.muted}};">Non téléchargé · 1,1 Go</span>
+        </sc-if>
+        <sc-if value="{{downloading}}" hint-placeholder-val="{{false}}">
+          <span style="font-size: 16px; line-height: 24px; color: {{t.muted}};">Téléchargement : 28 %</span>
+        </sc-if>
+        <sc-if value="{{ready}}" hint-placeholder-val="{{false}}">
+          <span style="font-size: 16px; line-height: 24px; color: {{t.muted}};">Prêt · 1,1 Go sur ton téléphone</span>
+        </sc-if>
+      </div>
+      <sc-if value="{{absent}}" hint-placeholder-val="{{true}}">
+        <p style="margin: 0; font-size: 13px; line-height: 18px; color: {{t.muted}};">Sans lui, tes entrées sont enregistrées sans étiquettes.</p>
+        <a href="Main.dc.html" style="height: 52px; box-sizing: border-box; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid {{t.line}}; background: {{t.raised}}; color: {{t.tide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 21h14"></path></svg>
+          Télécharger le modèle (1,1 Go)
+        </a>
+      </sc-if>
+      <sc-if value="{{downloading}}" hint-placeholder-val="{{false}}">
+        <div role="progressbar" aria-label="Téléchargement du modèle" aria-valuemin="0" aria-valuemax="100" aria-valuenow="28" style="height: 8px; border-radius: 999px; background: {{t.tideSoft}}; overflow: hidden;">
+          <div style="height: 100%; width: 28%; border-radius: 999px; background: {{t.tide}};"></div>
+        </div>
+        <a href="Progression.dc.html" style="align-self: flex-start; min-height: 44px; display: flex; align-items: center; color: {{t.tide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">Voir le téléchargement</a>
+      </sc-if>
+      <sc-if value="{{ready}}" hint-placeholder-val="{{false}}">
+        <p style="margin: 0; font-size: 13px; line-height: 18px; color: {{t.muted}};">Tes entrées sont analysées sur ton téléphone, sans réseau.</p>
+      </sc-if>
+    </div>
+  </section>
+
+  <section aria-labelledby="aide-titre" style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
+    <h2 id="aide-titre" style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 22px; line-height: 28px;">Écran d'aide</h2>
+    <p style="margin: 0; font-size: 16px; line-height: 24px; color: {{t.muted}};">L'écran d'aide s'ouvre quand tes dernières humeurs sont toutes « Très bas ». Choisis à partir de quand.</p>
+    <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px;">
+      <legend style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Sensibilité aux humeurs basses</legend>
+      <label style="min-height: 44px; display: flex; align-items: flex-start; gap: 12px; padding: 16px; border-radius: 16px; background: {{t.raised}}; border: 1px solid {{t.line}};">
+        <input type="radio" name="sensibilite" value="high" style="margin: 4px 0 0; flex-shrink: 0; accent-color: {{t.tide}};">
+        <span style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 17px; line-height: 24px; font-weight: 600;">Haute</span>
+          <span style="font-size: 16px; line-height: 24px; color: {{t.muted}};">2 entrées « Très bas » d’affilée, en 3 jours au plus</span>
+        </span>
+      </label>
+      <label style="min-height: 44px; display: flex; align-items: flex-start; gap: 12px; padding: 16px; border-radius: 16px; background: {{t.tideSoft}}; border: 2px solid {{t.tide}};">
+        <input type="radio" name="sensibilite" value="normal" checked="{{yes}}" style="margin: 4px 0 0; flex-shrink: 0; accent-color: {{t.tide}};">
+        <span style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 17px; line-height: 24px; font-weight: 600;">Normale (recommandée)</span>
+          <span style="font-size: 16px; line-height: 24px; color: {{t.muted}};">3 entrées « Très bas » d’affilée, en 7 jours au plus</span>
+        </span>
+      </label>
+      <label style="min-height: 44px; display: flex; align-items: flex-start; gap: 12px; padding: 16px; border-radius: 16px; background: {{t.raised}}; border: 1px solid {{t.line}};">
+        <input type="radio" name="sensibilite" value="low" style="margin: 4px 0 0; flex-shrink: 0; accent-color: {{t.tide}};">
+        <span style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 17px; line-height: 24px; font-weight: 600;">Basse</span>
+          <span style="font-size: 16px; line-height: 24px; color: {{t.muted}};">5 entrées « Très bas » d’affilée, en 14 jours au plus</span>
+        </span>
+      </label>
+    </fieldset>
+    <p style="margin: 0; font-size: 13px; line-height: 18px; color: {{t.muted}};">L'écran d'aide ne peut pas être désactivé. Les mots qui signalent un danger ouvrent toujours l'écran d'aide, quel que soit ce choix.</p>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"state":{"editor":"enum","options":["absent","telechargement","pret"],"default":"absent"},"$preview":{"width":393,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const LIGHT = { surface: '#f3f6f5', raised: '#ffffff', ink: '#13272c', muted: '#4b5e64', line: '#76898d', tide: '#1d5f6b', tideSoft: '#dbeae9' };
+    const DARK = { surface: '#0e191c', raised: '#172529', ink: '#e4eeec', muted: '#9db0b1', line: '#5d7579', tide: '#7cc5c9', tideSoft: '#1e383c' };
+    const t = this.props.dark ? DARK : LIGHT;
+    const state = this.props.state ?? 'absent';
+    return { t, yes: true, absent: state === 'absent', downloading: state === 'telechargement', ready: state === 'pret' };
+  }
+}
+</script>
+</body>
+</html>
