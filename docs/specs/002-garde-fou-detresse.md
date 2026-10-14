@@ -1,6 +1,6 @@
 # Spec 002 : garde-fou de détresse et écran d'aide
 
-Statut : brouillon
+Statut : validée (Yanis, 2026-10-14 ; décisions métier restantes déléguées à l'agent le même jour)
 Date : 2026-10-14
 
 ## Besoin
@@ -14,7 +14,7 @@ Ce lot vient avant le lot G : aucune entrée n'est encore analysée. Il fixe ce 
 ## Écrans
 
 - **Écran d'aide** (`HelpScreen`) : texte fixe, le 3114 appelable d'un geste, le 112 pour un danger immédiat, « Revenir à mon journal ». Il s'ouvre après l'enregistrement d'une entrée, à la place de la liste.
-- **Réglages** : nouvel écran, ouvert par une icône « Réglages » en haut de la liste. Dans ce lot, il porte seulement la sensibilité aux humeurs basses. L'export et la suppression totale y viendront au lot H.
+- **Réglages** (`SettingsScreen`) : nouvel écran, ouvert par une icône « Réglages » en haut de la liste. Dans ce lot, il porte seulement la sensibilité aux humeurs basses. L'export et la suppression totale y viendront au lot H.
 - **Liste des entrées** (spec 001) : ajout de l'icône « Réglages » à côté du titre.
 
 ## Règles de détection
@@ -27,11 +27,11 @@ Ce lot vient avant le lot G : aucune entrée n'est encore analysée. Il fixe ce 
    - tout caractère autre qu'une lettre ou un chiffre (apostrophe, ponctuation, émoji, retour à la ligne) devient une espace ;
    - les espaces successives sont réduites à une seule.
 2. Il y a détresse si au moins une expression de la liste apparaît dans le texte normalisé comme une suite de **mots entiers**. Par exemple, « mourir » ne déclenche pas « mourire », mais « j'ai envie de mourir !! » déclenche « envie de mourir ».
-3. La négation n'est pas prise en compte : « je ne veux pas mourir » déclenche aussi. C'est le choix du rappel maximal (Yanis, 2026-10-14) : une fausse alerte coûte peu, un oubli peut coûter cher.
+3. La négation n'est pas analysée : aucune règle ne l'écarte. C'est le choix du rappel maximal (Yanis, 2026-10-14) : une fausse alerte coûte peu, un oubli peut coûter cher. Comme une négation sépare les mots d'une expression (« veux **pas** mourir »), les formes niées courantes sont des expressions à part entière de la liste (« veux pas mourir »).
 
 Les expressions sont écrites sous leur forme normalisée.
 
-### Liste des termes (à valider par Yanis)
+### Liste des termes
 
 Rédigée pour le projet. Le code reprend cette liste à l'identique ; un test le vérifie en relisant ce bloc (CA14).
 
@@ -45,7 +45,11 @@ suicidaire
 suicidaires
 me tuer
 me supprimer
-en finir
+veux en finir
+voudrais en finir
+envie d en finir
+en finir avec la vie
+en finir avec tout
 mettre fin a mes jours
 mettre fin a ma vie
 mettre un terme a ma vie
@@ -69,6 +73,9 @@ voudrais mourir
 aimerais mourir
 prefere mourir
 prefererais mourir
+me laisser mourir
+veux pas mourir
+voudrais pas mourir
 plutot mourir
 mieux mort
 mieux morte
@@ -79,6 +86,11 @@ jveux crever
 plus envie de vivre
 pas envie de vivre
 aucune envie de vivre
+veux plus vivre
+veux pas vivre
+plus envie de rien
+envie de disparaitre
+veux disparaitre
 plus de raison de vivre
 aucune raison de vivre
 a quoi bon vivre
@@ -111,10 +123,9 @@ personne ne me regrettera
 je suis un fardeau
 un poids pour tout le monde
 aucune issue
-plus aucune issue
 ```
 
-Exclus volontairement, parce qu'ils sont trop fréquents dans un usage banal (« ce boulot me tue », « je suis mort de rire ») : « me tue », « mort », « mourir » seul. Ils sont à revoir avec Yanis si la liste lui semble trop courte.
+Exclus volontairement, parce qu'ils sont trop fréquents dans un usage banal (« ce boulot me tue », « je suis mort de rire », « j'ai hâte d'en finir avec ce dossier ») : « me tue », « mort », « mourir » seul, « en finir » seul. Pour la même raison, « en finir » n'apparaît que dans des formes qui expriment une intention (« veux en finir », « en finir avec la vie »). Une expression contenue dans une autre de la liste n'est pas répétée (« plus aucune issue » est couvert par « aucune issue »).
 
 ### Série d'humeurs basses (RM25, RM29)
 
@@ -129,8 +140,9 @@ La personne choisit un degré de sensibilité dans les Réglages. Il en existe t
 - « Les N dernières entrées » : les N entrées les plus récentes du journal, nouvelle entrée comprise, triées sur l'instant de saisie.
 - « Sur au plus D jours » : au plus D × 24 heures entre la plus ancienne et la plus récente des N.
 - Une seule entrée d'une autre humeur parmi les N casse la série. Avec moins de N entrées dans le journal, il n'y a pas de série.
-- La série est évaluée après chaque enregistrement. Une nouvelle entrée à 1 qui prolonge la série déclenche donc de nouveau l'écran d'aide.
-- Une entrée supprimée ne compte plus.
+- La série est évaluée après chaque enregistrement. Une nouvelle entrée à 1 qui prolonge la série déclenche donc de nouveau l'écran d'aide (CA27).
+- Une entrée supprimée ne compte plus (CA28).
+- L'entrée qui complète une série est en détresse au sens du glossaire : elle prend le statut « non analysée » et n'est jamais transmise au modèle (RM8, RM17), qu'elle ait un texte ou non.
 
 ## Critères d'acceptation
 
@@ -139,11 +151,14 @@ La personne choisit un degré de sensibilité dans les Réglages. Il en existe t
 - CA1 : Étant donné un texte qui contient une expression de la liste, quand la personne enregistre l'entrée, alors l'entrée est enregistrée avec le statut « non analysée » (RM17) et l'écran d'aide s'affiche à la place de la liste.
 - CA2 : Étant donné un texte qui contient une expression de la liste avec des majuscules, des accents, une apostrophe typographique, de la ponctuation ou des retours à la ligne (« J’ai ENVIE de… mourir. »), quand la personne enregistre, alors la détresse est détectée.
 - CA3 : Étant donné un texte où une expression n'apparaît qu'à l'intérieur d'un mot plus long, quand la personne enregistre, alors la détresse n'est pas détectée.
-- CA4 : Étant donné un texte sans aucune expression de la liste, quand la personne enregistre, alors l'entrée garde le statut « en attente » et la liste réapparaît, sauf si une série d'humeurs basses est atteinte (CA6).
-- CA5 : Étant donné un texte avec une négation (« je ne veux pas mourir »), quand la personne enregistre, alors la détresse est détectée.
-- CA6 : Étant donné le degré « Normale » et deux entrées à 1 dans les 7 derniers jours, quand la personne enregistre une troisième entrée à 1, avec ou sans texte, alors l'écran d'aide s'affiche ; le statut de l'entrée ne change pas pour autant : « en attente » avec un texte, « non analysée » sans texte.
+- CA4 : Étant donné un texte sans aucune expression de la liste, quand la personne enregistre, alors l'entrée a le statut « en attente » et la liste réapparaît, sauf si une série d'humeurs basses est atteinte (CA6).
+- CA5 : Étant donné un texte avec une forme niée de la liste (« je ne veux pas mourir », « je veux plus vivre »), quand la personne enregistre, alors la détresse est détectée.
+- CA6 : Étant donné le degré « Normale » et deux entrées à 1 comme entrées les plus récentes, quand la personne enregistre une troisième entrée à 1, avec ou sans texte, au plus 7 × 24 heures après la plus ancienne des deux, alors l'écran d'aide s'affiche et la nouvelle entrée prend le statut « non analysée » (RM8).
 - CA7 : Étant donné chacun des trois degrés, quand les N dernières entrées sont toutes à 1 et tiennent en D jours, alors l'écran d'aide s'affiche ; avec N − 1 entrées à 1, une entrée d'une autre humeur parmi les N, ou un écart de plus de D jours, il ne s'affiche pas.
 - CA8 : Étant donné une entrée en détresse dans son texte qui complète aussi une série, quand elle est enregistrée, alors l'écran d'aide s'affiche une seule fois.
+- CA27 : Étant donné une série atteinte au degré « Normale » (trois entrées à 1), quand la personne enregistre une quatrième entrée à 1 dans les 7 × 24 heures, alors l'écran d'aide s'affiche de nouveau.
+- CA28 : Étant donné deux entrées à 1 puis une entrée à 1 supprimée, quand la personne enregistre une entrée à 1 au degré « Normale », alors l'écran d'aide ne s'affiche pas : l'entrée supprimée ne compte pas.
+- CA29 : Étant donné une entrée à 1 enregistrée au degré « Normale », sans écran d'aide, quand la personne passe au degré « Haute » puis enregistre une entrée à 1 au plus 3 × 24 heures après, alors l'écran d'aide s'affiche : l'entrée enregistrée avant le changement de degré compte dans la série.
 - CA9 : Étant donné un enregistrement qui échoue (spec 001, CA14), quand l'erreur survient, alors aucune détection n'a lieu et l'écran d'aide ne s'affiche pas.
 
 ### Écran d'aide
@@ -164,8 +179,8 @@ La personne choisit un degré de sensibilité dans les Réglages. Il en existe t
 
 ### Réglages
 
-- CA17 : Étant donné la liste des entrées, quand la personne touche l'icône « Réglages », alors l'écran Réglages s'affiche ; l'icône s'annonce « Réglages » au lecteur d'écran.
-- CA18 : Étant donné l'écran Réglages, quand il s'affiche, alors il montre la section « Écran d'aide », les trois degrés avec leur description, le degré choisi (« Normale (recommandée) » si la personne n'a rien choisi) et la mention « Ce réglage ne peut pas être désactivé… ».
+- CA17 : Étant donné la liste des entrées, dans chacun de ses états (entrées, vide, chargement, erreur), quand la personne touche l'icône « Réglages » à côté du titre, alors l'écran Réglages s'affiche ; l'icône s'annonce « Réglages » au lecteur d'écran.
+- CA18 : Étant donné l'écran Réglages, quand il s'affiche, alors il montre la section « Écran d'aide », les trois degrés avec leur description, le degré choisi (« Normale (recommandée) » si la personne n'a rien choisi) et la mention « L'écran d'aide ne peut pas être désactivé… ».
 - CA19 : Étant donné l'écran Réglages, quand la personne choisit un autre degré, alors il est enregistré aussitôt, sans bouton « Enregistrer », et s'applique à l'enregistrement suivant ; il est conservé après un redémarrage.
 - CA20 : Étant donné un enregistrement du degré qui échoue, quand l'erreur survient, alors le bandeau « Le réglage n'a pas été enregistré » s'affiche avec « Le réglage précédent reste en place. Réessaie. », et le degré précédent reste coché.
 - CA21 : Étant donné une lecture du degré qui échoue ou une valeur inconnue en base, quand une série est évaluée, alors le degré « Normale » s'applique : le garde-fou ne se désactive jamais sur une erreur.
@@ -192,7 +207,7 @@ La personne choisit un degré de sensibilité dans les Réglages. Il en existe t
   - `addEntry` reçoit le statut décidé par l'appelant (`pending` ou `skipped`) au lieu de le déduire du texte seul ;
   - nouvelles opérations `latestEntries(int count)` et `pendingEntriesWithText()` ;
   - nouvelle opération `markSkipped(Iterable<int> ids)`, pour la vérification au démarrage.
-- **Appel** : le paquet `url_launcher` ouvre `tel:3114` et `tel:112`. Il n'envoie aucune donnée et n'ouvre aucune connexion réseau (RM1). Dépendance justifiée dans la PR.
+- **Appel** : le paquet `url_launcher` ouvre `tel:3114` et `tel:112` par `launchUrl`, dont le résultat (`false` ou une exception) déclenche CA12 ; `canLaunchUrl` n'est pas utilisé. Configuration native : `<queries>` avec l'intent `android.intent.action.DIAL` et le schéma `tel` dans le manifeste Android (Android 11 et plus) ; `LSApplicationQueriesSchemes` avec `tel` dans l'`Info.plist` iOS. Le paquet n'envoie aucune donnée et n'ouvre aucune connexion réseau (RM1). Dépendance justifiée dans la PR.
 
 ## Maquette
 
@@ -201,8 +216,10 @@ Artefact Claude de type « Design » ([lien privé](https://claude.ai/artifact/P
 Écrans :
 
 - **Écran d'aide** : nominal et « appel impossible », en clair et en sombre.
-- **Réglages** : nominal en clair et en sombre, chargement, erreur en clair et en sombre.
-- **Liste** : avec l'icône « Réglages », en clair et en sombre.
+- **Réglages** : nominal, chargement et erreur, chacun en clair et en sombre.
+- **Liste** : avec l'icône « Réglages », en clair et en sombre. Les états vide, chargement et erreur de la liste sont ceux de la maquette 001 : l'icône s'y place de la même façon, à côté du titre « Ton journal », présent dans tous les états (CA17).
+
+Jetons : la maquette n'utilise que les jetons de la charte (le 3114 en `mood-numeral`, espacements `space-1` à `space-6`), à deux exceptions près, à ajouter à la charte, à `tokens.json` et au test de fidélité dans la PR d'implémentation : `icon-md` (24, icône « Réglages » et chevron de retour) et `icon-button` (18, icône posée dans un bouton). La marge haute de 64 points des écrans avec retour reprend celle du détail (maquette 001).
 
 Il n'y a ni état vide ni chargement pour l'écran d'aide : son contenu est fixe, sans lecture.
 
@@ -219,12 +236,16 @@ Il n'y a ni état vide ni chargement pour l'écran d'aide : son contenu est fixe
 
 - Classifieur de détresse (décision de Yanis du 2026-10-14, [plan](../plan.md#décisions)).
 - Accès permanent à l'écran d'aide hors détection : non retenu (Yanis, 2026-10-14).
-- Analyse des entrées par le modèle (lot G). Le lot G ne transmet au modèle que des entrées « en attente », toutes passées par le détecteur, soit à l'enregistrement (CA1), soit au démarrage (CA15).
+- Analyse des entrées par le modèle (lot G). Défense en profondeur exigée du lot G : appeler `detectInText` juste avant chaque analyse, et passer en « non analysée » toute entrée détectée, même si la vérification au démarrage (CA15) a échoué (CA16) ou n'a pas encore eu lieu. RM8 tient ainsi quoi qu'il arrive au démarrage.
 - Numéros d'aide hors de France, autres langues que le français (RM22).
 - Export et suppression totale dans les Réglages (lot H).
 
 ## Questions ouvertes
 
-1. **Liste des termes** : à valider par Yanis, avec les exclusions (« me tue », « mort »).
-2. **Degrés de sensibilité** : valeurs du tableau proposées par l'agent, à valider par Yanis, comme la règle « aucun degré ne désactive le garde-fou » (RM29).
-3. **Texte de l'écran d'aide** : le titre « Parler peut aider » et la phrase d'accueil sont proposés par l'agent, à valider par Yanis.
+Aucune. Décisions prises par l'agent, à la demande de Yanis (2026-10-14, « prends les décisions métier ») :
+
+1. **Négation** : formes niées courantes ajoutées comme expressions, sans règle de négation (CA5).
+2. **Série et RM8** : l'entrée qui complète une série prend le statut « non analysée » (CA6).
+3. **« en finir »** : gardé seulement dans des formes d'intention ; ajouts « envie de disparaitre », « veux disparaitre », « plus envie de rien », « me laisser mourir » ; « plus aucune issue » retiré.
+4. **Degrés** : 2 en 3 jours, 3 en 7 jours, 5 en 14 jours ; aucun ne désactive le garde-fou (RM29).
+5. **Texte de l'écran d'aide** : celui de la maquette.
