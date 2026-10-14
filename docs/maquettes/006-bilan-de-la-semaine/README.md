@@ -2,7 +2,7 @@
 
 Copie versionnée de l'artefact Claude de type « Design » ([lien privé](https://claude.ai/artifact/HpKb64hQ1aWeLVZzyXH9wj)), construit sur la [charte](../000-charte/) (artefact « Design System » Tidemark installé dans le canevas, `designSystems` de `canvas.json`). **Cette copie fait foi.** Spec : [`docs/specs/006-bilan-de-la-semaine.md`](../../specs/006-bilan-de-la-semaine.md).
 
-Statut : **à valider par Yanis** avant les tests (spec validée sur délégation des décisions métier, 2026-10-14).
+Statut : **brouillon**, à valider par Yanis avec la spec, avant les tests.
 
 | Écran | Fichiers (artboards) | Critères |
 | --- | --- | --- |
@@ -21,7 +21,7 @@ Données d'exemple fictives : la maquette se place le dimanche 18 octobre 2026, 
 
 ## Limites
 
-- Captures PNG : absentes, comme pour les maquettes 001 et 002 (à exporter depuis l'artefact).
+- Captures PNG : absentes, comme pour les maquettes 001 et 002 : l'agent ne peut pas exporter l'artefact. Reporté à une issue de suivi, proposée dans la PR #17 et à créer avec l'accord de Yanis.
 - Écran qui défile : les artboards du bilan complet mesurent 393 × 1320 pour montrer l'écran entier ; sur l'iPhone (393 × 852), il défile. Les états courts (moins de 3 entrées, chargement, erreur) sont au format 393 × 852.
 - Lien et anneau de focus écrits en dur avec la valeur claire de `tide` dans la feuille de style de l'artefact, comme pour les maquettes 001 et 002 : sans effet sur l'app.
 - Indicateur de chargement dessiné immobile ; dans l'app, il tourne, sauf si le téléphone demande de réduire les animations (charte, `LoadingNote`).
@@ -32,6 +32,8 @@ Données d'exemple fictives : la maquette se place le dimanche 18 octobre 2026, 
 ## Jetons
 
 La maquette n'utilise que les jetons de [`tokens.json`](../000-charte/tokens.json) : couleurs des deux thèmes, `display` pour le titre, `title` pour les chiffres clés, `headline`, `body`, `label`, `button` et `caption` ; `space-1` à `space-6` ; `radius-sm` (cases des jours, bandeau d'erreur), `radius-md` (cartes), `radius-pill` ; `tap-min` (flèches de semaine), `mood-dot-sm` (pastilles de la répartition et icône de la carte d'accès), `button-height`, `icon-sm` (cadenas).
+
+Usage étendu d'un jeton existant : `line` colore aussi l'icône d'une flèche désactivée (« Semaine précédente » sur la semaine la plus ancienne, « Semaine suivante » sur la semaine en cours), en plus des bordures. Usage à ajouter à la description du jeton dans la charte, avec l'implémentation.
 
 Jetons manquants, à ajouter à la charte, à `tokens.json` et au test de fidélité dans la PR d'implémentation :
 
