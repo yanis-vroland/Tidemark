@@ -91,7 +91,7 @@ Branches : `docs/plan-projet` (PR #4), `docs/maquettes-artefacts`, puis `docs/ca
 - [x] Plan du projet (`docs/plan.md`).
 - [x] README : renvoi vers le plan.
 - [x] Méthode des maquettes en artefacts Claude, dans le plan et dans la règle « Maquettes dans la spec » du `CLAUDE.md`.
-- [ ] Cahier des charges : objectif et périmètre, acteur unique (la personne qui tient son journal), glossaire (entrée, humeur, étiquette, bilan, détresse), règles métier tranchées, fonctionnalités du tableau ci-dessus au statut « à spécifier ». Les règles non tranchées vont dans les questions ouvertes. Les décisions sur la dictée et le classifieur y sont reportées (hors périmètre), avec un simple renvoi ici.
+- [x] Cahier des charges : objectif et périmètre, acteur unique (la personne qui tient son journal), glossaire (entrée, humeur, étiquette, bilan, détresse), règles métier tranchées, fonctionnalités du tableau ci-dessus au statut « à spécifier ». Les règles non tranchées vont dans les questions ouvertes. Les décisions sur la dictée et le classifieur y sont reportées (hors périmètre), avec un simple renvoi ici.
 
 ## Lot B : spike du moteur d'IA local (2 jours)
 
@@ -157,7 +157,7 @@ Branche : `docs/readme-final`.
 
 ## Décisions
 
-Décisions de cadrage de Yanis (2026-10-14), à reporter dans le cahier des charges au lot A :
+Décisions de cadrage de Yanis (2026-10-14). Leurs effets sur le produit (hors périmètre, RM6) sont dans le [cahier des charges](cahier-des-charges-fonctionnel.md) ; leurs motifs restent ici.
 
 1. **Pas de dictée.** La reconnaissance vocale du système peut envoyer l'audio à un serveur : serveurs d'Apple par défaut sur iOS (la reconnaissance locale, `requiresOnDeviceRecognition`, n'existe que pour certaines langues et certains appareils), serveurs de Google possibles sur Android. La garder exigerait un modèle de transcription local et un ADR.
 2. **Détection de détresse par règles seules.** Pas de classifieur : un modèle ajoute des faux négatifs difficiles à tester. Le classifieur est une piste d'amélioration, documentée dans le README.
