@@ -1,0 +1,62 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-14T18:30:00Z"
+ },
+ "title": "Tidemark : bilan de la semaine",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Main.dc.html": { "x": 0, "y": 0, "w": 393, "h": 1320, "title": "Bilan · nominal · clair", "is_interactive": true, "radius": 48 },
+  "BilanSombre.dc.html": { "x": 473, "y": 0, "w": 393, "h": 1320, "title": "Bilan · nominal · sombre", "radius": 48 },
+  "BilanEcriture.dc.html": { "x": 946, "y": 0, "w": 393, "h": 1320, "title": "Bilan · mise en mots en cours · clair", "radius": 48 },
+  "BilanEcritureSombre.dc.html": { "x": 1419, "y": 0, "w": 393, "h": 1320, "title": "Bilan · mise en mots en cours · sombre", "radius": 48 },
+  "BilanSansTexte.dc.html": { "x": 1892, "y": 0, "w": 393, "h": 1320, "title": "Bilan · sans texte généré · clair", "radius": 48 },
+  "BilanSansTexteSombre.dc.html": { "x": 2365, "y": 0, "w": 393, "h": 1320, "title": "Bilan · sans texte généré · sombre", "radius": 48 },
+  "BilanModeleAbsent.dc.html": { "x": 2838, "y": 0, "w": 393, "h": 1320, "title": "Bilan · modèle absent · clair", "radius": 48 },
+  "BilanModeleAbsentSombre.dc.html": { "x": 3311, "y": 0, "w": 393, "h": 1320, "title": "Bilan · modèle absent · sombre", "radius": 48 },
+  "BilanInsuffisant.dc.html": { "x": 0, "y": 1720, "w": 393, "h": 852, "title": "Bilan · moins de 3 entrées · clair", "radius": 48 },
+  "BilanInsuffisantSombre.dc.html": { "x": 473, "y": 1720, "w": 393, "h": 852, "title": "Bilan · moins de 3 entrées · sombre", "radius": 48 },
+  "BilanChargement.dc.html": { "x": 946, "y": 1720, "w": 393, "h": 852, "title": "Bilan · chargement · clair", "radius": 48 },
+  "BilanChargementSombre.dc.html": { "x": 1419, "y": 1720, "w": 393, "h": 852, "title": "Bilan · chargement · sombre", "radius": 48 },
+  "BilanErreur.dc.html": { "x": 1892, "y": 1720, "w": 393, "h": 852, "title": "Bilan · erreur · clair", "radius": 48 },
+  "BilanErreurSombre.dc.html": { "x": 2365, "y": 1720, "w": 393, "h": 852, "title": "Bilan · erreur · sombre", "radius": 48 },
+  "ListeBilan.dc.html": { "x": 0, "y": 2972, "w": 393, "h": 852, "title": "Liste · accès au bilan · clair", "is_interactive": true, "radius": 48 },
+  "ListeBilanSombre.dc.html": { "x": 473, "y": 2972, "w": 393, "h": 852, "title": "Liste · accès au bilan · sombre", "radius": 48 }
+ },
+ "order": [
+  "Main.dc.html",
+  "BilanSombre.dc.html",
+  "BilanEcriture.dc.html",
+  "BilanEcritureSombre.dc.html",
+  "BilanSansTexte.dc.html",
+  "BilanSansTexteSombre.dc.html",
+  "BilanModeleAbsent.dc.html",
+  "BilanModeleAbsentSombre.dc.html",
+  "BilanInsuffisant.dc.html",
+  "BilanInsuffisantSombre.dc.html",
+  "BilanChargement.dc.html",
+  "BilanChargementSombre.dc.html",
+  "BilanErreur.dc.html",
+  "BilanErreurSombre.dc.html",
+  "ListeBilan.dc.html",
+  "ListeBilanSombre.dc.html"
+ ],
+ "notes": {
+  "bilan": { "x": 0, "y": -300, "text": "Bilan de la semaine : écran entier, qui défile (spec 006)", "kind": "title1", "maxW": 3704 },
+  "etats": { "x": 0, "y": 1420, "text": "Bilan : moins de 3 entrées, chargement, erreur (spec 006)", "kind": "title1", "maxW": 2758 },
+  "liste": { "x": 0, "y": 2672, "text": "Accès au bilan depuis la liste (spec 006)", "kind": "title1", "maxW": 866 }
+ },
+ "designSystems": [
+  {
+   "title": "Tidemark",
+   "namespace": "tidemark",
+   "artifact": "https://claude.ai/artifact/LxwwPXPaLTB1ciS6m7NVeu",
+   "version": "1791988325-22e4",
+   "copiedAt": "2026-10-14T18:30:00Z"
+  }
+ ]
+}
