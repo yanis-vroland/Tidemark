@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Réglages, mes données</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&amp;family=Figtree:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f6b}a:hover{color:#13272c}
+</style>
+</helmet>
+<div style="width: 393px; height: 1240px; box-sizing: border-box; padding: 64px 16px 40px; display: flex; flex-direction: column; gap: 16px; background: {{t.surface}}; color: {{t.ink}}; font-family: Figtree, system-ui, sans-serif;">
+  <a href="Main.dc.html" style="align-self: flex-start; height: 44px; display: flex; align-items: center; gap: 4px; color: {{t.tide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+    Journal
+  </a>
+  <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 34px; line-height: 38px; letter-spacing: -0.5px;">Réglages</h1>
+
+  <section aria-labelledby="aide-titre" style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
+    <h2 id="aide-titre" style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 22px; line-height: 28px;">Écran d'aide</h2>
+    <p style="margin: 0; font-size: 16px; line-height: 24px; color: {{t.muted}};">L'écran d'aide s'ouvre quand tes dernières humeurs sont toutes « Très bas ». Choisis à partir de quand.</p>
+    <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px;">
+      <legend style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Sensibilité aux humeurs basses</legend>
+      <sc-for list="{{options}}" as="o" hint-placeholder-count="3">
+        <label style="{{o.box}}">
+          <input type="radio" name="sensibilite" value="{{o.id}}" checked="{{o.checked}}" onChange="{{o.pick}}" style="margin: 4px 0 0; flex-shrink: 0; accent-color: {{t.tide}};">
+          <span style="display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-size: 17px; line-height: 24px; font-weight: 600;">{{o.label}}</span>
+            <span style="font-size: 16px; line-height: 24px; color: {{t.muted}};">{{o.detail}}</span>
+          </span>
+        </label>
+      </sc-for>
+    </fieldset>
+    <p style="margin: 0; font-size: 13px; line-height: 18px; color: {{t.muted}};">L'écran d'aide ne peut pas être désactivé. Les mots qui signalent un danger ouvrent toujours l'écran d'aide, quel que soit ce choix.</p>
+  </section>
+
+  <section aria-labelledby="donnees-titre" style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+    <h2 id="donnees-titre" style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 22px; line-height: 28px;">Mes données</h2>
+    <p style="margin: 0; font-size: 16px; line-height: 24px; color: {{t.muted}};">Tout reste sur ce téléphone. Tu peux en faire une copie, ou tout effacer.</p>
+
+    <sc-if value="{{exportError}}" hint-placeholder-val="{{false}}">
+      <div role="alert" style="display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: 16px; border: 1px solid {{t.danger}}; background: {{t.raised}};">
+        <span style="font-size: 17px; line-height: 24px; font-weight: 600; color: {{t.danger}};">L'export n'a pas abouti</span>
+        <span style="font-size: 16px; line-height: 24px;">Aucun fichier n'a été partagé. Vérifie la place libre sur le téléphone, puis réessaie.</span>
+      </div>
+    </sc-if>
+
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <button type="button" disabled="{{exportDisabled}}" aria-busy="{{exporting}}" style="{{exportStyle}}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><path d="M16 6l-4-4-4 4"></path><path d="M12 2v13"></path></svg>
+        {{exportLabel}}
+      </button>
+      <sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+        <p style="margin: 0; font-size: 13px; line-height: 18px; color: {{t.muted}};">Ton journal est vide : il n'y a rien à exporter.</p>
+      </sc-if>
+      <sc-if value="{{notEmpty}}" hint-placeholder-val="{{true}}">
+        <p style="margin: 0; font-size: 13px; line-height: 18px; color: {{t.muted}};">Un fichier JSON avec toutes tes entrées et leurs étiquettes. Il n'est pas chiffré : choisis bien où tu l'envoies.</p>
+      </sc-if>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+      <sc-if value="{{wipeEnabled}}" hint-placeholder-val="{{true}}">
+        <a href="Confirmation.dc.html" style="height: 52px; box-sizing: border-box; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid {{t.danger}}; background: {{t.raised}}; color: {{t.danger}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>
+          Tout supprimer
+        </a>
+      </sc-if>
+      <sc-if value="{{exporting}}" hint-placeholder-val="{{false}}">
+        <button type="button" disabled="{{yes}}" style="height: 52px; box-sizing: border-box; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid {{t.line}}; background: {{t.raised}}; color: {{t.muted}}; font: 600 16px/20px Figtree, system-ui, sans-serif;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>
+          Tout supprimer
+        </button>
+      </sc-if>
+      <p style="margin: 0; font-size: 13px; line-height: 18px; color: {{t.muted}};">Efface définitivement tes entrées, tes réglages, la clé de ton journal et le modèle d'IA téléchargé.</p>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"state":{"editor":"enum","options":["nominal","export-en-cours","export-erreur","journal-vide"],"default":"nominal"},"$preview":{"width":393,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { picked: 'normal' };
+  }
+  renderVals() {
+    const LIGHT = { surface: '#f3f6f5', raised: '#ffffff', ink: '#13272c', muted: '#4b5e64', line: '#76898d', tide: '#1d5f6b', tideSoft: '#dbeae9', danger: '#a3392a' };
+    const DARK = { surface: '#0e191c', raised: '#172529', ink: '#e4eeec', muted: '#9db0b1', line: '#5d7579', tide: '#7cc5c9', tideSoft: '#1e383c', danger: '#f39582' };
+    const t = this.props.dark ? DARK : LIGHT;
+    const state = this.props.state ?? 'nominal';
+    const defs = [
+      { id: 'high', label: 'Haute', detail: '2 entrées « Très bas » d’affilée, en 3 jours au plus' },
+      { id: 'normal', label: 'Normale (recommandée)', detail: '3 entrées « Très bas » d’affilée, en 7 jours au plus' },
+      { id: 'low', label: 'Basse', detail: '5 entrées « Très bas » d’affilée, en 14 jours au plus' }
+    ];
+    const options = defs.map((d) => {
+      const checked = this.state.picked === d.id;
+      return {
+        ...d,
+        checked,
+        pick: () => this.setState({ picked: d.id }),
+        box: 'min-height: 44px; display: flex; align-items: flex-start; gap: 12px; padding: 16px; border-radius: 16px; cursor: pointer; background: ' + (checked ? t.tideSoft : t.raised) + '; border: ' + (checked ? '2px solid ' + t.tide : '1px solid ' + t.line) + ';'
+      };
+    });
+    const exporting = state === 'export-en-cours';
+    const empty = state === 'journal-vide';
+    const exportDisabled = exporting || empty;
+    const base = 'height: 52px; box-sizing: border-box; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; font: 600 16px/20px Figtree, system-ui, sans-serif; ';
+    const exportStyle = exportDisabled
+      ? base + 'border: 1px solid ' + t.line + '; background: ' + t.raised + '; color: ' + t.muted + ';'
+      : base + 'border: 1px solid ' + t.line + '; background: ' + t.raised + '; color: ' + t.tide + '; cursor: pointer;';
+    return {
+      t,
+      options,
+      exporting,
+      empty,
+      notEmpty: !empty,
+      exportDisabled,
+      exportStyle,
+      exportLabel: exporting ? 'Préparation de l’export…' : (state === 'export-erreur' ? 'Réessayer l’export' : 'Exporter mes données'),
+      exportError: state === 'export-erreur',
+      wipeEnabled: !exporting,
+      yes: true
+    };
+  }
+}
+</script>
+</body>
+</html>

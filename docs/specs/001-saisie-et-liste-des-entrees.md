@@ -69,7 +69,7 @@ Lot E du [plan](../plan.md). Règles du [cahier des charges](../cahier-des-charg
 - CA33 : Étant donné une suppression confirmée qui échoue, quand l'erreur survient, alors le détail reste affiché et un message dit « L'entrée n'a pas été supprimée. Réessaie. ».
 - CA34 : Étant donné un enregistrement en cours, quand la personne fait un geste de retour, alors rien ne se passe ; l'écran se ferme une fois l'entrée enregistrée.
 - CA36 : Étant donné une carte de la liste, quand un lecteur d'écran la parcourt, alors elle s'annonce comme un bouton avec le libellé de l'humeur, son chiffre, l'heure et le début du texte (« Bien, humeur 4 sur 5, 21:40, Longue journée… »), sans lire plus de 120 caractères du texte.
-- CA35 : Étant donné une base qui ne peut pas être ouverte au démarrage, quand l'app démarre, alors elle affiche « Ton journal n'a pas pu être ouvert », puis « Tes entrées sont toujours sur le téléphone, mais la clé qui les protège est introuvable. Rien n'a été effacé. » si la clé manque, ou « Rien n'a été effacé. Ferme l'app, puis rouvre-la. » pour toute autre cause ; aucune nouvelle clé n'est créée et la base n'est ni recréée ni effacée.
+- CA35 : Étant donné une base qui ne peut pas être ouverte au démarrage, quand l'app démarre, alors elle affiche « Ton journal n'a pas pu être ouvert », puis « Tes entrées sont toujours sur le téléphone, mais la clé qui les protège est introuvable. Rien n'a été effacé. » si la clé manque, ou « Rien n'a été effacé. Ferme l'app, puis rouvre-la. » pour toute autre cause ; aucune nouvelle clé n'est créée et la base n'est ni recréée ni effacée. Suite de cet écran (bouton « Tout supprimer et repartir de zéro » dans le cas « clé introuvable ») : [spec 005](005-export-et-suppression-totale.md), CA26 à CA28.
 
 ## Données
 
