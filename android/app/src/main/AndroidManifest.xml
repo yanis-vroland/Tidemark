@@ -44,10 +44,5 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
-        <!-- Écran d'aide : ouverture du composeur sur le 3114 ou le 112 (spec 002). -->
-        <intent>
-            <action android:name="android.intent.action.DIAL"/>
-            <data android:scheme="tel"/>
-        </intent>
     </queries>
 </manifest>

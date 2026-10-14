@@ -33,7 +33,7 @@ class EntryFormScreen extends StatefulWidget {
   const EntryFormScreen({
     super.key,
     required this.repository,
-    this.settings = const DefaultSettingsRepository(),
+    required this.settings,
     this.dialer = const UrlLauncherDialer(),
     this.clock,
   });
@@ -340,8 +340,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     );
   }
 }
-
-/// Bandeau d'erreur (charte : `ErrorBanner`).
 
 /// Sélecteur d'humeur (charte : `MoodSelector`).
 class _MoodSelector extends StatelessWidget {

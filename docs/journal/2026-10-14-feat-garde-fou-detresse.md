@@ -93,3 +93,36 @@ Relire les tests, puis implémenter jusqu'au vert, dans un commit séparé.
 ### Prochaine étape
 
 Revues `reviewer` et `security-reviewer`, essai sur simulateur, puis PR.
+
+## 2026-10-14 21:08
+
+### Fait
+
+- Suites des revues `reviewer` et `security-reviewer` (aucun point bloquant) :
+  - `saveEntryWithGuard` : si la série ne peut pas être lue, l'entrée est enregistrée quand même, et un texte en détresse ouvre toujours l'écran d'aide. Deux tests ajoutés.
+  - Instant de la série tronqué à la seconde, comme l'entrée enregistrée.
+  - Réglages obligatoires dans `TidemarkApp`, `EntryListScreen` et `EntryFormScreen` : `DefaultSettingsRepository` supprimé, plus aucun repli silencieux en production.
+  - Écran Réglages quand la lecture du degré échoue : « Normale » coché, un choix reste possible. Test ajouté.
+  - Déclarations natives du composeur retirées (`<queries>` DIAL, `LSApplicationQueriesSchemes`) : `launchUrl` n'en a pas besoin, et elles rendaient d'autres apps visibles à Tidemark. Le test de configuration native vérifie maintenant leur absence et l'absence de `canLaunchUrl`.
+  - Spec 002 : CA28 reformulé, deux cas limites ajoutés, « Données » corrigé ; architecture technique corrigée.
+  - Expression régulière des accents combinants écrite en échappements `\u`. Commentaire orphelin retiré. Saut de ligne final de `tokens.json` rétabli.
+- Essai sur le simulateur iPhone 17 Pro : l'app, installée par-dessus la version du lot E (base en version 1), démarre sur la liste. La migration passe, et l'icône « Réglages » est en place.
+- 438 tests verts.
+
+### Décisions
+
+- Bordure du degré choisi : jeton `ring-width` (3) au lieu de 2 dans la maquette 002. L'artefact et la copie du dépôt sont alignés, ce qui évite un jeton de plus (agent, par délégation de Yanis, 2026-10-14).
+- Série illisible et lecture du degré impossible dans les Réglages : décisions consignées dans les cas limites de la spec (agent, par délégation de Yanis).
+- `addEntry` garde `pending` par défaut, contrairement à la suggestion de la revue de sécurité. Le contrat de la spec 001 et ses tests en dépendent, et la défense en profondeur du lot G (`detectInText` avant chaque analyse) couvre un appel qui oublierait le garde-fou (agent).
+- Masquage dans l'aperçu des apps récentes : déjà en attente d'une décision de Yanis depuis le lot E (agent).
+
+### Corrections et limites
+
+- Tests modifiés, à signaler : les tests de la spec 001 qui construisent `TidemarkApp`, `EntryListScreen` ou `EntryFormScreen` reçoivent `settings: FakeSettingsRepository()`, et le harnais `DbEnv` reçoit les réglages de la base. Ce sont 31 appels, dans `app_test`, `accessibility_and_theme_test`, `entry_form_screen_test`, `entry_list_screen_test` et `robustness_test`. Changement mécanique : aucune vérification retirée.
+- Précision sur l'entrée précédente : l'artefact « Design System » de la charte a été mis à jour en ligne (jetons `icon-md` et `icon-button`), hors dépôt ; le dépôt porte `tokens.json`. Le total était de 435 tests, et non 434.
+- Test humain non fait : agent en autonomie, sans accès à l'iPhone. À faire par Yanis : parcours de détresse par le texte et par la série, ouverture réelle de `tel:3114` et `tel:112`, Réglages, thème sombre, texte à 200 %.
+- Non suivi : vérification de la migration par `drift_dev schema dump` (suggestion de la revue). Le test recrée le schéma 1 à la main, à partir du code de la spec 001.
+
+### Prochaine étape
+
+Ouvrir la PR, traiter la revue IA, puis le test humain par Yanis.

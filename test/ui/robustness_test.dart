@@ -3,6 +3,8 @@
 // annonce des cartes au lecteur d'écran.
 import 'dart:async';
 
+import '../support/fake_settings_repository.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/entries/entry.dart';
 import 'package:tidemark/main.dart';
@@ -29,7 +31,11 @@ void main() {
       final gate = Completer<void>();
       final repo = FakeEntryRepository(beforeAdd: () => gate.future);
       await tester.pumpWidget(
-        TidemarkApp(repository: repo, clock: () => fixedNow),
+        TidemarkApp(
+          repository: repo,
+          settings: FakeSettingsRepository(),
+          clock: () => fixedNow,
+        ),
       );
       await tester.pump();
       await tester.tap(find.text('Nouvelle entrée'));
@@ -57,7 +63,11 @@ void main() {
     final gate = Completer<void>();
     final repo = FakeEntryRepository(beforeAdd: () => gate.future);
     await tester.pumpWidget(
-      TidemarkApp(repository: repo, clock: () => fixedNow),
+      TidemarkApp(
+        repository: repo,
+        settings: FakeSettingsRepository(),
+        clock: () => fixedNow,
+      ),
     );
     await tester.pump();
     await tester.tap(find.text('Nouvelle entrée'));
@@ -83,7 +93,11 @@ void main() {
     final repo = FakeEntryRepository();
     await repo.addEntry(mood: 2, text: 'Très long texte. ' * 100);
     await tester.pumpWidget(
-      TidemarkApp(repository: repo, clock: () => fixedNow),
+      TidemarkApp(
+        repository: repo,
+        settings: FakeSettingsRepository(),
+        clock: () => fixedNow,
+      ),
     );
     await tester.pump();
     await tester.pump();
@@ -124,7 +138,11 @@ void main() {
     usePhoneScreen(tester);
     final repo = FakeEntryRepository()..neverEmit = true;
     await tester.pumpWidget(
-      TidemarkApp(repository: repo, clock: () => fixedNow),
+      TidemarkApp(
+        repository: repo,
+        settings: FakeSettingsRepository(),
+        clock: () => fixedNow,
+      ),
     );
     await tester.pump();
 
@@ -138,7 +156,11 @@ void main() {
     usePhoneScreen(tester);
     final repo = FakeEntryRepository(watchError: StateError('base illisible'));
     await tester.pumpWidget(
-      TidemarkApp(repository: repo, clock: () => fixedNow),
+      TidemarkApp(
+        repository: repo,
+        settings: FakeSettingsRepository(),
+        clock: () => fixedNow,
+      ),
     );
     await tester.pump();
     await tester.pump();
@@ -153,7 +175,11 @@ void main() {
     final repo = FakeEntryRepository();
     await repo.addEntry(mood: 4, text: 'Balade au bord de l\'eau.');
     await tester.pumpWidget(
-      TidemarkApp(repository: repo, clock: () => fixedNow),
+      TidemarkApp(
+        repository: repo,
+        settings: FakeSettingsRepository(),
+        clock: () => fixedNow,
+      ),
     );
     await tester.pump();
     await tester.pump();

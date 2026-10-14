@@ -73,7 +73,11 @@ class DbEnv {
   DateTime now = fixedNow;
 
   /// L'application entière sur cette base, l'horloge de la liste suivant [now].
-  Widget app() => TidemarkApp(repository: repo, clock: () => now);
+  Widget app() => TidemarkApp(
+    repository: repo,
+    settings: DriftSettingsRepository(db),
+    clock: () => now,
+  );
 
   /// Enregistre une entrée comme si elle avait été saisie à [at] (heure locale).
   Future<Entry> add(

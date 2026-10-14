@@ -25,9 +25,21 @@ Future<SaveOutcome> saveEntryWithGuard({
   DateTime Function() clock = DateTime.now,
 }) async {
   final inText = text != null && detector.detectInText(text);
-  final inSeries =
-      mood == 1 &&
-      await _completesSeries(repository, settings, detector, mood, clock);
+  var inSeries = false;
+  if (mood == 1) {
+    try {
+      inSeries = await _completesSeries(
+        repository,
+        settings,
+        detector,
+        mood,
+        clock,
+      );
+    } catch (_) {
+      // Série illisible : l'entrée est enregistrée quand même, et un texte en
+      // détresse ouvre toujours l'écran d'aide (spec 002, cas limites).
+    }
+  }
   final distress = inText || inSeries;
   final entry = await repository.addEntry(
     mood: mood,
@@ -55,11 +67,20 @@ Future<bool> _completesSeries(
   }
   final previous = await repository.latestEntries(sensitivity.entryCount - 1);
   final now = clock();
+  // À la seconde, comme l'entrée enregistrée (`addEntry`).
+  final utc = now.toUtc();
   final candidate = Entry(
     id: -1,
     mood: mood,
     text: null,
-    createdAt: now.toUtc(),
+    createdAt: DateTime.utc(
+      utc.year,
+      utc.month,
+      utc.day,
+      utc.hour,
+      utc.minute,
+      utc.second,
+    ),
     utcOffset: now.timeZoneOffset,
     analysisStatus: AnalysisStatus.pending,
   );

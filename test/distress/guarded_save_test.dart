@@ -379,6 +379,39 @@ void main() {
     }
   });
 
+  // Ajouté après la revue de code : la lecture de la série ne doit jamais empêcher
+  // d'enregistrer, ni masquer la détresse du texte (spec 002, cas limites).
+  group('série illisible', () {
+    test(
+      'un texte en détresse est enregistré « non analysée » et ouvre l\'aide',
+      () async {
+        final env = Env();
+        env.repo.latestEntriesError = StateError('lecture impossible');
+
+        final outcome = await env.save(1, text: 'Je veux mourir.');
+
+        expect(outcome.showHelp, isTrue);
+        expect(outcome.entry.analysisStatus, AnalysisStatus.skipped);
+        expect(env.repo.entries, hasLength(1));
+      },
+    );
+
+    test(
+      'sans détresse dans le texte, l\'entrée est enregistrée « en attente », '
+      'sans écran d\'aide',
+      () async {
+        final env = Env();
+        env.repo.latestEntriesError = StateError('lecture impossible');
+
+        final outcome = await env.save(1, text: 'Journée grise.');
+
+        expect(outcome.showHelp, isFalse);
+        expect(outcome.entry.analysisStatus, AnalysisStatus.pending);
+        expect(env.repo.entries, hasLength(1));
+      },
+    );
+  });
+
   group('détresse du texte et série à la fois (CA8)', () {
     test('CA8 : un seul enregistrement, un seul écran d\'aide demandé, une '
         'seule entrée ajoutée', () async {

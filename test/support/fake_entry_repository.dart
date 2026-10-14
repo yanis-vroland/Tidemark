@@ -19,6 +19,9 @@ class FakeEntryRepository implements EntryRepository {
   /// Si non nul, [markSkipped] lève cette erreur (vérification au démarrage).
   Object? markSkippedError;
 
+  /// Si non nul, [latestEntries] lève cette erreur (série illisible).
+  Object? latestEntriesError;
+
   /// Appelé au début de chaque [addEntry] ; s'il lève, l'entrée n'est pas enregistrée.
   Future<void> Function()? beforeAdd;
 
@@ -114,8 +117,10 @@ class FakeEntryRepository implements EntryRepository {
   });
 
   @override
-  Future<List<Entry>> latestEntries(int count) async =>
-      entries.take(count).toList();
+  Future<List<Entry>> latestEntries(int count) async {
+    if (latestEntriesError != null) throw latestEntriesError!;
+    return entries.take(count).toList();
+  }
 
   @override
   Future<List<Entry>> pendingEntriesWithText() async => entries
