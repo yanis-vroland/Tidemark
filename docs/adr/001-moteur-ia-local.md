@@ -1,6 +1,6 @@
 # ADR-001 : Moteur d'IA local
 
-Statut : proposé
+Statut : accepté (Yanis, 2026-10-14)
 Date : 2026-10-14
 
 Contexte : Tidemark étiquette chaque entrée (émotions, thèmes) avec un modèle de langage qui tourne sur le téléphone, sans aucun appel réseau autre que le téléchargement du modèle (RM1, RM11). L'app cible iOS et Android (décision de Yanis du 2026-10-13), en français seulement (RM22). Les étiquettes viennent d'une liste fermée (RM19) ; une sortie non conforme laisse l'entrée sans étiquette (RM9). Il faut choisir le paquet Flutter qui exécute le modèle, et le modèle.
@@ -60,9 +60,13 @@ iPhone 15 Pro (8 Go, iOS 26.6.2), app en mode profile, signée avec un compte Ap
 - **Chargement** : le premier chargement (12 s) lit 1 Go depuis le stockage ; relancé, le modèle est déjà dans le cache du système. L'app doit charger le modèle en arrière-plan, pas au moment de la saisie.
 - La RSS de `flutter_edge_ai` sans contrainte (0,4 Go) est étonnamment basse : LiteRT-LM projette sans doute le modèle en mémoire hors de la RSS. Non vérifié avec Instruments.
 
+### Mode avion (2026-10-14)
+
+`llamadart` + schéma + GPU, relancé sur l'iPhone 15 Pro en mode avion (Wi-Fi coupé) : 20/20 réponses valides, rappel 0,49, médiane 0,84 s ([mesure](001-mesures/iphone-mode-avion/llamadart-schema.json)). L'analyse fonctionne donc sans réseau. Le mode avion ne prouve pas qu'aucune connexion n'est tentée en silence : c'est la lecture du code de `llamadart` (section 1) qui couvre ce point.
+
 ## Décision
 
-Proposée par l'agent, à trancher par Yanis après les mesures sur iPhone : **`llamadart`, avec Qwen2.5-1.5B-Instruct Q4_K_M et une sortie contrainte par schéma JSON.**
+Décision de Yanis (2026-10-14), sur proposition de l'agent : **`llamadart`, avec Qwen2.5-1.5B-Instruct Q4_K_M et une sortie contrainte par schéma JSON**, l'accélération GPU activée sur iOS.
 
 - C'est la seule configuration sans aucune réponse invalide dans les tableaux ci-dessus (80 sur 80 : simulateur, émulateur, iPhone avec et sans GPU) : RM9 devient un filet de sécurité, pas un cas courant.
 - C'est la plus rapide à modèle égal : 0,8 s par entrée sur iPhone, 2,5 fois moins que `flutter_edge_ai` sans contrainte.
@@ -77,4 +81,4 @@ Conséquences :
 - **Chargement en arrière-plan** : jusqu'à 12 s au premier chargement sur iPhone.
 - **Téléchargement** : environ 1,1 Go au premier usage (RM18), URL épinglée sur une révision Hugging Face, empreinte SHA-256 vérifiée (RM11).
 - **Android** : performances mesurées seulement sur émulateur (aucun appareil Android physique, décision du 2026-10-14). Le README devra le dire (lot J).
-- **Aucun appel réseau pendant l'analyse** : à vérifier en mode avion avant l'acceptation (plan, lot B).
+- **Aucun appel réseau pendant l'analyse** : vérifié en mode avion sur iPhone ; à revérifier sur l'app réelle, avec son téléchargement de modèle, au lot G.

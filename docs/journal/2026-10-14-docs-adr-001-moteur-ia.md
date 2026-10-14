@@ -38,3 +38,24 @@ Mesures sur iPhone 15 Pro, puis ADR complété, PR au statut « proposé ».
 ### Prochaine étape
 
 Yanis tranche l'ADR-001. Une fois accepté : architecture technique (index des ADR, composant d'IA) dans la même PR, puis lot D (socle Flutter).
+
+## 2026-10-14 14:51
+
+### Fait
+
+- Suites de la revue IA de la PR #8 : mesures versionnées dans `docs/adr/001-mesures/`, licences des paquets et moteurs natifs, taille de l'échantillon et paramètres, plateformes minimales sourcées, formulations sur le README corrigées, ADR dans l'index.
+- Test en mode avion sur l'iPhone 15 Pro (Yanis a coupé le réseau) : 20/20 valides, médiane 0,84 s.
+- ADR-001 passé en « accepté » ; plan (lot B coché), architecture technique (vue d'ensemble du composant d'IA, index) et `CLAUDE.md` (section Architecture) mis à jour.
+
+### Décisions
+
+- ADR-001 accepté par Yanis (« ok ça marche », 2026-10-14) : `llamadart` + Qwen2.5-1.5B Q4_K_M + schéma JSON, sans essai q8 préalable. Acceptation conditionnée par l'agent au test en mode avion, réussi.
+
+### Corrections et limites
+
+- Le test en mode avion n'avait pas été fait avant la première version de l'ADR, alors que le plan l'exigeait : relevé par la revue IA.
+- Le mode avion prouve que l'analyse fonctionne sans réseau, pas qu'aucune connexion n'est tentée ; ce point repose sur la lecture du code de `llamadart`.
+
+### Prochaine étape
+
+Yanis merge la PR #8. Ensuite : nettoyage de fin de spike, puis lot C (charte, à partir de l'artefact existant) et lot D (socle Flutter).

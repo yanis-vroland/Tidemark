@@ -102,4 +102,4 @@ Une règle métier non tranchée va dans les questions ouvertes du cahier des ch
 
 ## Architecture
 
-À définir. Le moteur d'IA local sera choisi dans l'ADR-001, après un spike, et les plateformes cibles (Android seul ou iOS + Android) dans le plan. Cette section sera complétée quand le projet Flutter sera créé.
+iOS + Android (décision de Yanis, 2026-10-13). Moteur d'IA local : `llamadart` avec Qwen2.5-1.5B-Instruct, sortie contrainte par schéma JSON ([ADR-001](docs/adr/001-moteur-ia-local.md)). Vue d'ensemble : `docs/architecture-technique.md`. Cette section sera complétée quand le projet Flutter sera créé (lot D).
