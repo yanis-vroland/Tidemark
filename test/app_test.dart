@@ -4,6 +4,7 @@ import 'package:tidemark/main.dart';
 import 'package:tidemark/ui/theme/tidemark_colors.dart';
 
 import 'support/fake_entry_repository.dart';
+import 'support/fake_settings_repository.dart';
 
 void main() {
   for (final brightness in Brightness.values) {
@@ -16,6 +17,7 @@ void main() {
         await tester.pumpWidget(
           TidemarkApp(
             repository: FakeEntryRepository(),
+            settings: FakeSettingsRepository(),
             clock: () => DateTime(2026, 10, 14, 21, 40),
           ),
         );

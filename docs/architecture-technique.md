@@ -6,11 +6,15 @@ Il est mis à jour dans la PR qui change ce qu'il décrit : modèle de données,
 
 ## Vue d'ensemble
 
-Une app Flutter (iOS 16.4+, Android) sans serveur. Les écrans lisent et écrivent les entrées par `EntryRepository`, sur une base `drift` chiffrée dont la clé est dans le trousseau ou le Keystore (spec 001). Le moteur d'IA réel arrive avec la spec du lot G.
+Une app Flutter (iOS 16.4+, Android) sans serveur. Les écrans lisent et écrivent les entrées par `EntryRepository`, sur une base `drift` chiffrée dont la clé est dans le trousseau ou le Keystore (spec 001). Chaque enregistrement passe par le garde-fou de détresse (`DistressDetector`, règles déterministes, spec 002) avant d'atteindre la base ; les réglages de la personne (`SettingsRepository`) sont dans la même base. Le moteur d'IA réel arrive avec la spec du lot G.
 
 ```mermaid
 flowchart LR
-  ui[Écrans Flutter] --> repo[EntryRepository]
+  ui[Écrans Flutter] --> guard[DistressDetector]
+  guard --> repo[EntryRepository]
+  ui --> settings[SettingsRepository]
+  settings --> db
+  ui --> dialer[PhoneDialer : composeur tel:]
   repo --> db[(journal.db, SQLite chiffré)]
   key[Trousseau iOS ou Keystore Android] --> db
   ui --> analyzer[MoodAnalyzer]
@@ -37,11 +41,18 @@ erDiagram
     int utc_offset_minutes "décalage local à la saisie"
     text analysis_status "pending, tagged, untagged, skipped"
   }
+  SETTINGS {
+    int id PK "toujours 1"
+    text low_mood_sensitivity "high, normal, low"
+  }
 ```
+
+Schéma en version 2 : la migration depuis la version 1 crée la table `settings` (spec 002).
 
 | Entité | Contraintes et invariants | Règle métier |
 | --- | --- | --- |
-| `Entry` (table `entries`) | `mood` entre 1 et 5 (contrainte `CHECK`) ; texte absent plutôt que vide ; date de saisie en UTC avec le décalage local, pour ranger l'entrée dans son jour local ; statut `pending` avec texte, `skipped` sans texte | RM3, RM13, RM16, RM24, RM27 ([spec 001](specs/001-saisie-et-liste-des-entrees.md)) |
+| `Entry` (table `entries`) | `mood` entre 1 et 5 (contrainte `CHECK`) ; texte absent plutôt que vide ; date de saisie en UTC avec le décalage local, pour ranger l'entrée dans son jour local ; statut décidé par le garde-fou : `skipped` sans texte ou en détresse, `pending` sinon | RM3, RM13, RM16, RM17, RM24, RM27 ([spec 001](specs/001-saisie-et-liste-des-entrees.md), [spec 002](specs/002-garde-fou-detresse.md)) |
+| Réglages (table `settings`) | Une seule ligne (`CHECK id = 1`) ; degré stocké par son nom ; absent ou inconnu → `normal`, jamais désactivé | RM25, RM29 ([spec 002](specs/002-garde-fou-detresse.md)) |
 
 La table des étiquettes, liée aux entrées par clé étrangère avec suppression en cascade, arrive au lot G.
 
@@ -61,6 +72,10 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 
 | Contrat | Producteur | Consommateurs | Format | Fichier |
 | --- | --- | --- | --- | --- |
+| `EntryRepository` | `DriftEntryRepository` ; `FakeEntryRepository` dans `test/support/` | Écrans, garde-fou (`saveEntryWithGuard`), vérification au démarrage | Interface Dart : `watchEntries`, `addEntry(mood, text, status)`, `deleteEntry`, `latestEntries(count)`, `pendingEntriesWithText`, `markSkipped(ids)` | `lib/entries/entry_repository.dart` |
+| `SettingsRepository` | `DriftSettingsRepository` ; `FakeSettingsRepository` dans `test/support/` | `SettingsScreen`, garde-fou | Interface Dart : `watchLowMoodSensitivity`, `readLowMoodSensitivity`, `setLowMoodSensitivity` | `lib/settings/settings_repository.dart` |
+| `DistressDetector` | Code Dart pur, liste de termes reprise de la spec 002 (vérifiée par un test) | Garde-fou à l'enregistrement, vérification au démarrage, analyse (lot G, juste avant chaque appel au modèle) | `detectInText(text)`, `detectLowMoodSeries(latest, sensitivity)` | `lib/distress/` |
+| `PhoneDialer` | `UrlLauncherDialer` (`url_launcher`, `tel:`) ; `FakePhoneDialer` dans `test/support/` | `HelpScreen` | Interface Dart : `dial(number)` rend vrai si le composeur s'est ouvert | `lib/ui/phone_dialer.dart` |
 | `MoodAnalyzer` | Implémentation `llamadart` (lot G) ; `FakeMoodAnalyzer` dans `test/support/` pour les tests | Écrans de saisie et de détail (lots E, G) | Interface Dart : `analyze(text)` rend `Tagged` ou `Untagged`, jamais d'exception | `lib/analysis/mood_analyzer.dart` |
 | Fichier d'export, version 1 (prévu, lot H) | `JournalExporter` | La personne, hors de l'app (lecture, archivage) | JSON versionné par `formatVersion` ; tout changement l'augmente | Section « Format » de la [spec 005](specs/005-export-et-suppression-totale.md) |
 | `ShareSheet` (prévu, lot H) | Implémentation sur `share_plus` (ADR-003) ; implémentation factice pour les tests | Réglages (export) | Interface Dart : `shareFile(file, mimeType)` ouvre la feuille de partage du système | [spec 005](specs/005-export-et-suppression-totale.md), « Données » |
@@ -75,6 +90,7 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 - **Droits** : sans objet pour la même raison ; la protection repose sur le verrouillage du téléphone et le chiffrement de la base.
 - **Audit** : sans objet. Aucun journal d'usage ni analytics (RM1).
 - **Chiffrement** : base `drift` chiffrée par SQLite3MultipleCiphers, clé aléatoire de 256 bits dans le trousseau iOS ou le Keystore Android, base exclue des sauvegardes du système ([ADR-002](adr/002-stockage-local-chiffre.md)). Mis en œuvre par la spec 001 : `PRAGMA hexkey`, refus d'ouvrir sans SQLite3MultipleCiphers, `secure_delete`, clé `first_unlock_this_device` sur iOS et `resetOnError: false` sur Android, jamais de nouvelle clé si la base existe ; exclusion des sauvegardes par `allowBackup`, `fullBackupContent` et les règles d'extraction sur Android, `isExcludedFromBackup` sur le dossier de la base sur iOS. Le clavier n'apprend pas les mots du journal (`enableIMEPersonalizedLearning: false`).
+- **Garde-fou de détresse** : règles déterministes, sans modèle (RM6) ; une entrée en détresse est enregistrée `skipped` et ne sera jamais transmise au modèle (RM8) ; l'écran d'aide est fixe (RM7). Le composeur s'ouvre par `tel:` (`url_launcher`), sans aucune connexion réseau (RM1) ; aucune déclaration native, puisque `canLaunchUrl` n'est pas utilisé.
 - **Secrets** : aucun dans le dépôt ni dans l'app ; la seule clé est générée sur le téléphone. Seul `.env.example` serait versionné.
 - **Réseau** : aucun accès réseau dans l'app à ce jour. Le seul prévu est le téléchargement du modèle local, depuis Hugging Face, sans donnée de la personne ([spec 003](specs/003-telechargement-du-modele.md), RM30) ; il sera décrit ici avec son implémentation.
 - **Export (prévu, lot H)** : seule voie de sortie d'une donnée de la personne, en clair, par la feuille de partage et sur son appui seulement (RM1, RM23, RM41, [ADR-003](adr/003-export-par-la-feuille-de-partage.md), proposé). Fichier temporaire dans le cache, effacé après le partage ; dossiers temporaires purgés au démarrage et avant chaque export.

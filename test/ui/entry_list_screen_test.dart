@@ -2,10 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/ui/screens/entry_list_screen.dart';
 
+import '../support/fake_settings_repository.dart';
+
 import '../support/ui_harness.dart';
 
-Widget listScreen(DbEnv env) =>
-    testApp(EntryListScreen(repository: env.repo, clock: () => env.now));
+Widget listScreen(DbEnv env) => testApp(
+  EntryListScreen(
+    repository: env.repo,
+    settings: FakeSettingsRepository(),
+    clock: () => env.now,
+  ),
+);
 
 double top(WidgetTester tester, Finder finder) =>
     tester.getTopLeft(finder.first).dy;

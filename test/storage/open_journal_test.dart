@@ -27,8 +27,8 @@ void main() {
   setUp(() => dir = Directory.systemTemp.createTempSync('tidemark_start_'));
   tearDown(() => dir.deleteSync(recursive: true));
 
-  Future<void> closeRepository(Object repository) =>
-      (repository as DriftEntryRepository).db.close();
+  Future<void> closeRepository(Journal journal) =>
+      (journal.entries as DriftEntryRepository).db.close();
 
   test(
     'CA23 : au premier lancement, la clé est créée et la base est ouverte',
@@ -36,7 +36,7 @@ void main() {
       final store = InMemoryKeyStore();
 
       final repository = await openJournal(folder: dir, keyStore: store);
-      await repository.addEntry(mood: 3);
+      await repository.entries.addEntry(mood: 3);
       await closeRepository(repository);
 
       expect(store.writes, 1);
@@ -49,11 +49,11 @@ void main() {
     () async {
       final store = InMemoryKeyStore();
       final first = await openJournal(folder: dir, keyStore: store);
-      await first.addEntry(mood: 4, text: 'Première entrée.');
+      await first.entries.addEntry(mood: 4, text: 'Première entrée.');
       await closeRepository(first);
 
       final second = await openJournal(folder: dir, keyStore: store);
-      final entries = await second.watchEntries().first;
+      final entries = await second.entries.watchEntries().first;
       await closeRepository(second);
 
       expect(store.writes, 1);
@@ -65,7 +65,7 @@ void main() {
       'la base reste intacte', () async {
     final original = InMemoryKeyStore();
     final repository = await openJournal(folder: dir, keyStore: original);
-    await repository.addEntry(mood: 2, text: 'À ne pas perdre.');
+    await repository.entries.addEntry(mood: 2, text: 'À ne pas perdre.');
     await closeRepository(repository);
     final file = File('${dir.path}/journal.db');
     final before = file.readAsBytesSync();
@@ -82,7 +82,7 @@ void main() {
     // La clé d'origine ouvre toujours la base.
     final reopened = await openJournal(folder: dir, keyStore: original);
     expect(
-      (await reopened.watchEntries().first).single.text,
+      (await reopened.entries.watchEntries().first).single.text,
       'À ne pas perdre.',
     );
     await closeRepository(reopened);

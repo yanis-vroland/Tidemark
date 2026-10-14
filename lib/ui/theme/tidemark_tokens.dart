@@ -49,6 +49,12 @@ abstract final class TidemarkSize {
   /// Petite icône devant une mention.
   static const double iconSm = 16;
 
+  /// Icône de navigation ou d'action seule (Réglages, retour).
+  static const double iconMd = 24;
+
+  /// Icône posée dans un bouton, devant son libellé.
+  static const double iconButton = 18;
+
   /// Anneau autour de la pastille choisie, et écart qui l'en sépare.
   static const double ringWidth = 3;
 
@@ -59,6 +65,8 @@ abstract final class TidemarkSize {
     'mood-dot-lg': moodDotLg,
     'button-height': buttonHeight,
     'icon-sm': iconSm,
+    'icon-md': iconMd,
+    'icon-button': iconButton,
     'ring-width': ringWidth,
   };
 }
