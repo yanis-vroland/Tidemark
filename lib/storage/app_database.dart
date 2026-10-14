@@ -28,6 +28,20 @@ class Entries extends Table {
   TextColumn get analysisStatus => textEnum<AnalysisStatus>()();
 }
 
+/// Réglages de la personne (spec 002) : une seule ligne, d'identifiant 1.
+@DataClassName('SettingsRow')
+class Settings extends Table {
+  // Forme documentée par drift pour une contrainte CHECK sur la colonne elle-même.
+  // ignore: recursive_getters
+  IntColumn get id => integer().check(id.equals(1))();
+
+  /// Degré de sensibilité aux humeurs basses, par son nom (`LowMoodSensitivity`).
+  TextColumn get lowMoodSensitivity => text()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 /// Erreur levée quand le moteur SQLite n'a pas le chiffrement.
 class CipherUnavailableError extends StateError {
   CipherUnavailableError()
@@ -42,7 +56,7 @@ void ensureCipherAvailable(int Function(String sql) rowCount) {
 }
 
 /// Base locale des entrées, chiffrée par SQLite3MultipleCiphers (ADR-002).
-@DriftDatabase(tables: [Entries])
+@DriftDatabase(tables: [Entries, Settings])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._(super.executor);
 
@@ -71,7 +85,16 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      // Version 2 : table des réglages (spec 002).
+      if (from < 2) await m.createTable(settings);
+    },
+  );
 
   /// Nombre d'entrées, pour vérifier l'ouverture.
   Future<int> countEntries() async {
@@ -137,9 +160,8 @@ class DriftEntryRepository implements EntryRepository {
       utc.minute,
       utc.second,
     );
-    final status = body == null
-        ? AnalysisStatus.skipped
-        : AnalysisStatus.pending;
+    // Sans texte, rien à analyser (RM24), quel que soit le statut demandé.
+    final analysisStatus = body == null ? AnalysisStatus.skipped : status;
     final id = await db
         .into(db.entries)
         .insert(
@@ -148,7 +170,7 @@ class DriftEntryRepository implements EntryRepository {
             body: Value(body),
             createdAt: createdAt,
             utcOffsetMinutes: now.timeZoneOffset.inMinutes,
-            analysisStatus: status,
+            analysisStatus: analysisStatus,
           ),
         );
     return Entry(
@@ -157,7 +179,7 @@ class DriftEntryRepository implements EntryRepository {
       text: body,
       createdAt: createdAt,
       utcOffset: now.timeZoneOffset,
-      analysisStatus: status,
+      analysisStatus: analysisStatus,
     );
   }
 
@@ -166,13 +188,33 @@ class DriftEntryRepository implements EntryRepository {
       (db.delete(db.entries)..where((e) => e.id.equals(id))).go();
 
   @override
-  Future<List<Entry>> latestEntries(int count) => throw UnimplementedError();
+  Future<List<Entry>> latestEntries(int count) async {
+    if (count <= 0) return const [];
+    final query = db.select(db.entries)
+      ..orderBy([
+        (e) => OrderingTerm.desc(e.createdAt),
+        (e) => OrderingTerm.desc(e.id),
+      ])
+      ..limit(count);
+    return (await query.get()).map(_toEntry).toList();
+  }
 
   @override
-  Future<List<Entry>> pendingEntriesWithText() => throw UnimplementedError();
+  Future<List<Entry>> pendingEntriesWithText() async {
+    final query = db.select(db.entries)
+      ..where(
+        (e) =>
+            e.analysisStatus.equalsValue(AnalysisStatus.pending) &
+            e.body.isNotNull(),
+      );
+    return (await query.get()).map(_toEntry).toList();
+  }
 
   @override
-  Future<void> markSkipped(Iterable<int> ids) => throw UnimplementedError();
+  Future<void> markSkipped(Iterable<int> ids) =>
+      (db.update(db.entries)..where((e) => e.id.isIn(ids))).write(
+        const EntriesCompanion(analysisStatus: Value(AnalysisStatus.skipped)),
+      );
 }
 
 /// [SettingsRepository] sur [AppDatabase] (spec 002) : table `settings`, une ligne.
@@ -181,15 +223,30 @@ class DriftSettingsRepository implements SettingsRepository {
 
   final AppDatabase db;
 
+  /// Degré lu en base ; `normal` si rien n'est choisi ou si la valeur est inconnue
+  /// (CA21) : le garde-fou ne se désactive jamais.
+  static LowMoodSensitivity _parse(SettingsRow? row) =>
+      LowMoodSensitivity.values.asNameMap()[row?.lowMoodSensitivity] ??
+      LowMoodSensitivity.normal;
+
+  SimpleSelectStatement<$SettingsTable, SettingsRow> get _row =>
+      db.select(db.settings)..where((s) => s.id.equals(1));
+
   @override
   Stream<LowMoodSensitivity> watchLowMoodSensitivity() =>
-      throw UnimplementedError();
+      _row.watchSingleOrNull().map(_parse);
 
   @override
-  Future<LowMoodSensitivity> readLowMoodSensitivity() =>
-      throw UnimplementedError();
+  Future<LowMoodSensitivity> readLowMoodSensitivity() async =>
+      _parse(await _row.getSingleOrNull());
 
   @override
-  Future<void> setLowMoodSensitivity(LowMoodSensitivity sensitivity) =>
-      throw UnimplementedError();
+  Future<void> setLowMoodSensitivity(LowMoodSensitivity sensitivity) => db
+      .into(db.settings)
+      .insertOnConflictUpdate(
+        SettingsCompanion.insert(
+          id: const Value(1),
+          lowMoodSensitivity: sensitivity.name,
+        ),
+      );
 }

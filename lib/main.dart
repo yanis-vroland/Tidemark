@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'distress/startup_screening.dart';
 import 'entries/entry_repository.dart';
 import 'settings/settings_repository.dart';
 import 'storage/app_database.dart';
@@ -31,6 +32,8 @@ class Journal {
 Future<Widget> startApp({Future<Journal> Function() open = openJournal}) async {
   try {
     final journal = await open();
+    // Avant tout affichage ; n'échoue jamais (CA16).
+    await screenPendingEntries(journal.entries);
     return TidemarkApp(repository: journal.entries, settings: journal.settings);
   } on DatabaseKeyMissingError {
     // Aucune perte silencieuse : ni nouvelle clé, ni base recréée (spec 001).
