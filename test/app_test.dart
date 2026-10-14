@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/main.dart';
 import 'package:tidemark/ui/theme/tidemark_colors.dart';
 
+import 'support/fake_settings_repository.dart';
+
 import 'support/fake_entry_repository.dart';
 
 void main() {
@@ -16,6 +18,7 @@ void main() {
         await tester.pumpWidget(
           TidemarkApp(
             repository: FakeEntryRepository(),
+            settings: FakeSettingsRepository(),
             clock: () => DateTime(2026, 10, 14, 21, 40),
           ),
         );

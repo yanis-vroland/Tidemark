@@ -338,6 +338,21 @@ void main() {
     });
   });
 
+  // Ajouté après la revue de code (spec 002, cas limites : lecture du degré
+  // impossible dans l'écran Réglages).
+  testWidgets('lecture du degré impossible : « Normale » est coché et un choix '
+      'reste possible', (tester) async {
+    usePhoneScreen(tester);
+    final settings = FakeSettingsRepository()
+      ..readError = StateError('lecture impossible');
+    await showSettings(tester, settings);
+
+    expect(radioChecked(tester, normalLabel), isTrue);
+    await tester.tap(find.text(highLabel));
+    await settle(tester);
+    expect(settings.setCalls, [LowMoodSensitivity.high]);
+  });
+
   group('accessibilité (CA24)', () {
     for (final (sensitivity, label, detail) in options) {
       testWidgets('CA24 : « $label » s\'annonce comme un bouton radio avec '

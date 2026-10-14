@@ -7,6 +7,8 @@ import 'package:tidemark/ui/screens/entry_form_screen.dart';
 import 'package:tidemark/ui/screens/entry_list_screen.dart';
 import 'package:tidemark/ui/theme/tidemark_colors.dart';
 
+import '../support/fake_settings_repository.dart';
+
 import '../support/fake_entry_repository.dart';
 import '../support/ui_harness.dart';
 
@@ -36,7 +38,11 @@ void main() {
       await env.seedJournal(tester);
       await tester.pumpWidget(
         testApp(
-          EntryListScreen(repository: env.repo, clock: () => env.now),
+          EntryListScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+            clock: () => env.now,
+          ),
           textScale: maxScale,
         ),
       );
@@ -49,7 +55,11 @@ void main() {
     dbTestWidgets('CA27 : la liste vide ne déborde pas', (tester, env) async {
       await tester.pumpWidget(
         testApp(
-          EntryListScreen(repository: env.repo, clock: () => env.now),
+          EntryListScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+            clock: () => env.now,
+          ),
           textScale: maxScale,
         ),
       );
@@ -61,7 +71,13 @@ void main() {
 
     dbTestWidgets('CA27 : la saisie ne déborde pas', (tester, env) async {
       await tester.pumpWidget(
-        testApp(EntryFormScreen(repository: env.repo), textScale: maxScale),
+        testApp(
+          EntryFormScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+          ),
+          textScale: maxScale,
+        ),
       );
       await settle(tester);
 
@@ -74,7 +90,13 @@ void main() {
       env,
     ) async {
       await tester.pumpWidget(
-        testApp(EntryFormScreen(repository: env.repo), textScale: maxScale),
+        testApp(
+          EntryFormScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+          ),
+          textScale: maxScale,
+        ),
       );
       await settle(tester);
 
@@ -91,7 +113,10 @@ void main() {
         beforeAdd: () async => throw StateError('stockage plein'),
       );
       await tester.pumpWidget(
-        testApp(EntryFormScreen(repository: repo), textScale: maxScale),
+        testApp(
+          EntryFormScreen(repository: repo, settings: FakeSettingsRepository()),
+          textScale: maxScale,
+        ),
       );
       await tester.pump();
       await tester.tap(find.bySemanticsLabel(moodSemantics(4)));

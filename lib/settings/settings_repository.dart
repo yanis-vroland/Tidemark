@@ -12,22 +12,3 @@ abstract interface class SettingsRepository {
   /// Enregistre le degré choisi.
   Future<void> setLowMoodSensitivity(LowMoodSensitivity sensitivity);
 }
-
-/// Réglages fixes : degré `normal`, sans enregistrement possible. Valeur par défaut
-/// des écrans construits sans réglages (tests de la spec 001) ; l'app démarrée
-/// reçoit toujours les réglages de la base (`openJournal`).
-class DefaultSettingsRepository implements SettingsRepository {
-  const DefaultSettingsRepository();
-
-  @override
-  Stream<LowMoodSensitivity> watchLowMoodSensitivity() =>
-      Stream.value(LowMoodSensitivity.normal);
-
-  @override
-  Future<LowMoodSensitivity> readLowMoodSensitivity() async =>
-      LowMoodSensitivity.normal;
-
-  @override
-  Future<void> setLowMoodSensitivity(LowMoodSensitivity sensitivity) =>
-      throw UnsupportedError('Réglages fixes : rien à enregistrer.');
-}

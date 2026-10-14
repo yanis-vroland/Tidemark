@@ -28,7 +28,7 @@ const _unaccented = {
   'œ': 'oe', 'æ': 'ae',
 };
 
-final _combiningMarks = RegExp('[̀-ͯ]');
+final _combiningMarks = RegExp('[\u0300-\u036f]');
 final _nonWord = RegExp('[^a-z0-9]+');
 
 /// Règles déterministes de détection de la détresse (spec 002, RM6, RM25). Code pur,

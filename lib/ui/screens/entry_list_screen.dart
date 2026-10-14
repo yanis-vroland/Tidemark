@@ -18,7 +18,7 @@ class EntryListScreen extends StatefulWidget {
   const EntryListScreen({
     super.key,
     required this.repository,
-    this.settings = const DefaultSettingsRepository(),
+    required this.settings,
     this.dialer = const UrlLauncherDialer(),
     required this.clock,
   });
