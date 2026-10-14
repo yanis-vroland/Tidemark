@@ -64,3 +64,4 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 | ADR | Titre | Statut |
 | --- | --- | --- |
 | [ADR-001](adr/001-moteur-ia-local.md) | Moteur d'IA local | accepté |
+| [ADR-002](adr/002-stockage-local-chiffre.md) | Stockage local chiffré | proposé |
