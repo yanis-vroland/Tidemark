@@ -1,0 +1,21 @@
+<!-- @dsCard group="Saisie" height=200 subtitle="Pastilles 1 à 5, chiffre et libellé toujours visibles" -->
+<div class="wrap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&amp;family=Figtree:wght@400;500;600&amp;display=swap">
+<style>body{margin:0;background:var(--surface);color:var(--ink);font-family:"Figtree",system-ui,sans-serif}.wrap{padding:16px;display:flex;flex-direction:column;gap:16px}:focus-visible{outline:3px solid var(--tide);outline-offset:2px}
+.row{display:flex;justify-content:space-between;max-width:361px}
+.dot{width:var(--mood-dot,56px);height:var(--mood-dot,56px);border-radius:var(--radius-pill);border:0;display:grid;place-items:center;font:700 22px/1 "Bricolage Grotesque",system-ui,sans-serif;color:var(--on-mood);cursor:pointer}
+.d1{background:var(--mood-1);color:var(--on-mood-1)}.d2{background:var(--mood-2)}.d3{background:var(--mood-3)}.d4{background:var(--mood-4)}.d5{background:var(--mood-5)}
+.dim{opacity:.55}.sel{box-shadow:0 0 0 3px var(--surface),0 0 0 6px var(--tide);font-size:26px}
+.ends{display:flex;justify-content:space-between;max-width:361px;font-size:13px;line-height:18px;color:var(--ink-muted)}
+.label{margin:0;font-size:17px;line-height:24px;font-weight:600}
+</style>
+<div class="row" role="radiogroup" aria-label="Ton humeur, de 1 à 5">
+<button class="dot d1 dim" role="radio" aria-checked="false" aria-label="Humeur 1 sur 5 : Très bas">1</button>
+<button class="dot d2 dim" role="radio" aria-checked="false" aria-label="Humeur 2 sur 5 : Bas">2</button>
+<button class="dot d3 dim" role="radio" aria-checked="false" aria-label="Humeur 3 sur 5 : Neutre">3</button>
+<button class="dot d4 sel" role="radio" aria-checked="true" aria-label="Humeur 4 sur 5 : Bien">4</button>
+<button class="dot d5 dim" role="radio" aria-checked="false" aria-label="Humeur 5 sur 5 : Très bien">5</button>
+</div>
+<div class="ends"><span>Très bas</span><span>Très bien</span></div>
+<p class="label">Bien</p>
+</div>
