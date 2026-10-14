@@ -22,3 +22,24 @@ Branche `docs/reponses-cahier-des-charges`.
 ### Prochaine étape
 
 Yanis merge cette PR. Ensuite : spike du moteur d'IA (lot B), en français (RM22).
+
+## 2026-10-14 10:36
+
+### Fait
+
+- Réponses de Yanis à 4 des 5 nouvelles questions, reportées en RM23 à RM26 : export vers toute destination, entrée sans texte non analysée, série d'humeurs très basses qui déclenche l'écran d'aide, téléchargement interrompu qui repart de zéro. Glossaire, statuts et RM1 alignés.
+- Mise à jour de Flutter lancée sur le poste de Yanis, avec son accord.
+
+### Décisions
+
+- Export par la feuille de partage, vers la destination choisie par la personne (Yanis) : exception à RM1, ADR à rédiger au lot H.
+- Série d'humeurs très basses : écran d'aide même sans texte (Yanis) ; seuil à fixer dans la spec du lot F.
+
+### Corrections et limites
+
+- Réponse de Yanis sur l'entrée sans texte (« si pas de texte et que rien n'est intéressant à prendre, on save pas ») interprétée par l'agent : l'entrée est enregistrée, mais ni analysée ni étiquetée. Interprétation à confirmer dans la PR.
+- La question sur l'analyse différée (entrée saisie sans modèle) reste ouverte.
+
+### Prochaine étape
+
+Yanis confirme l'interprétation de RM24 et merge cette PR. Ensuite : spike du moteur d'IA (lot B).
