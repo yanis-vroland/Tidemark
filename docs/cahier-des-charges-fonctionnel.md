@@ -49,7 +49,7 @@ Les termes du métier et leur nom dans le code. Les specs, le code et les PR uti
 | Détecteur de détresse | `DistressDetector` | Règles déterministes qui repèrent la détresse dans le texte et dans la suite des humeurs (RM6, RM25). |
 | Écran d'aide | `HelpScreen` | Écran fixe affiché en cas de détresse, avec le 3114 ; jamais généré par le modèle (RM7). |
 | Sensibilité aux humeurs basses | `LowMoodSensitivity` : `high`, `normal`, `low` | Degré choisi par la personne qui fixe la série d'humeurs très basses déclenchant l'écran d'aide (RM25, RM29). |
-| Réglages | `SettingsRepository` | Interface par laquelle l'app lit et enregistre les choix de la personne, dont la sensibilité aux humeurs basses ([spec 002](specs/002-garde-fou-detresse.md)). |
+| Réglages | `SettingsRepository` (données), `SettingsScreen` (écran) | Choix de la personne, et l'écran où elle les fait. `SettingsRepository` est l'interface par laquelle l'app les lit et les enregistre, dont la sensibilité aux humeurs basses ([spec 002](specs/002-garde-fou-detresse.md)). |
 | Bilan de la semaine | `WeeklyReview` | Synthèse des entrées d'une semaine : chiffres calculés par l'app, mis en mots par le modèle local (RM10). |
 | Export | `export` | Copie de toutes les données de la personne dans un fichier JSON (RM20). |
 | Suppression totale | `wipe` | Effacement de toutes les données de l'app sur le téléphone (RM12). |
@@ -97,11 +97,11 @@ Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a intr
 - RM22 : l'app est en français seulement ; l'étiquetage et le bilan sont évalués en français (source : décision de Yanis du 2026-10-14).
 - RM23 : la personne exporte vers la destination de son choix, par la feuille de partage du système (Fichiers, AirDrop, mail…). C'est la seule exception à RM1 : elle est toujours déclenchée par la personne, jamais par l'app, et un ADR la documente au lot H (source : décision de Yanis du 2026-10-14).
 - RM24 : une entrée sans texte n'est pas analysée : l'humeur seule ne donne pas d'étiquette, et aucune analyse n'est enregistrée pour elle (source : décision de Yanis du 2026-10-14).
-- RM25 : une série d'humeurs très basses déclenche l'écran d'aide, même sans texte. Le seuil est réglable par la personne, en trois degrés de sensibilité (décision de Yanis du 2026-10-14) ; leurs valeurs sont dans la spec (spec : [`docs/specs/002-garde-fou-detresse.md`](specs/002-garde-fou-detresse.md), valeurs à valider par Yanis).
+- RM25 : une série d'humeurs très basses déclenche l'écran d'aide, même sans texte. Le seuil est réglable par la personne, en trois degrés de sensibilité (décision de Yanis du 2026-10-14) ; leurs valeurs sont dans la spec (spec : [`docs/specs/002-garde-fou-detresse.md`](specs/002-garde-fou-detresse.md)).
 - RM26 : un téléchargement du modèle interrompu repart de zéro (source : décision de Yanis du 2026-10-14).
 - RM27 : le texte d'une entrée compte 2 000 caractères visibles au plus (un émoji composé compte pour un) (spec : [`docs/specs/001-saisie-et-liste-des-entrees.md`](specs/001-saisie-et-liste-des-entrees.md)).
 - RM28 : la suppression d'une entrée est définitive et demande une confirmation (spec : [`docs/specs/001-saisie-et-liste-des-entrees.md`](specs/001-saisie-et-liste-des-entrees.md)).
-- RM29 : aucun degré de sensibilité ne désactive le garde-fou ; la détection par le texte ne dépend pas de ce réglage, et une erreur de lecture du réglage applique le degré par défaut (spec : [`docs/specs/002-garde-fou-detresse.md`](specs/002-garde-fou-detresse.md), à valider par Yanis).
+- RM29 : aucun degré de sensibilité ne désactive le garde-fou ; la détection par le texte ne dépend pas de ce réglage, et une erreur de lecture du réglage applique le degré par défaut (spec : [`docs/specs/002-garde-fou-detresse.md`](specs/002-garde-fou-detresse.md)).
 
 ## Parcours utilisateur
 
@@ -110,7 +110,7 @@ Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a intr
 1. Elle ouvre l'app pour la première fois et découvre qu'elle fonctionne sans compte.
 2. Le soir, elle note son humeur et, si elle veut, quelques mots (saisie d'une entrée).
 3. À sa première entrée à analyser, elle accepte de télécharger le modèle local, après avoir vu sa taille (téléchargement du modèle).
-4. Si son texte contient des signes de détresse, l'écran d'aide s'affiche à la place de toute analyse (détection de détresse).
+4. Si son texte contient des signes de détresse, ou si ses dernières humeurs sont toutes « Très bas », l'écran d'aide s'affiche à la place de la liste, et l'entrée n'est jamais analysée (détection de détresse). Elle choisit dans les Réglages la sensibilité aux humeurs basses.
 5. Sinon, l'app propose des étiquettes, analysées sur le téléphone (étiquetage automatique).
 6. Elle parcourt ses entrées passées et leurs étiquettes, et peut en supprimer une (saisie d'une entrée, liste).
 7. En fin de semaine, elle lit son bilan (bilan de la semaine).
@@ -123,7 +123,7 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 | Phase | Fonctionnalité | Spec | Statut |
 | --- | --- | --- | --- |
 | MVP (lot E) | Saisie d'une entrée et liste des entrées, stockage local chiffré | [001](specs/001-saisie-et-liste-des-entrees.md) | spec validée (CA31 à CA36 en attente de validation) |
-| MVP (lot F) | Détection de détresse et écran d'aide, réglage de la sensibilité | [002](specs/002-garde-fou-detresse.md) | spec brouillon |
+| MVP (lot F) | Détection de détresse et écran d'aide, réglage de la sensibilité | [002](specs/002-garde-fou-detresse.md) | spec validée |
 | MVP (lot G) | Téléchargement du modèle local | — | à spécifier |
 | MVP (lot G) | Étiquetage automatique | — | à spécifier |
 | MVP (lot H) | Export et suppression totale | — | à spécifier |

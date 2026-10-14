@@ -58,3 +58,31 @@ Toujours en attente de Yanis pour le lot E :
   - exclusion de sauvegarde iOS bloquante ;
 - accord pour les issues de la maquette et des frictions de la chaîne ;
 - suppression des branches distantes déjà mergées.
+
+## 2026-10-14 20:19
+
+### Fait
+
+- Spec 002 corrigée selon la revue IA de la PR #14, et passée au statut « validée » :
+  - CA5 couvert par des formes niées ajoutées à la liste ;
+  - CA6 : l'entrée qui complète une série devient « non analysée » ;
+  - nouveaux critères CA27 à CA29 : série prolongée, entrée supprimée, changement de degré ;
+  - défense en profondeur exigée du lot G ;
+  - configuration native de `url_launcher` ;
+  - écran nommé `SettingsScreen`.
+- Liste des termes : 83 expressions. « en finir » n'y figure plus que dans des formes d'intention ; 4 ajouts ; « plus aucune issue » retiré.
+- Maquette : nouvel écran `ReglagesChargementSombre` ; valeurs ramenées sur les jetons (3114 en `mood-numeral`, espacements) ; mention « L'écran d'aide ne peut pas être désactivé. ». Artefact et copie du dépôt à jour.
+- Cahier des charges : parcours utilisateur (étape 4), glossaire (`SettingsScreen`), statut « spec validée ».
+
+### Décisions
+
+- Décisions métier restantes déléguées par Yanis à l'agent (2026-10-14 : « prends les décisions métier ») ; elles sont listées dans « Questions ouvertes » de la spec.
+
+### Corrections et limites
+
+- Captures PNG toujours absentes (maquettes 001 et 002). Une issue est à créer, avec l'accord de Yanis.
+- Jetons `icon-md` (24) et `icon-button` (18) à ajouter à la charte dans la PR d'implémentation.
+
+### Prochaine étape
+
+Après le merge de cette PR : branche `feat/garde-fou-detresse`, tests par le subagent `test-writer` (commit séparé, rouges), puis implémentation. Mettre à jour l'architecture technique : table `settings`, schéma v2, `addEntry(status)`.
