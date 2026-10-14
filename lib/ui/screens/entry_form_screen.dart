@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import '../../entries/day_grouping.dart';
 import '../../entries/entry.dart';
 import '../../entries/entry_repository.dart';
+import '../../settings/settings_repository.dart';
+import '../phone_dialer.dart';
 import '../theme/tidemark_colors.dart';
 import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
@@ -25,9 +27,21 @@ String _thousands(int value) {
 
 /// Saisie d'une entrée (spec 001). Se ferme après l'enregistrement ou l'abandon.
 class EntryFormScreen extends StatefulWidget {
-  const EntryFormScreen({super.key, required this.repository, this.clock});
+  const EntryFormScreen({
+    super.key,
+    required this.repository,
+    this.settings = const DefaultSettingsRepository(),
+    this.dialer = const UrlLauncherDialer(),
+    this.clock,
+  });
 
   final EntryRepository repository;
+
+  /// Degré de sensibilité aux humeurs basses (spec 002).
+  final SettingsRepository settings;
+
+  /// Composeur, pour l'écran d'aide (spec 002).
+  final PhoneDialer dialer;
 
   /// Date et heure locales affichées en tête ; [DateTime.now] par défaut.
   final DateTime Function()? clock;

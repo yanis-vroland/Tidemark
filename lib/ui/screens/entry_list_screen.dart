@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../entries/day_grouping.dart';
 import '../../entries/entry.dart';
 import '../../entries/entry_repository.dart';
+import '../../settings/settings_repository.dart';
+import '../phone_dialer.dart';
 import '../theme/tidemark_colors.dart';
 import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
@@ -15,10 +17,18 @@ class EntryListScreen extends StatefulWidget {
   const EntryListScreen({
     super.key,
     required this.repository,
+    this.settings = const DefaultSettingsRepository(),
+    this.dialer = const UrlLauncherDialer(),
     required this.clock,
   });
 
   final EntryRepository repository;
+
+  /// Réglages, ouverts par l'icône « Réglages » (spec 002).
+  final SettingsRepository settings;
+
+  /// Composeur, pour l'écran d'aide (spec 002).
+  final PhoneDialer dialer;
 
   /// Date et heure locales, pour les intertitres « Aujourd'hui » et « Hier ».
   final DateTime Function() clock;
@@ -48,8 +58,12 @@ class _EntryListScreenState extends State<EntryListScreen> {
 
   void _openForm(BuildContext context) => Navigator.of(context).push(
     MaterialPageRoute<void>(
-      builder: (_) =>
-          EntryFormScreen(repository: widget.repository, clock: widget.clock),
+      builder: (_) => EntryFormScreen(
+        repository: widget.repository,
+        settings: widget.settings,
+        dialer: widget.dialer,
+        clock: widget.clock,
+      ),
     ),
   );
 
