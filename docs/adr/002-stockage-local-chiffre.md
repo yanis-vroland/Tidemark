@@ -61,7 +61,7 @@ Décision **proposée par l'agent**, à trancher par Yanis : **`drift` 2.35.2 su
 
 ## Conséquences
 
-- **Flutter à mettre à jour** (lot D) : `drift` et `sqlite3` exigent Dart 3.10 ; le Flutter installé (3.35.3) est trop ancien.
+- **Versions de Flutter** : `drift` et `sqlite3` exigent Dart 3.10 et `sqflite` Flutter 3.44 ; le poste de développement est en Flutter 3.47.7 et Dart 3.13.5 depuis le 2026-10-14 (mise à jour faite pour le spike), donc compatible.
 - **Téléchargement au build** : le hook de `sqlite3` télécharge le binaire depuis les releases GitHub du paquet, vérifié par empreinte SHA-256. C'est un accès réseau du build et de la CI, pas de l'app : RM1 n'est pas touché. Une option `url_pattern` permet un miroir si besoin.
 - **Contre-argument** : `hive_ce` est plus simple (pur Dart, aucun code natif, aucune génération SQL) et tout aussi testable ; mais son chiffrement non authentifié et l'absence de requêtes reportent sur l'app ce que SQLite fait déjà.
 - **Mainteneur unique** pour `drift` et `sqlite3`, comme pour `sqflite_sqlcipher` ; atténué par l'adoption (plus de 1,5 million de téléchargements mensuels pour `drift`) et par l'interface de stockage.

@@ -24,3 +24,22 @@ Branche `docs/adr-002-stockage`.
 ### Prochaine étape
 
 Yanis relit l'ADR-002 et tranche ; puis PR au statut « proposé » (non ouverte par l'agent à sa demande).
+
+## 2026-10-14 15:04
+
+### Fait
+
+- Relecture par l'agent principal : versions de `sqlcipher_flutter_libs` (fin de vie), `drift`, `sqlite3` et `flutter_secure_storage` vérifiées sur pub.dev.
+- Correction : le Flutter du poste est en 3.47.7 depuis la mise à jour du spike, pas en 3.35.3.
+
+### Décisions
+
+- Aucune : la décision reste à Yanis.
+
+### Corrections et limites
+
+- Le subagent s'était fié à `CLAUDE.md` et au plan, qui citaient encore Flutter 3.35.3.
+
+### Prochaine étape
+
+Yanis tranche l'ADR-002 et la question de l'exclusion des sauvegardes (Android, iCloud). Ensuite : lot D.
