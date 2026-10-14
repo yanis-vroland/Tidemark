@@ -45,6 +45,16 @@ erDiagram
 
 La table des étiquettes, liée aux entrées par clé étrangère avec suppression en cascade, arrive au lot G.
 
+Fichiers de l'app, prévus par la [spec 005](specs/005-export-et-suppression-totale.md) (à mettre en œuvre au lot H) :
+
+| Chemin | Rôle |
+| --- | --- |
+| `Application Support/tidemark/journal.db` (et `-wal`, `-shm`, `-journal`) | Base chiffrée. |
+| `Application Support/tidemark/installed` | Marqueur d'installation, fichier vide (RM45). |
+| `Application Support/tidemark/wipe-pending` | Marqueur de suppression totale en cours (RM43). |
+| `Application Support/tidemark/model/` | Modèle local et téléchargement partiel (lot G). |
+| `<cache>/tidemark-export/`, `<cache>/share_plus/` (Android) | Fichier d'export temporaire, purgé au démarrage et avant chaque export (RM41). |
+
 ## Contrats entre composants
 
 Les composants ne communiquent que par ces contrats. Le fichier de contrat fait foi ; ce tableau dit où il se trouve et qui en dépend. Un changement de contrat exige une spec.
@@ -52,6 +62,8 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 | Contrat | Producteur | Consommateurs | Format | Fichier |
 | --- | --- | --- | --- | --- |
 | `MoodAnalyzer` | Implémentation `llamadart` (lot G) ; `FakeMoodAnalyzer` dans `test/support/` pour les tests | Écrans de saisie et de détail (lots E, G) | Interface Dart : `analyze(text)` rend `Tagged` ou `Untagged`, jamais d'exception | `lib/analysis/mood_analyzer.dart` |
+| Fichier d'export, version 1 (prévu, lot H) | `JournalExporter` | La personne, hors de l'app (lecture, archivage) | JSON versionné par `formatVersion` ; tout changement l'augmente | Section « Format » de la [spec 005](specs/005-export-et-suppression-totale.md) |
+| `ShareSheet` (prévu, lot H) | Implémentation sur `share_plus` (ADR-003) ; implémentation factice pour les tests | Réglages (export) | Interface Dart : `shareFile(file, mimeType)` ouvre la feuille de partage du système | [spec 005](specs/005-export-et-suppression-totale.md), « Données » |
 
 ## Conventions d'API
 
@@ -65,6 +77,9 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 - **Chiffrement** : base `drift` chiffrée par SQLite3MultipleCiphers, clé aléatoire de 256 bits dans le trousseau iOS ou le Keystore Android, base exclue des sauvegardes du système ([ADR-002](adr/002-stockage-local-chiffre.md)). Mis en œuvre par la spec 001 : `PRAGMA hexkey`, refus d'ouvrir sans SQLite3MultipleCiphers, `secure_delete`, clé `first_unlock_this_device` sur iOS et `resetOnError: false` sur Android, jamais de nouvelle clé si la base existe ; exclusion des sauvegardes par `allowBackup`, `fullBackupContent` et les règles d'extraction sur Android, `isExcludedFromBackup` sur le dossier de la base sur iOS. Le clavier n'apprend pas les mots du journal (`enableIMEPersonalizedLearning: false`).
 - **Secrets** : aucun dans le dépôt ni dans l'app ; la seule clé est générée sur le téléphone. Seul `.env.example` serait versionné.
 - **Réseau** : aucun accès réseau dans l'app à ce jour. Le seul prévu est le téléchargement du modèle local, depuis Hugging Face, sans donnée de la personne ([spec 003](specs/003-telechargement-du-modele.md), RM30) ; il sera décrit ici avec son implémentation.
+- **Export (prévu, lot H)** : seule voie de sortie d'une donnée de la personne, en clair, par la feuille de partage et sur son appui seulement (RM1, RM23, RM41, [ADR-003](adr/003-export-par-la-feuille-de-partage.md), proposé). Fichier temporaire dans le cache, effacé après le partage ; dossiers temporaires purgés au démarrage et avant chaque export.
+- **Suppression totale (prévue, lot H)** : base effacée avant la clé (`KeyStore.deleteAll`), jamais l'inverse ; marqueur `wipe-pending` et reprise au démarrage (RM43, [spec 005](specs/005-export-et-suppression-totale.md)).
+- **Marqueur d'installation (prévu, lot H)** : la parade de l'ADR-002 est précisée par la [spec 005](specs/005-export-et-suppression-totale.md) (RM45) : sans marqueur, la clé restée dans le trousseau n'est effacée que si aucune base n'existe, pour ne pas rendre illisible le journal d'une installation antérieure au marqueur.
 
 ## Infrastructure
 
@@ -79,3 +94,4 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 | --- | --- | --- |
 | [ADR-001](adr/001-moteur-ia-local.md) | Moteur d'IA local | accepté |
 | [ADR-002](adr/002-stockage-local-chiffre.md) | Stockage local chiffré | accepté |
+| [ADR-003](adr/003-export-par-la-feuille-de-partage.md) | Export par la feuille de partage | proposé |
