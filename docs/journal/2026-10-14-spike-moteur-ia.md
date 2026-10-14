@@ -99,3 +99,25 @@ Accord de Yanis sur le téléchargement de Qwen2.5-1.5B en `.litertlm`, puis com
 ### Prochaine étape
 
 Mesures sur l'iPhone 15 Pro (temps réels, mémoire, GPU), une configuration à la fois. Puis ADR-001, puis nettoyage : émulateur `Tidemark_Spike`, modèles, copie du projet pour iOS, app du spike sur le simulateur.
+
+## 2026-10-14 14:35
+
+### Fait
+
+- iPhone 15 Pro appairé ; Apple ID ajouté dans Xcode par Yanis ; app signée avec son équipe personnelle gratuite (`AZ7L3PPYH9`, dans la copie locale seulement).
+- Mesures sur iPhone, une configuration à la fois : `spike/mesures/2026-10-14-iphone-15-pro.md`. `llamadart` + schéma + Metal : 20/20 valides, rappel 0,50 à 0,51, médiane 0,83 à 0,91 s, 1,3 Go de RSS ; 12 s de chargement au premier lancement, 0,3 s au suivant. Processeur seul : médiane 1,78 s. `flutter_edge_ai` : sans contrainte 20/20, rappel 0,60, médiane 2,1 s ; avec appel de fonction 18/20, rappel 0,53, médiane 3,4 s, 20 s de chargement et 1,9 Go.
+- Aucun arrêt pour mémoire sans l'entitlement `increased-memory-limit`, jusqu'à 1,9 Go de RSS : l'entitlement n'est pas nécessaire avec ce modèle, et la question du compte gratuit ne se pose pas.
+
+### Décisions
+
+- Résultats récupérés par un fichier `result.json` écrit par l'app et copié par `devicectl`, au lieu des logs de `flutter run` (agent).
+
+### Corrections et limites
+
+- `flutter run` ne remonte pas les logs de l'iPhone : son outil `iproxy` est compilé pour Intel et exige Rosetta, absent du Mac. Contourné sans installer Rosetta.
+- `flutter create` avait inscrit dans le projet une autre équipe (`2ADQ59V3K4`, d'un certificat présent sur le Mac), poussée sur cette branche ; la signature a exigé l'équipe du compte Xcode.
+- Le premier chargement de 12 s comprend sans doute la lecture du fichier depuis le stockage ; au second, le système l'a en cache.
+
+### Prochaine étape
+
+ADR-001 complété avec les mesures iPhone, PR au statut « proposé ». Puis nettoyage de fin de spike, avec l'accord déjà donné par Yanis.
