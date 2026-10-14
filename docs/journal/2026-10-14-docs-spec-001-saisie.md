@@ -43,3 +43,25 @@ Yanis valide la spec et la maquette (et tranche la question ouverte). Ensuite : 
 ### Prochaine étape
 
 Tests des 30 critères par le subagent `test-writer`, vérifiés en échec pour la bonne raison, committés seuls.
+
+## 2026-10-14 15:59
+
+### Fait
+
+- Dépendances ajoutées, versions épinglées selon l'ADR-002 : `drift` 2.35.2, `sqlite3` 3.7.1 (hook `sqlite3mc`), `flutter_secure_storage` 11.2.0, `path_provider`, `path` ; en développement `drift_dev` et `build_runner` (génération du code de `drift`).
+- Squelette de l'interface publique de la spec 001 (`lib/entries/`, `lib/storage/`, `lib/ui/screens/`, `TidemarkApp(repository:, clock:)`) : chaque méthode lève `UnimplementedError`, pour que les tests compilent et échouent pour la bonne raison.
+- Tests écrits par le subagent `test-writer` (`test/entries`, `test/storage`, `test/ui`, `test/platform`, `test/support`) : 30 critères couverts ; `flutter test` : 19 réussis (tests existants), 118 en échec sur `UnimplementedError` ou comportement absent, aucune erreur de compilation ; vérifié par l'agent principal.
+- `test/app_test.dart` réécrit : `TidemarkApp` exige un dépôt, l'accueil est la liste « Ton journal ».
+
+### Décisions
+
+- Décisions d'implémentation signalées par `test-writer`, tranchées par l'agent principal : écran de lancement par couleurs nommées (`values`/`values-night` sur Android, couleur du catalogue avec variante sombre sur iOS) ; date du détail avec l'année (`fullDateLabel`) ; compteur avec une espace simple ; texte fait seulement d'espaces traité comme absent, y compris pour la confirmation d'abandon ; exclusion de sauvegarde iOS vérifiée à la main.
+
+### Corrections et limites
+
+- CA25 (iOS) et CA27 (« aucun texte tronqué ») ne sont couverts qu'en partie par les tests automatiques : test humain.
+- Le harnais de test de `drift` n'a pas encore tourné sur une vraie base : réglages possibles pendant l'implémentation, sans changer les critères.
+
+### Prochaine étape
+
+Implémentation jusqu'au vert : base `drift` chiffrée, clé, regroupement par jour, trois écrans, écran de lancement, exclusion des sauvegardes.
