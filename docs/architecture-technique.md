@@ -6,7 +6,7 @@ Il est mis à jour dans la PR qui change ce qu'il décrit : modèle de données,
 
 ## Vue d'ensemble
 
-Une app Flutter (iOS 16.4+, Android) sans serveur. Le projet Flutter n'existe pas encore (lot D) : seul le composant d'IA est décidé.
+Une app Flutter (iOS 16.4+, Android) sans serveur. Le socle existe (lot D) : thème de la charte, interface `MoodAnalyzer` et son implémentation factice. Le moteur réel et le stockage chiffré arrivent avec les specs des lots E et G.
 
 ```mermaid
 flowchart LR
@@ -47,16 +47,17 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 
 ## Sécurité
 
-- **Identification** : À ADAPTER (qui s'identifie, comment).
-- **Droits** : À ADAPTER (comment sont appliqués les droits décrits dans « Acteurs et droits » du cahier des charges).
-- **Audit** : À ADAPTER (ce qui est journalisé : qui, quoi, quand).
-- **Secrets** : À ADAPTER (où ils vivent ; jamais dans le dépôt, seul `.env.example` est versionné).
+- **Identification** : sans objet. Pas de compte : l'app sert une seule personne, sur son téléphone.
+- **Droits** : sans objet pour la même raison ; la protection repose sur le verrouillage du téléphone et le chiffrement de la base.
+- **Audit** : sans objet. Aucun journal d'usage ni analytics (RM1).
+- **Chiffrement** : base `drift` chiffrée par SQLite3MultipleCiphers, clé aléatoire de 256 bits dans le trousseau iOS ou le Keystore Android, base exclue des sauvegardes du système ([ADR-002](adr/002-stockage-local-chiffre.md)). Mise en œuvre au lot E.
+- **Secrets** : aucun dans le dépôt ni dans l'app ; la seule clé est générée sur le téléphone. Seul `.env.example` serait versionné.
 
 ## Infrastructure
 
-- **Lancement local** : À ADAPTER (commande, services démarrés).
-- **Environnements** : À ADAPTER.
-- **CI** : deux workflows, hérités de la chaîne agentic-dev-workflow. `garde-fous.yml` teste les hooks et les scripts, contrôle le journal de la PR et cherche des secrets dans tout l'historique ; `ai-review.yml` lance la revue IA à l'ouverture de la PR, avec le modèle déclaré dans `.claude/agents/reviewer.md`. Aucun job requis sur `main` : les rulesets ne sont pas disponibles sur un dépôt privé sans GitHub Pro, la règle « seul Yanis merge » tient par discipline. Le build et les tests Flutter s'ajouteront à la création du projet.
+- **Lancement local** : `flutter pub get` puis `flutter run`, sur un simulateur, un émulateur ou un appareil. Aucun service à démarrer.
+- **Environnements** : un seul, le téléphone. Pas de serveur.
+- **CI** : deux workflows, hérités de la chaîne agentic-dev-workflow. `garde-fous.yml` teste les hooks et les scripts, contrôle le journal de la PR et cherche des secrets dans tout l'historique ; `ai-review.yml` lance la revue IA à l'ouverture de la PR, avec le modèle déclaré dans `.claude/agents/reviewer.md`. Aucun job requis sur `main` : les rulesets ne sont pas disponibles sur un dépôt privé sans GitHub Pro, la règle « seul Yanis merge » tient par discipline. `flutter.yml` vérifie le format, lance l'analyse statique (`--fatal-infos`) et les tests, avec Flutter 3.47.7 ; l'action `subosito/flutter-action` est épinglée par SHA.
 - **Déploiement** : À ADAPTER.
 
 ## Décisions d'architecture
@@ -64,4 +65,4 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 | ADR | Titre | Statut |
 | --- | --- | --- |
 | [ADR-001](adr/001-moteur-ia-local.md) | Moteur d'IA local | accepté |
-| [ADR-002](adr/002-stockage-local-chiffre.md) | Stockage local chiffré | proposé |
+| [ADR-002](adr/002-stockage-local-chiffre.md) | Stockage local chiffré | accepté |
