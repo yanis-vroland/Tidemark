@@ -42,9 +42,15 @@ Les termes du métier et leur nom dans le code. Les specs, le code et les PR uti
 | Dépôt des entrées | `EntryRepository` | Interface par laquelle les écrans lisent, ajoutent et suppriment les entrées ; la base chiffrée est derrière ([spec 001](specs/001-saisie-et-liste-des-entrees.md)). |
 | Lieu de la clé | `KeyStore` | Interface du lieu où la clé de la base est gardée : trousseau iOS ou Keystore Android (ADR-002). |
 | Analyseur | `MoodAnalyzer` | Interface qui isole le modèle local ; une implémentation factice sert aux tests et à la CI. |
+| File d'analyse | `AnalysisQueue` | Ce qui analyse les entrées « en attente », une à la fois, dès que le modèle est prêt (RM34, [spec 004](specs/004-etiquetage-automatique.md)). |
+| Liste des étiquettes | `TagVocabulary` | Liste fermée des émotions et des thèmes (RM19, RM33), définie dans la [spec 004](specs/004-etiquetage-automatique.md). |
 | Statut d'analyse | `AnalysisStatus` : `pending`, `tagged`, `untagged`, `skipped` | Où en est l'analyse d'une entrée : en attente, étiquetée, sans étiquette (RM9), non analysée (sans texte, RM24, ou détresse, RM17). Propre à l'entrée ([spec 001](specs/001-saisie-et-liste-des-entrees.md)). |
 | Résultat d'analyse | `AnalysisResult` : `Tagged`, `Untagged` | Ce que rend l'analyseur : « étiquetée » (`Tagged`, avec ses étiquettes) ou « sans étiquette » (`Untagged`, RM9). Le statut « non analysée » n'est pas un résultat de l'analyseur, qui n'est pas appelé : il relève de l'entrée (`AnalysisStatus.skipped`). |
 | Modèle local | `LocalModel` | Fichier du modèle d'IA, téléchargé une fois puis exécuté sur le téléphone. |
+| État du modèle | `LocalModelStatus` : `absent`, `downloading`, `ready` | Où en est le modèle local : absent, en téléchargement (transfert ou vérification), prêt ([spec 003](specs/003-telechargement-du-modele.md)). |
+| Téléchargeur du modèle | `ModelDownloader` | Interface qui télécharge le modèle local, vérifie son empreinte et dit son état ; une implémentation factice sert aux tests, qui ne font aucune requête réseau ([spec 003](specs/003-telechargement-du-modele.md)). |
+| Écran du modèle | `ModelDownloadScreen` | Écran qui propose le téléchargement du modèle (taille annoncée), puis montre sa progression, son échec ou sa réussite ([spec 003](specs/003-telechargement-du-modele.md)). |
+| Empreinte | `sha256` | Empreinte SHA-256 attendue du fichier du modèle, vérifiée avant usage (RM11). |
 | Détresse | `distress` | Signe qu'une personne est peut-être en danger, repéré dans le texte d'une entrée ou dans une série d'humeurs très basses (RM25). |
 | Détecteur de détresse | `DistressDetector` | Règles déterministes qui repèrent la détresse dans le texte et dans la suite des humeurs (RM6, RM25). |
 | Écran d'aide | `HelpScreen` | Écran fixe affiché en cas de détresse, avec le 3114 ; jamais généré par le modèle (RM7). |
@@ -68,8 +74,9 @@ Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a intr
 | Modèle local | prêt | absent | Suppression totale | La personne |
 | Analyse d'une entrée | en attente | étiquetée | Le modèle rend une sortie conforme au schéma | App |
 | Analyse d'une entrée | en attente | sans étiquette | Sortie non conforme ou erreur du modèle (RM9) | App |
-| Analyse d'une entrée | en attente | non analysée | Détresse détectée : l'entrée est enregistrée, jamais analysée (RM8, RM17) | App |
+| Analyse d'une entrée | en attente | non analysée | Détresse détectée : l'entrée est enregistrée, jamais analysée (RM8, RM17), y compris par la vérification faite juste avant l'analyse (RM35) | App |
 | Analyse d'une entrée | en attente | non analysée | Entrée sans texte : rien à analyser, aucune étiquette enregistrée (RM24) | App |
+| Analyse d'une entrée | en attente | en attente | Modèle absent, en téléchargement ou impossible à charger : l'entrée attend que le modèle soit prêt (RM34) | App |
 
 ### Autres règles
 
@@ -102,6 +109,13 @@ Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a intr
 - RM27 : le texte d'une entrée compte 2 000 caractères visibles au plus (un émoji composé compte pour un) (spec : [`docs/specs/001-saisie-et-liste-des-entrees.md`](specs/001-saisie-et-liste-des-entrees.md)).
 - RM28 : la suppression d'une entrée est définitive et demande une confirmation (spec : [`docs/specs/001-saisie-et-liste-des-entrees.md`](specs/001-saisie-et-liste-des-entrees.md)).
 - RM29 : aucun degré de sensibilité ne désactive le garde-fou ; la détection par le texte ne dépend pas de ce réglage, et une erreur de lecture du réglage applique le degré par défaut (spec : [`docs/specs/002-garde-fou-detresse.md`](specs/002-garde-fou-detresse.md)).
+- RM30 : le téléchargement du modèle ne contacte que Hugging Face : une URL HTTPS épinglée sur une révision, puis ses redirections, seulement vers `huggingface.co` ou un hôte en `.hf.co`, en HTTPS. La requête ne porte aucune donnée de la personne ni aucun identifiant de l'appareil (spec : [`docs/specs/003-telechargement-du-modele.md`](specs/003-telechargement-du-modele.md)).
+- RM31 : la proposition de téléchargement s'ouvre d'elle-même une seule fois, après l'enregistrement de la première entrée « en attente » ; ensuite, la personne la retrouve dans les Réglages et dans le détail d'une entrée en attente (spec : [`docs/specs/003-telechargement-du-modele.md`](specs/003-telechargement-du-modele.md)).
+- RM32 : le téléchargement ne tourne que l'app ouverte, y compris pendant que la personne écrit ; s'il est interrompu, il repart de zéro (RM26) (spec : [`docs/specs/003-telechargement-du-modele.md`](specs/003-telechargement-du-modele.md)).
+- RM33 : la liste fermée compte 12 émotions et 12 thèmes, en français, sans aucun nom de trouble ; une entrée reçoit de 0 à 3 émotions et de 0 à 2 thèmes, avec au moins une étiquette (spec : [`docs/specs/004-etiquetage-automatique.md`](specs/004-etiquetage-automatique.md)).
+- RM34 : les entrées « en attente » sont analysées automatiquement, en arrière-plan, dès que le modèle est prêt (au démarrage, après chaque enregistrement, à la fin du téléchargement), une à la fois, la plus récente d'abord. Une entrée « sans étiquette » ou « non analysée » n'est jamais analysée de nouveau ; un modèle impossible à charger laisse les entrées « en attente » (spec : [`docs/specs/004-etiquetage-automatique.md`](specs/004-etiquetage-automatique.md)).
+- RM35 : juste avant chaque analyse, le texte passe de nouveau par le détecteur de détresse ; une entrée détectée devient « non analysée » sans être transmise au modèle, et sans écran d'aide (spec : [`docs/specs/004-etiquetage-automatique.md`](specs/004-etiquetage-automatique.md)).
+- RM36 : seul le texte de l'entrée est transmis au modèle, sans l'humeur ni la date (spec : [`docs/specs/004-etiquetage-automatique.md`](specs/004-etiquetage-automatique.md)).
 
 ## Parcours utilisateur
 
@@ -111,7 +125,7 @@ Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a intr
 2. Le soir, elle note son humeur et, si elle veut, quelques mots (saisie d'une entrée).
 3. À sa première entrée à analyser, elle accepte de télécharger le modèle local, après avoir vu sa taille (téléchargement du modèle).
 4. Si son texte contient des signes de détresse, ou si ses dernières humeurs sont toutes « Très bas », l'écran d'aide s'affiche à la place de la liste, et l'entrée n'est jamais analysée (détection de détresse). Elle choisit dans les Réglages la sensibilité aux humeurs basses.
-5. Sinon, l'app propose des étiquettes, analysées sur le téléphone (étiquetage automatique).
+5. Sinon, l'app propose des étiquettes, analysées sur le téléphone, en arrière-plan, dès que le modèle est prêt (étiquetage automatique).
 6. Elle parcourt ses entrées passées et leurs étiquettes, et peut en supprimer une (saisie d'une entrée, liste).
 7. En fin de semaine, elle lit son bilan (bilan de la semaine).
 8. Elle peut à tout moment exporter ses données, ou tout supprimer (export et suppression totale).
@@ -124,8 +138,8 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 | --- | --- | --- | --- |
 | MVP (lot E) | Saisie d'une entrée et liste des entrées, stockage local chiffré | [001](specs/001-saisie-et-liste-des-entrees.md) | spec validée (CA31 à CA36 en attente de validation) |
 | MVP (lot F) | Détection de détresse et écran d'aide, réglage de la sensibilité | [002](specs/002-garde-fou-detresse.md) | spec validée |
-| MVP (lot G) | Téléchargement du modèle local | — | à spécifier |
-| MVP (lot G) | Étiquetage automatique | — | à spécifier |
+| MVP (lot G) | Téléchargement du modèle local | [003](specs/003-telechargement-du-modele.md) | spec validée |
+| MVP (lot G) | Étiquetage automatique | [004](specs/004-etiquetage-automatique.md) | spec validée |
 | MVP (lot H) | Export et suppression totale | — | à spécifier |
 | Si le temps le permet (lot I) | Bilan de la semaine | — | à spécifier |
 
@@ -133,4 +147,4 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 
 Questions métier non tranchées. Une fois la réponse donnée, elle rejoint la section concernée, et la question est retirée.
 
-1. **Entrée sans analyse** : une entrée avec texte, saisie quand le modèle est absent ou restée sans étiquette après une erreur, est-elle analysée plus tard ? Automatiquement ou à la demande ? (posée le 2026-10-14, Yanis, lot G)
+Aucune pour l'instant. La question « Entrée sans analyse » (2026-10-14, lot G) est tranchée par RM34.

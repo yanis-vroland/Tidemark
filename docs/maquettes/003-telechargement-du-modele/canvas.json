@@ -1,0 +1,74 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-14T18:35:00Z"
+ },
+ "title": "Tidemark : téléchargement du modèle",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Main.dc.html": { "x": 0, "y": 0, "w": 393, "h": 852, "title": "Modèle · proposition · clair", "is_interactive": true, "radius": 48 },
+  "PropositionSombre.dc.html": { "x": 473, "y": 0, "w": 393, "h": 852, "title": "Modèle · proposition · sombre", "radius": 48 },
+  "Progression.dc.html": { "x": 946, "y": 0, "w": 393, "h": 852, "title": "Modèle · progression · clair", "is_interactive": true, "radius": 48 },
+  "ProgressionSombre.dc.html": { "x": 1419, "y": 0, "w": 393, "h": 852, "title": "Modèle · progression · sombre", "radius": 48 },
+  "Annulation.dc.html": { "x": 1892, "y": 0, "w": 393, "h": 852, "title": "Modèle · confirmation d'annulation · clair", "is_interactive": true, "radius": 48 },
+  "AnnulationSombre.dc.html": { "x": 2365, "y": 0, "w": 393, "h": 852, "title": "Modèle · confirmation d'annulation · sombre", "radius": 48 },
+  "Verification.dc.html": { "x": 2838, "y": 0, "w": 393, "h": 852, "title": "Modèle · vérification · clair", "radius": 48 },
+  "VerificationSombre.dc.html": { "x": 3311, "y": 0, "w": 393, "h": 852, "title": "Modèle · vérification · sombre", "radius": 48 },
+  "Echec.dc.html": { "x": 0, "y": 1300, "w": 393, "h": 852, "title": "Modèle · échec réseau · clair", "is_interactive": true, "radius": 48 },
+  "EchecSombre.dc.html": { "x": 473, "y": 1300, "w": 393, "h": 852, "title": "Modèle · échec réseau · sombre", "radius": 48 },
+  "EchecEmpreinte.dc.html": { "x": 946, "y": 1300, "w": 393, "h": 852, "title": "Modèle · échec fichier faux · clair", "radius": 48 },
+  "EchecEmpreinteSombre.dc.html": { "x": 1419, "y": 1300, "w": 393, "h": 852, "title": "Modèle · échec fichier faux · sombre", "radius": 48 },
+  "EchecPlace.dc.html": { "x": 1892, "y": 1300, "w": 393, "h": 852, "title": "Modèle · échec place · clair", "radius": 48 },
+  "EchecPlaceSombre.dc.html": { "x": 2365, "y": 1300, "w": 393, "h": 852, "title": "Modèle · échec place · sombre", "radius": 48 },
+  "Pret.dc.html": { "x": 2838, "y": 1300, "w": 393, "h": 852, "title": "Modèle · prêt · clair", "radius": 48 },
+  "PretSombre.dc.html": { "x": 3311, "y": 1300, "w": 393, "h": 852, "title": "Modèle · prêt · sombre", "radius": 48 },
+  "Reglages.dc.html": { "x": 0, "y": 2600, "w": 393, "h": 1240, "title": "Réglages · modèle absent · clair (écran qui défile)", "is_interactive": true, "radius": 48 },
+  "ReglagesSombre.dc.html": { "x": 473, "y": 2600, "w": 393, "h": 1240, "title": "Réglages · modèle absent · sombre", "radius": 48 },
+  "ReglagesTelechargement.dc.html": { "x": 946, "y": 2600, "w": 393, "h": 1240, "title": "Réglages · téléchargement · clair", "radius": 48 },
+  "ReglagesTelechargementSombre.dc.html": { "x": 1419, "y": 2600, "w": 393, "h": 1240, "title": "Réglages · téléchargement · sombre", "radius": 48 },
+  "ReglagesPret.dc.html": { "x": 1892, "y": 2600, "w": 393, "h": 1240, "title": "Réglages · modèle prêt · clair", "radius": 48 },
+  "ReglagesPretSombre.dc.html": { "x": 2365, "y": 2600, "w": 393, "h": 1240, "title": "Réglages · modèle prêt · sombre", "radius": 48 }
+ },
+ "order": [
+  "Main.dc.html",
+  "PropositionSombre.dc.html",
+  "Progression.dc.html",
+  "ProgressionSombre.dc.html",
+  "Annulation.dc.html",
+  "AnnulationSombre.dc.html",
+  "Verification.dc.html",
+  "VerificationSombre.dc.html",
+  "Echec.dc.html",
+  "EchecSombre.dc.html",
+  "EchecEmpreinte.dc.html",
+  "EchecEmpreinteSombre.dc.html",
+  "EchecPlace.dc.html",
+  "EchecPlaceSombre.dc.html",
+  "Pret.dc.html",
+  "PretSombre.dc.html",
+  "Reglages.dc.html",
+  "ReglagesSombre.dc.html",
+  "ReglagesTelechargement.dc.html",
+  "ReglagesTelechargementSombre.dc.html",
+  "ReglagesPret.dc.html",
+  "ReglagesPretSombre.dc.html"
+ ],
+ "notes": {
+  "modele": { "x": 0, "y": -300, "text": "Écran du modèle : proposition, progression, vérification (spec 003)", "kind": "title1", "maxW": 3704 },
+  "issues": { "x": 0, "y": 1000, "text": "Écran du modèle : échecs et modèle prêt (spec 003)", "kind": "title1", "maxW": 3704 },
+  "reglages": { "x": 0, "y": 2300, "text": "Réglages : analyse sur le téléphone (spec 003)", "kind": "title1", "maxW": 2758 }
+ },
+ "designSystems": [
+  {
+   "title": "Tidemark",
+   "namespace": "tidemark",
+   "artifact": "https://claude.ai/artifact/LxwwPXPaLTB1ciS6m7NVeu",
+   "version": "1791988325-22e4",
+   "copiedAt": "2026-10-14T18:35:00Z"
+  }
+ ]
+}
