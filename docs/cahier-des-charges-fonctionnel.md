@@ -51,8 +51,11 @@ Les termes du métier et leur nom dans le code. Les specs, le code et les PR uti
 | Sensibilité aux humeurs basses | `LowMoodSensitivity` : `high`, `normal`, `low` | Degré choisi par la personne qui fixe la série d'humeurs très basses déclenchant l'écran d'aide (RM25, RM29). |
 | Réglages | `SettingsRepository` (données), `SettingsScreen` (écran) | Choix de la personne, et l'écran où elle les fait. `SettingsRepository` est l'interface par laquelle l'app les lit et les enregistre, dont la sensibilité aux humeurs basses ([spec 002](specs/002-garde-fou-detresse.md)). |
 | Bilan de la semaine | `WeeklyReview` | Synthèse des entrées d'une semaine : chiffres calculés par l'app, mis en mots par le modèle local (RM10). |
-| Export | `export` | Copie de toutes les données de la personne dans un fichier JSON (RM20). |
-| Suppression totale | `wipe` | Effacement de toutes les données de l'app sur le téléphone (RM12). |
+| Export | `export`, `JournalExporter` | Copie de toutes les données de la personne dans un fichier JSON, au format versionné de la [spec 005](specs/005-export-et-suppression-totale.md) (RM20, RM40). `JournalExporter` construit le fichier. |
+| Feuille de partage | `ShareSheet` | Interface de la feuille de partage du système, seule voie de sortie du fichier d'export (RM23, [ADR-003](adr/003-export-par-la-feuille-de-partage.md)). |
+| Suppression totale | `wipe`, `JournalWiper` | Effacement de toutes les données de l'app sur le téléphone, qui revient à l'état du premier lancement (RM12, RM42). `JournalWiper` en exécute les étapes. |
+| Suppression en cours | `wipe-pending` (fichier) | Marqueur écrit avant la première étape de la suppression totale et effacé après la dernière ; tant qu'il existe, la base n'est pas ouverte et la suppression reprend (RM43). |
+| Marqueur d'installation | `installed` (fichier) | Fichier vide créé au premier lancement et effacé par le système à la désinstallation ; son absence signale une nouvelle installation (RM45, ADR-002). |
 
 ## Règles métier
 
@@ -66,6 +69,8 @@ Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a intr
 | Modèle local | en téléchargement | prêt | Fichier complet et empreinte vérifiée | App |
 | Modèle local | en téléchargement | absent | Échec réseau, empreinte fausse ou annulation ; un nouveau téléchargement repart de zéro (RM26) | App, la personne |
 | Modèle local | prêt | absent | Suppression totale | La personne |
+| Données de l'app | présentes | suppression en cours | La personne écrit « SUPPRIMER » et confirme (RM42) | La personne |
+| Données de l'app | suppression en cours | absentes (premier lancement) | Toutes les étapes faites, y compris après une reprise au démarrage (RM43) | App |
 | Analyse d'une entrée | en attente | étiquetée | Le modèle rend une sortie conforme au schéma | App |
 | Analyse d'une entrée | en attente | sans étiquette | Sortie non conforme ou erreur du modèle (RM9) | App |
 | Analyse d'une entrée | en attente | non analysée | Détresse détectée : l'entrée est enregistrée, jamais analysée (RM8, RM17) | App |
@@ -73,7 +78,9 @@ Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a intr
 
 ### Autres règles
 
-- RM1 : aucune donnée de la personne ne quitte le téléphone par l'app. Le seul accès réseau de l'app est le téléchargement du modèle local, qui ne transmet aucune donnée de la personne. Seule exception : l'export que la personne déclenche elle-même (RM23). Toute exception passe par un ADR (source : `CLAUDE.md`).
+Les numéros ne se suivent pas toujours : des plages sont réservées aux specs rédigées en parallèle, et seront renumérotées au rebase.
+
+- RM1 : aucune donnée de la personne ne quitte le téléphone par l'app. Le seul accès réseau de l'app est le téléchargement du modèle local, qui ne transmet aucune donnée de la personne. Seule exception : l'export que la personne déclenche elle-même (RM23, [ADR-003](adr/003-export-par-la-feuille-de-partage.md), proposé). Toute exception passe par un ADR (source : `CLAUDE.md`).
 - RM2 : les entrées sont chiffrées au repos sur le téléphone (source : plan, lot E).
 - RM3 : l'humeur est un entier de 1 à 5. Libellés fixes : 1 « Très bas », 2 « Bas », 3 « Neutre », 4 « Bien », 5 « Très bien » (source : décision de Yanis du 2026-10-14, libellés d'humeur).
 - RM4 : l'app ne donne aucun conseil médical, aucun diagnostic, aucun jugement sur l'humeur (source : `CLAUDE.md`).
@@ -84,7 +91,7 @@ Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a intr
 - RM9 : une sortie du modèle non conforme au schéma des étiquettes laisse l'entrée sans étiquette ; l'app ne plante pas et ne montre pas la sortie brute (source : plan, lot G).
 - RM10 : dans le bilan de la semaine, tous les chiffres sont calculés par l'app ; le modèle ne fait que les mettre en mots et n'en produit aucun (source : plan, lot I).
 - RM11 : le téléchargement du modèle n'a lieu qu'avec l'accord de la personne, après l'annonce de sa taille ; l'empreinte du fichier est vérifiée avant usage (source : plan, lot G).
-- RM12 : la suppression totale efface les entrées, la clé de chiffrement et le modèle local téléchargé (source : plan, lot H).
+- RM12 : la suppression totale efface les entrées, leurs étiquettes, les réglages, la clé de chiffrement et le modèle local téléchargé (source : plan, lot H ; spec : [`docs/specs/005-export-et-suppression-totale.md`](specs/005-export-et-suppression-totale.md)).
 - RM13 : le texte d'une entrée est facultatif : une entrée peut n'avoir qu'une humeur (source : décision de Yanis du 2026-10-14).
 - RM14 : le nombre d'entrées par jour n'est pas limité (source : décision de Yanis du 2026-10-14).
 - RM15 : une entrée peut être supprimée, pas modifiée (source : décision de Yanis du 2026-10-14).
@@ -92,16 +99,22 @@ Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a intr
 - RM17 : une entrée où la détresse est détectée est enregistrée, sans analyse (source : décision de Yanis du 2026-10-14).
 - RM18 : le modèle local est proposé au téléchargement à la première entrée à analyser, quel que soit le réseau (Wi-Fi ou données mobiles), toujours après l'annonce de sa taille (source : décision de Yanis du 2026-10-14).
 - RM19 : les étiquettes viennent d'une liste fermée d'émotions et de thèmes, définie dans la spec de l'étiquetage ; la personne ne peut pas les corriger dans le MVP (source : décision de Yanis du 2026-10-14).
-- RM20 : l'export produit un fichier JSON qui contient toutes les entrées et leurs étiquettes (source : décision de Yanis du 2026-10-14).
+- RM20 : l'export produit un fichier JSON qui contient toutes les entrées et leurs étiquettes (source : décision de Yanis du 2026-10-14 ; format : [spec 005](specs/005-export-et-suppression-totale.md)).
 - RM21 : le bilan porte sur une semaine du lundi au dimanche, et n'est produit qu'à partir de 3 entrées dans la semaine (source : décision de Yanis du 2026-10-14).
 - RM22 : l'app est en français seulement ; l'étiquetage et le bilan sont évalués en français (source : décision de Yanis du 2026-10-14).
-- RM23 : la personne exporte vers la destination de son choix, par la feuille de partage du système (Fichiers, AirDrop, mail…). C'est la seule exception à RM1 : elle est toujours déclenchée par la personne, jamais par l'app, et un ADR la documente au lot H (source : décision de Yanis du 2026-10-14).
+- RM23 : la personne exporte vers la destination de son choix, par la feuille de partage du système (Fichiers, AirDrop, mail…). C'est la seule exception à RM1 : elle est toujours déclenchée par la personne, jamais par l'app, et l'[ADR-003](adr/003-export-par-la-feuille-de-partage.md) la documente (source : décision de Yanis du 2026-10-14).
 - RM24 : une entrée sans texte n'est pas analysée : l'humeur seule ne donne pas d'étiquette, et aucune analyse n'est enregistrée pour elle (source : décision de Yanis du 2026-10-14).
 - RM25 : une série d'humeurs très basses déclenche l'écran d'aide, même sans texte. Le seuil est réglable par la personne, en trois degrés de sensibilité (décision de Yanis du 2026-10-14) ; leurs valeurs sont dans la spec (spec : [`docs/specs/002-garde-fou-detresse.md`](specs/002-garde-fou-detresse.md)).
 - RM26 : un téléchargement du modèle interrompu repart de zéro (source : décision de Yanis du 2026-10-14).
 - RM27 : le texte d'une entrée compte 2 000 caractères visibles au plus (un émoji composé compte pour un) (spec : [`docs/specs/001-saisie-et-liste-des-entrees.md`](specs/001-saisie-et-liste-des-entrees.md)).
 - RM28 : la suppression d'une entrée est définitive et demande une confirmation (spec : [`docs/specs/001-saisie-et-liste-des-entrees.md`](specs/001-saisie-et-liste-des-entrees.md)).
 - RM29 : aucun degré de sensibilité ne désactive le garde-fou ; la détection par le texte ne dépend pas de ce réglage, et une erreur de lecture du réglage applique le degré par défaut (spec : [`docs/specs/002-garde-fou-detresse.md`](specs/002-garde-fou-detresse.md)).
+- RM40 : l'export contient toutes les entrées, y compris celles sans texte et celles en détresse, leurs étiquettes et le réglage de sensibilité aux humeurs basses, au format JSON versionné (`formatVersion`) ; il n'est possible que si le journal compte au moins une entrée (spec : [`docs/specs/005-export-et-suppression-totale.md`](specs/005-export-et-suppression-totale.md)).
+- RM41 : le fichier d'export n'est pas chiffré, et l'app le dit sous le bouton d'export. Il n'existe que dans le cache de l'app, le temps du partage : il est effacé à la fermeture de la feuille de partage, et les dossiers temporaires d'export sont purgés au démarrage et avant chaque export (spec : [`docs/specs/005-export-et-suppression-totale.md`](specs/005-export-et-suppression-totale.md)).
+- RM42 : la suppression totale exige d'écrire « SUPPRIMER » (sans tenir compte de la casse ni des espaces autour). Elle efface aussi les fichiers temporaires d'export, puis l'app revient à l'état du premier lancement (spec : [`docs/specs/005-export-et-suppression-totale.md`](specs/005-export-et-suppression-totale.md)).
+- RM43 : la suppression totale efface la base avant la clé, jamais l'inverse. Interrompue, elle reprend au démarrage suivant, avant toute ouverture de la base (spec : [`docs/specs/005-export-et-suppression-totale.md`](specs/005-export-et-suppression-totale.md)).
+- RM44 : quand la clé de la base est introuvable, l'app propose la suppression totale pour repartir de zéro, sans jamais la lancer d'elle-même (spec : [`docs/specs/005-export-et-suppression-totale.md`](specs/005-export-et-suppression-totale.md)).
+- RM45 : au démarrage, une nouvelle installation (ni marqueur d'installation ni base) efface toute clé restée dans le trousseau ; une base présente sans marqueur n'est jamais privée de sa clé (spec : [`docs/specs/005-export-et-suppression-totale.md`](specs/005-export-et-suppression-totale.md)).
 
 ## Parcours utilisateur
 
@@ -126,7 +139,7 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 | MVP (lot F) | Détection de détresse et écran d'aide, réglage de la sensibilité | [002](specs/002-garde-fou-detresse.md) | spec validée |
 | MVP (lot G) | Téléchargement du modèle local | — | à spécifier |
 | MVP (lot G) | Étiquetage automatique | — | à spécifier |
-| MVP (lot H) | Export et suppression totale | — | à spécifier |
+| MVP (lot H) | Export et suppression totale | [005](specs/005-export-et-suppression-totale.md) | spec brouillon (à valider par Yanis, avec la maquette et l'ADR-003) |
 | Si le temps le permet (lot I) | Bilan de la semaine | — | à spécifier |
 
 ## Questions ouvertes
