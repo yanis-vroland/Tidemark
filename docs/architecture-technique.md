@@ -50,7 +50,7 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 
 - **Lancement local** : À ADAPTER (commande, services démarrés).
 - **Environnements** : À ADAPTER.
-- **CI** : À ADAPTER (workflows, jobs requis sur `main`).
+- **CI** : deux workflows, hérités de la chaîne agentic-dev-workflow. `garde-fous.yml` teste les hooks et les scripts, contrôle le journal de la PR et cherche des secrets dans tout l'historique ; `ai-review.yml` lance la revue IA à l'ouverture de la PR, avec le modèle déclaré dans `.claude/agents/reviewer.md`. Aucun job requis sur `main` : les rulesets ne sont pas disponibles sur un dépôt privé sans GitHub Pro, la règle « seul Yanis merge » tient par discipline. Le build et les tests Flutter s'ajouteront à la création du projet.
 - **Déploiement** : À ADAPTER.
 
 ## Décisions d'architecture
