@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Démarrage, journal impossible à ouvrir</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&amp;family=Figtree:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f6b}a:hover{color:#13272c}
+</style>
+</helmet>
+<div style="width: 393px; height: 852px; box-sizing: border-box; padding: 92px 16px 40px; display: flex; flex-direction: column; gap: 8px; background: {{t.surface}}; color: {{t.ink}}; font-family: Figtree, system-ui, sans-serif;">
+  <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 22px; line-height: 28px; color: {{t.danger}};">{{title}}</h1>
+
+  <sc-if value="{{keyMissing}}" hint-placeholder-val="{{true}}">
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <p style="margin: 0; font-size: 16px; line-height: 24px;">Tes entrées sont toujours sur le téléphone, mais la clé qui les protège est introuvable. Rien n'a été effacé.</p>
+      <p style="margin: 0; font-size: 16px; line-height: 24px; color: {{t.muted}};">Sans cette clé, elles ne pourront plus être lues. Tu peux tout supprimer et commencer un nouveau journal.</p>
+    </div>
+  </sc-if>
+  <sc-if value="{{resume}}" hint-placeholder-val="{{false}}">
+    <p style="margin: 0; font-size: 16px; line-height: 24px;">Une partie de tes données a peut-être déjà été effacée. Réessaie : la suppression reprend où elle s'est arrêtée.</p>
+  </sc-if>
+
+  <div style="flex-grow: 1;"></div>
+
+  <sc-if value="{{keyMissing}}" hint-placeholder-val="{{true}}">
+    <a href="ConfirmationCle.dc.html" style="height: 52px; box-sizing: border-box; flex-shrink: 0; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid {{t.danger}}; background: {{t.raised}}; color: {{t.danger}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">Tout supprimer et repartir de zéro</a>
+  </sc-if>
+  <sc-if value="{{resume}}" hint-placeholder-val="{{false}}">
+    <a href="ListeApresSuppression.dc.html" style="height: 52px; flex-shrink: 0; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; background: {{t.tide}}; color: {{t.onTide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">Réessayer</a>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"cause":{"editor":"enum","options":["cle-introuvable","reprise"],"default":"cle-introuvable"},"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const LIGHT = { surface: '#f3f6f5', raised: '#ffffff', ink: '#13272c', muted: '#4b5e64', tide: '#1d5f6b', onTide: '#ffffff', danger: '#a3392a' };
+    const DARK = { surface: '#0e191c', raised: '#172529', ink: '#e4eeec', muted: '#9db0b1', tide: '#7cc5c9', onTide: '#0a2226', danger: '#f39582' };
+    const resume = (this.props.cause ?? 'cle-introuvable') === 'reprise';
+    return {
+      t: this.props.dark ? DARK : LIGHT,
+      resume,
+      keyMissing: !resume,
+      title: resume ? "La suppression n'est pas terminée" : "Ton journal n'a pas pu être ouvert"
+    };
+  }
+}
+</script>
+</body>
+</html>

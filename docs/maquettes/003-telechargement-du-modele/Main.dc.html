@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Écran du modèle</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&amp;family=Figtree:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f6b}a:hover{color:#13272c}
+@media (prefers-reduced-motion:no-preference){.spin{animation:spin 1.2s linear infinite}}@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<div style="position: relative; width: 393px; height: 852px; box-sizing: border-box; padding: 72px 16px 40px; display: flex; flex-direction: column; gap: 24px; background: {{t.surface}}; color: {{t.ink}}; font-family: Figtree, system-ui, sans-serif; overflow: hidden;">
+
+  <sc-if value="{{offer}}" hint-placeholder-val="{{true}}">
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 34px; line-height: 38px; letter-spacing: -0.5px;">Des étiquettes pour ton journal</h1>
+      <p style="margin: 0; font-size: 16px; line-height: 24px;">Tidemark peut proposer des émotions et des thèmes pour chaque entrée. L'analyse se fait sur ton téléphone, par un modèle à télécharger une seule fois.</p>
+    </div>
+    <ul style="margin: 0; padding: 16px; list-style: none; display: flex; flex-direction: column; gap: 16px; border-radius: 16px; background: {{t.raised}};">
+      <li style="display: flex; align-items: flex-start; gap: 12px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.tide}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0;"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 21h14"></path></svg>
+        <span style="display: flex; flex-direction: column;">
+          <span style="font-size: 17px; line-height: 24px; font-weight: 600;">1,1 Go, une seule fois</span>
+          <span style="font-size: 16px; line-height: 24px; color: {{t.muted}};">Le modèle reste ensuite sur ton téléphone.</span>
+        </span>
+      </li>
+      <li style="display: flex; align-items: flex-start; gap: 12px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.tide}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0;"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+        <span style="display: flex; flex-direction: column;">
+          <span style="font-size: 17px; line-height: 24px; font-weight: 600;">Rien de ton journal n'est envoyé</span>
+          <span style="font-size: 16px; line-height: 24px; color: {{t.muted}};">Le téléchargement ne transmet aucune de tes entrées.</span>
+        </span>
+      </li>
+      <li style="display: flex; align-items: flex-start; gap: 12px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.tide}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0;"><path d="M2 2l20 20"></path><path d="M8.5 16.5a5 5 0 0 1 7 0"></path><path d="M5 12.9a10 10 0 0 1 5.2-2.8"></path><path d="M19 12.9a10 10 0 0 0-2.1-1.6"></path><path d="M12 20h.01"></path></svg>
+        <span style="display: flex; flex-direction: column;">
+          <span style="font-size: 17px; line-height: 24px; font-weight: 600;">Ensuite, tout se fait sans réseau</span>
+          <span style="font-size: 16px; line-height: 24px; color: {{t.muted}};">Tes entrées sont analysées sur ton téléphone.</span>
+        </span>
+      </li>
+    </ul>
+    <div style="flex-grow: 1;"></div>
+    <p style="margin: 0; font-size: 13px; line-height: 18px; color: {{t.muted}};">Préfère le Wi-Fi : sur données mobiles, 1,1 Go compte dans ton forfait. Garde Tidemark ouvert pendant le téléchargement.</p>
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <a href="Progression.dc.html" style="height: 52px; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; background: {{t.tide}}; color: {{t.onTide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 21h14"></path></svg>
+        Télécharger le modèle (1,1 Go)
+      </a>
+      <a href="Main.dc.html" style="height: 48px; display: flex; align-items: center; justify-content: center; color: {{t.tide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">Plus tard</a>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{transfer}}" hint-placeholder-val="{{false}}">
+    <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 34px; line-height: 38px; letter-spacing: -0.5px;">Téléchargement du modèle</h1>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 22px; line-height: 28px;">{{percent}}</span>
+      <div role="progressbar" aria-label="Téléchargement du modèle" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{percentValue}}" style="height: 8px; border-radius: 999px; background: {{t.tideSoft}}; overflow: hidden;">
+        <div style="{{barFill}}"></div>
+      </div>
+      <span style="font-size: 13px; line-height: 18px; color: {{t.muted}};">{{received}}</span>
+    </div>
+    <sc-if value="{{verifying}}" hint-placeholder-val="{{false}}">
+      <div role="status" style="display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 20px; font-weight: 500; color: {{t.muted}};">
+        <svg class="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{t.tide}}" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9"></path></svg>
+        Vérification du fichier…
+      </div>
+    </sc-if>
+    <sc-if value="{{downloading}}" hint-placeholder-val="{{true}}">
+      <p style="margin: 0; font-size: 16px; line-height: 24px; color: {{t.muted}};">Tu peux revenir à ton journal pendant ce temps. Garde Tidemark ouvert : si tu quittes l'app, le téléphone peut interrompre le téléchargement, qui repartirait de zéro.</p>
+    </sc-if>
+    <div style="flex-grow: 1;"></div>
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <sc-if value="{{downloading}}" hint-placeholder-val="{{true}}">
+        <a href="Annulation.dc.html" style="height: 52px; box-sizing: border-box; border-radius: 999px; display: flex; align-items: center; justify-content: center; border: 1px solid {{t.line}}; background: {{t.raised}}; color: {{t.tide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">Annuler le téléchargement</a>
+      </sc-if>
+      <a href="Pret.dc.html" style="height: 48px; display: flex; align-items: center; justify-content: center; color: {{t.tide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">Revenir à mon journal</a>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{failed}}" hint-placeholder-val="{{false}}">
+    <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 34px; line-height: 38px; letter-spacing: -0.5px;">Téléchargement du modèle</h1>
+    <div role="alert" style="display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: 8px; border: 1px solid {{t.danger}}; background: {{t.raised}};">
+      <sc-if value="{{failNetwork}}" hint-placeholder-val="{{true}}">
+        <span style="font-size: 17px; line-height: 24px; font-weight: 600; color: {{t.danger}};">Le téléchargement s'est interrompu</span>
+        <span style="font-size: 16px; line-height: 24px;">La connexion a été perdue ou le serveur n'a pas répondu. Vérifie ta connexion, puis réessaie.</span>
+      </sc-if>
+      <sc-if value="{{failChecksum}}" hint-placeholder-val="{{false}}">
+        <span style="font-size: 17px; line-height: 24px; font-weight: 600; color: {{t.danger}};">Le fichier reçu n'est pas le bon</span>
+        <span style="font-size: 16px; line-height: 24px;">Il ne correspond pas au modèle attendu et a été effacé. Réessaie.</span>
+      </sc-if>
+      <sc-if value="{{failStorage}}" hint-placeholder-val="{{false}}">
+        <span style="font-size: 17px; line-height: 24px; font-weight: 600; color: {{t.danger}};">Pas assez de place sur le téléphone</span>
+        <span style="font-size: 16px; line-height: 24px;">Le modèle demande 1,1 Go libres. Libère de la place, puis réessaie.</span>
+      </sc-if>
+    </div>
+    <p style="margin: 0; font-size: 16px; line-height: 24px; color: {{t.muted}};">Rien n'a été gardé : le téléchargement repartira de zéro.</p>
+    <div style="flex-grow: 1;"></div>
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <a href="Progression.dc.html" style="height: 52px; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; background: {{t.tide}}; color: {{t.onTide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"></path><path d="M21 4v5h-5"></path></svg>
+        Réessayer (1,1 Go)
+      </a>
+      <a href="Reglages.dc.html" style="height: 48px; display: flex; align-items: center; justify-content: center; color: {{t.tide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">Plus tard</a>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ready}}" hint-placeholder-val="{{false}}">
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <h1 role="status" style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 34px; line-height: 38px; letter-spacing: -0.5px;">Le modèle est prêt</h1>
+      <p style="margin: 0; font-size: 16px; line-height: 24px;">Tes entrées avec du texte vont être analysées sur ton téléphone, une à la fois. Leurs étiquettes apparaîtront dans ton journal.</p>
+      <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; line-height: 18px; color: {{t.muted}};">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+        L'analyse fonctionne maintenant sans réseau.
+      </span>
+    </div>
+    <div style="flex-grow: 1;"></div>
+    <a href="ReglagesPret.dc.html" style="height: 52px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: {{t.tide}}; color: {{t.onTide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">Revenir à mon journal</a>
+  </sc-if>
+
+  <sc-if value="{{confirm}}" hint-placeholder-val="{{false}}">
+    <div aria-hidden="true" style="position: absolute; inset: 0; background: {{t.ink}}; opacity: 0.4;"></div>
+    <div role="dialog" aria-labelledby="annuler-titre" style="position: absolute; left: 0; right: 0; bottom: 0; padding: 24px 16px 40px; border-radius: 16px 16px 0 0; background: {{t.raised}}; display: flex; flex-direction: column; gap: 12px;">
+      <h2 id="annuler-titre" style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 22px; line-height: 28px;">Annuler le téléchargement ?</h2>
+      <p style="margin: 0 0 12px; font-size: 16px; line-height: 24px; color: {{t.muted}};">Ce qui a déjà été téléchargé sera effacé.</p>
+      <a href="Reglages.dc.html" style="height: 52px; box-sizing: border-box; border-radius: 999px; display: flex; align-items: center; justify-content: center; border: 1px solid {{t.line}}; background: {{t.raised}}; color: {{t.tide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">Annuler le téléchargement</a>
+      <a href="Progression.dc.html" style="height: 52px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: {{t.tide}}; color: {{t.onTide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">Continuer</a>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"state":{"editor":"enum","options":["proposition","progression","annulation","verification","echec-reseau","echec-empreinte","echec-place","pret"],"default":"proposition"},"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const LIGHT = { surface: '#f3f6f5', raised: '#ffffff', ink: '#13272c', muted: '#4b5e64', line: '#76898d', tide: '#1d5f6b', onTide: '#ffffff', tideSoft: '#dbeae9', danger: '#a3392a' };
+    const DARK = { surface: '#0e191c', raised: '#172529', ink: '#e4eeec', muted: '#9db0b1', line: '#5d7579', tide: '#7cc5c9', onTide: '#0a2226', tideSoft: '#1e383c', danger: '#f39582' };
+    const t = this.props.dark ? DARK : LIGHT;
+    const state = this.props.state ?? 'proposition';
+    const verifying = state === 'verification';
+    const downloading = state === 'progression' || state === 'annulation';
+    const value = verifying ? 100 : 28;
+    return {
+      t,
+      offer: state === 'proposition',
+      transfer: downloading || verifying,
+      downloading,
+      verifying,
+      confirm: state === 'annulation',
+      failed: state.indexOf('echec') === 0,
+      failNetwork: state === 'echec-reseau',
+      failChecksum: state === 'echec-empreinte',
+      failStorage: state === 'echec-place',
+      ready: state === 'pret',
+      percent: value + ' %',
+      percentValue: value,
+      received: verifying ? '1,1 Go sur 1,1 Go' : '312 Mo sur 1,1 Go',
+      barFill: 'height: 100%; width: ' + value + '%; border-radius: 999px; background: ' + t.tide + ';'
+    };
+  }
+}
+</script>
+</body>
+</html>
