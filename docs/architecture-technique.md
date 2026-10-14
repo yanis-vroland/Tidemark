@@ -57,4 +57,4 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 
 | ADR | Titre | Statut |
 | --- | --- | --- |
-| À ADAPTER | | proposé, accepté, remplacé |
+| [ADR-001](adr/001-moteur-ia-local.md) | Moteur d'IA local | proposé |
