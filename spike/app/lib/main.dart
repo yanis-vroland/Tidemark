@@ -66,6 +66,8 @@ class _SpikeAppState extends State<SpikeApp> {
           .take(_limit)
           .toList();
       final dir = await modelDirectory();
+      final previous = File('${dir.path}/result.json');
+      if (previous.existsSync()) previous.deleteSync();
       final modelPath = '${dir.path}/$_model';
       if (!File(modelPath).existsSync()) {
         _log('ERREUR modèle absent : $modelPath');
@@ -92,12 +94,21 @@ class _SpikeAppState extends State<SpikeApp> {
         onProgress: _log,
       );
       debugPrint('TIDEMARK_RESULT ${jsonEncode(result.toJson())}');
+      // Sur iPhone, les logs ne remontent pas toujours : le résultat est aussi écrit
+      // à côté du modèle, puis récupéré par USB.
+      await File('${dir.path}/result.json')
+          .writeAsString(jsonEncode(result.toJson()));
       _log(
         'Terminé : ${result.toJson()['validJson']} JSON valides, '
         'médiane ${result.toJson()['medianMs']} ms',
       );
     } catch (error, stack) {
       _log('ERREUR $error');
+      try {
+        final dir = await modelDirectory();
+        await File('${dir.path}/result.json')
+            .writeAsString(jsonEncode({'error': '$error'}));
+      } catch (_) {}
       debugPrint('$stack');
     }
   }
