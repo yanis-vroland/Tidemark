@@ -110,6 +110,8 @@ Candidats : `flutter_gemma` et `llama_cpp_dart`. Foundation Models d'Apple est �
 
 Branche : `docs/charte`. En parallèle du lot B.
 
+Une première version existe : l'artefact « Design System » Tidemark, créé le 2026-10-14 (jetons, typographie, README, couverture, sans composants), avec une maquette d'exploration de la saisie. Le lot C part de cet artefact : il ne le recrée pas. Ses liens privés ne figurent que dans le journal ; le dépôt renverra vers `docs/maquettes/000-charte/`.
+
 - [ ] Inventaire des écrans du MVP : liste des entrées (avec état vide), saisie, détail d'une entrée et ses étiquettes, écran d'aide (3114), téléchargement du modèle, réglages (export, suppression totale), bilan de la semaine.
 - [ ] Artefact « Design System » Tidemark : ton visuel (calme, sans infantiliser, adapté à un sujet sensible), jetons clair et sombre, échelle typographique, composants communs (sélecteur d'humeur, carte d'entrée, puce d'étiquette, boutons, champ de texte, bandeau d'erreur, indicateur de chargement).
 - [ ] Contraste AA vérifié pour chaque paire texte et fond, dans les deux thèmes.
