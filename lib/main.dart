@@ -13,27 +13,39 @@ import 'ui/theme/tidemark_tokens.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  runApp(await startApp());
+}
+
+/// Application de démarrage : le journal ouvert, ou l'écran d'erreur qui
+/// correspond à la cause (CA35). [open] est injectable pour les tests.
+Future<Widget> startApp({
+  Future<EntryRepository> Function() open = openJournal,
+}) async {
   try {
-    final repository = await openJournal();
-    runApp(TidemarkApp(repository: repository));
+    return TidemarkApp(repository: await open());
   } on DatabaseKeyMissingError {
     // Aucune perte silencieuse : ni nouvelle clé, ni base recréée (spec 001).
-    runApp(const StartupErrorApp(keyMissing: true));
+    return const StartupErrorApp(keyMissing: true);
   } catch (_) {
-    runApp(const StartupErrorApp(keyMissing: false));
+    return const StartupErrorApp(keyMissing: false);
   }
 }
 
-/// Ouvre la base chiffrée dans Application Support/tidemark, dossier exclu des
-/// sauvegardes (iOS : AppDelegate ; Android : règles d'extraction), avec la clé du
-/// trousseau ou du Keystore, créée au premier lancement (ADR-002).
-Future<EntryRepository> openJournal() async {
-  final support = await getApplicationSupportDirectory();
-  final folder = Directory('${support.path}/tidemark');
-  await folder.create(recursive: true);
-  final file = File('${folder.path}/journal.db');
+/// Ouvre la base chiffrée `journal.db` dans [folder] (par défaut
+/// Application Support/tidemark, exclu des sauvegardes : AppDelegate sur iOS,
+/// règles d'extraction sur Android), avec la clé de [keyStore] (par défaut le
+/// trousseau ou le Keystore), créée au premier lancement seulement (ADR-002).
+Future<EntryRepository> openJournal({
+  Directory? folder,
+  KeyStore? keyStore,
+}) async {
+  final dir =
+      folder ??
+      Directory('${(await getApplicationSupportDirectory()).path}/tidemark');
+  await dir.create(recursive: true);
+  final file = File('${dir.path}/journal.db');
   final key = await obtainDatabaseKey(
-    SecureKeyStore(),
+    keyStore ?? SecureKeyStore(),
     databaseExists: file.existsSync(),
   );
   final db = await AppDatabase.openEncrypted(file, key);

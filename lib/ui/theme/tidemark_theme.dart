@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'tidemark_colors.dart';
+import 'tidemark_tokens.dart';
 import 'tidemark_typography.dart';
 
 /// Thème Material construit uniquement à partir des jetons de la charte.
@@ -45,16 +46,16 @@ ThemeData buildTidemarkTheme(Brightness brightness) {
     fontFamily: TidemarkTypography.bodyFamily,
     textTheme: textTheme,
     extensions: [colors],
-    // Boutons pleine largeur de la charte : 52 points de haut, libellé à 16.
+    // Boutons pleine largeur de la charte (`button-height`, style `button`).
     filledButtonTheme: FilledButtonThemeData(style: _buttonStyle),
     outlinedButtonTheme: OutlinedButtonThemeData(style: _buttonStyle),
   );
 }
 
 final _buttonStyle = ButtonStyle(
-  minimumSize: const WidgetStatePropertyAll(Size.fromHeight(52)),
-  shape: const WidgetStatePropertyAll(StadiumBorder()),
-  textStyle: WidgetStatePropertyAll(
-    TidemarkTypography.label.copyWith(fontSize: 16),
+  minimumSize: const WidgetStatePropertyAll(
+    Size.fromHeight(TidemarkSize.buttonHeight),
   ),
+  shape: const WidgetStatePropertyAll(StadiumBorder()),
+  textStyle: WidgetStatePropertyAll(TidemarkTypography.button),
 );

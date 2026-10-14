@@ -233,7 +233,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         children: [
                           Icon(
                             Icons.lock_outline,
-                            size: 16,
+                            size: TidemarkSize.iconSm,
                             color: colors.inkMuted,
                           ),
                           const SizedBox(width: TidemarkSpacing.space1),
@@ -367,13 +367,15 @@ class _MoodSelector extends StatelessWidget {
               onTap: onSelected == null ? null : () => onSelected!(mood),
               child: AnimatedOpacity(
                 duration: const Duration(milliseconds: 150),
-                opacity: selected != null && selected != mood ? 0.55 : 1,
+                opacity: selected != null && selected != mood
+                    ? TidemarkOpacity.moodDimmed
+                    : 1,
                 child: Container(
-                  padding: const EdgeInsets.all(3),
+                  padding: const EdgeInsets.all(TidemarkSize.ringWidth),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      width: 3,
+                      width: TidemarkSize.ringWidth,
                       color: selected == mood
                           ? colors.tide
                           : colors.surface.withValues(alpha: 0),

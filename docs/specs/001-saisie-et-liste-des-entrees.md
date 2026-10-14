@@ -62,12 +62,13 @@ Lot E du [plan](../plan.md). Règles du [cahier des charges](../cahier-des-charg
 - CA28 : Étant donné le thème sombre du système, quand les trois écrans s'affichent, alors ils utilisent les couleurs du thème sombre de la charte.
 - CA29 : Étant donné l'app qui démarre, quand l'écran de lancement natif s'affiche, alors son fond est la couleur `surface` de la charte, en clair et en sombre (plan, lot E).
 
-### Ajoutés après la revue de code (à valider par Yanis)
+### Ajoutés après les revues de code (CA31 à CA36, à valider par Yanis)
 
 - CA31 : Étant donné la liste en cours de lecture, quand l'écran s'affiche, alors le titre « Ton journal » est visible, sans l'état vide.
 - CA32 : Étant donné une erreur de lecture de la base, quand la liste s'affiche, alors elle annonce « Ton journal n'a pas pu être lu » et précise que les entrées sont toujours sur le téléphone, sans afficher l'état vide.
 - CA33 : Étant donné une suppression confirmée qui échoue, quand l'erreur survient, alors le détail reste affiché et un message dit « L'entrée n'a pas été supprimée. Réessaie. ».
 - CA34 : Étant donné un enregistrement en cours, quand la personne fait un geste de retour, alors rien ne se passe ; l'écran se ferme une fois l'entrée enregistrée.
+- CA36 : Étant donné une carte de la liste, quand un lecteur d'écran la parcourt, alors elle s'annonce comme un bouton avec le libellé de l'humeur, son chiffre, l'heure et le début du texte (« Bien, humeur 4 sur 5, 21:40, Longue journée… »), sans lire plus de 120 caractères du texte.
 - CA35 : Étant donné une base qui ne peut pas être ouverte au démarrage, quand l'app démarre, alors elle affiche « Ton journal n'a pas pu être ouvert », puis « Tes entrées sont toujours sur le téléphone, mais la clé qui les protège est introuvable. Rien n'a été effacé. » si la clé manque, ou « Rien n'a été effacé. Ferme l'app, puis rouvre-la. » pour toute autre cause ; aucune nouvelle clé n'est créée et la base n'est ni recréée ni effacée.
 
 ## Données
@@ -81,7 +82,7 @@ Fixées par cette spec, puis reportées dans l'architecture technique avec l'imp
 
 ## Maquette
 
-Artefact Claude de type « Design » ([lien privé](https://claude.ai/artifact/Nokoan8KiMNxU6n2UBwipG)), construit sur la charte. La copie versionnée, qui fait foi, est dans [`docs/maquettes/001-saisie-et-liste-des-entrees/`](../maquettes/001-saisie-et-liste-des-entrees/) ; les captures PNG y seront ajoutées par export de l'artefact. Écart assumé : l'implémentation suit les jetons de la charte (pastilles de 56 points, `mood-dot`) là où la maquette dessine 52 et 60 points. Écrans : liste vide, liste avec entrées, saisie (nominale, vide, enregistrement, erreur), détail avec et sans texte, confirmation de suppression ; en clair et en sombre.
+Artefact Claude de type « Design » ([lien privé](https://claude.ai/artifact/Nokoan8KiMNxU6n2UBwipG)), construit sur la charte. La copie versionnée, qui fait foi, est dans [`docs/maquettes/001-saisie-et-liste-des-entrees/`](../maquettes/001-saisie-et-liste-des-entrees/) ; les captures PNG y seront ajoutées par export de l'artefact. Écart assumé : l'implémentation suit les jetons de la charte (`mood-dot` de 56 points dans le sélecteur, `mood-dot-sm` de 40 dans la liste, `mood-dot-lg` de 72 dans le détail) là où la maquette dessine 52 et 60 points dans le sélecteur. Écrans : liste vide, liste avec entrées, saisie (nominale, vide, enregistrement, erreur), détail avec et sans texte, confirmation de suppression ; en clair et en sombre.
 
 ## Cas limites et erreurs
 
