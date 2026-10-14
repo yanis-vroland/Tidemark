@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:characters/characters.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 
@@ -25,6 +26,19 @@ class Entries extends Table {
   TextColumn get analysisStatus => textEnum<AnalysisStatus>()();
 }
 
+/// Erreur levée quand le moteur SQLite n'a pas le chiffrement.
+class CipherUnavailableError extends StateError {
+  CipherUnavailableError()
+    : super('SQLite sans chiffrement : base non ouverte.');
+}
+
+/// Refuse d'ouvrir une base qui serait écrite en clair (RM2) : sans
+/// SQLite3MultipleCiphers, `PRAGMA cipher` ne rend aucune ligne. [rowCount] exécute
+/// une requête et rend son nombre de lignes.
+void ensureCipherAvailable(int Function(String sql) rowCount) {
+  if (rowCount('PRAGMA cipher') == 0) throw CipherUnavailableError();
+}
+
 /// Base locale des entrées, chiffrée par SQLite3MultipleCiphers (ADR-002).
 @DriftDatabase(tables: [Entries])
 class AppDatabase extends _$AppDatabase {
@@ -43,15 +57,12 @@ class AppDatabase extends _$AppDatabase {
     final executor = NativeDatabase.createInBackground(
       file,
       setup: (db) {
-        // Sans SQLite3MultipleCiphers, PRAGMA cipher ne rend rien : refuser d'ouvrir
-        // une base qui serait écrite en clair (RM2).
-        final cipher = db.select('PRAGMA cipher');
-        if (cipher.isEmpty) {
-          throw StateError('SQLite sans chiffrement : base non ouverte.');
-        }
+        ensureCipherAvailable((sql) => db.select(sql).length);
         db.execute("PRAGMA hexkey = '$key'");
         // Vérifie la clé tout de suite : une mauvaise clé fait échouer cette lecture.
         db.select('SELECT count(*) FROM sqlite_master');
+        // Une entrée supprimée est écrasée, pas seulement libérée (RM15).
+        db.execute('PRAGMA secure_delete = ON');
       },
     );
     return AppDatabase._(executor);
@@ -101,9 +112,9 @@ class DriftEntryRepository implements EntryRepository {
       throw ArgumentError.value(mood, 'mood', 'de 1 à 5');
     }
     final body = (text == null || text.trim().isEmpty) ? null : text;
-    if (body != null && body.runes.length > maxTextLength) {
+    if (body != null && body.characters.length > maxTextLength) {
       throw ArgumentError.value(
-        body.runes.length,
+        body.characters.length,
         'text',
         '$maxTextLength caractères au plus',
       );

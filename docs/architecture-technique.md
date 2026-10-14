@@ -6,11 +6,14 @@ Il est mis à jour dans la PR qui change ce qu'il décrit : modèle de données,
 
 ## Vue d'ensemble
 
-Une app Flutter (iOS 16.4+, Android) sans serveur. Le socle existe (lot D) : thème de la charte, interface `MoodAnalyzer` et son implémentation factice. Le moteur réel et le stockage chiffré arrivent avec les specs des lots E et G.
+Une app Flutter (iOS 16.4+, Android) sans serveur. Les écrans lisent et écrivent les entrées par `EntryRepository`, sur une base `drift` chiffrée dont la clé est dans le trousseau ou le Keystore (spec 001). Le moteur d'IA réel arrive avec la spec du lot G.
 
 ```mermaid
 flowchart LR
-  ui[Écrans Flutter] --> analyzer[MoodAnalyzer]
+  ui[Écrans Flutter] --> repo[EntryRepository]
+  repo --> db[(journal.db, SQLite chiffré)]
+  key[Trousseau iOS ou Keystore Android] --> db
+  ui --> analyzer[MoodAnalyzer]
   analyzer --> engine[llamadart : llama.cpp]
   engine --> model[(Qwen2.5-1.5B-Instruct Q4_K_M, GGUF, sur le téléphone)]
 ```
@@ -59,7 +62,7 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 - **Identification** : sans objet. Pas de compte : l'app sert une seule personne, sur son téléphone.
 - **Droits** : sans objet pour la même raison ; la protection repose sur le verrouillage du téléphone et le chiffrement de la base.
 - **Audit** : sans objet. Aucun journal d'usage ni analytics (RM1).
-- **Chiffrement** : base `drift` chiffrée par SQLite3MultipleCiphers, clé aléatoire de 256 bits dans le trousseau iOS ou le Keystore Android, base exclue des sauvegardes du système ([ADR-002](adr/002-stockage-local-chiffre.md)). Mise en œuvre au lot E.
+- **Chiffrement** : base `drift` chiffrée par SQLite3MultipleCiphers, clé aléatoire de 256 bits dans le trousseau iOS ou le Keystore Android, base exclue des sauvegardes du système ([ADR-002](adr/002-stockage-local-chiffre.md)). Mis en œuvre par la spec 001 : `PRAGMA hexkey`, refus d'ouvrir sans SQLite3MultipleCiphers, `secure_delete`, clé `first_unlock_this_device` sur iOS et `resetOnError: false` sur Android, jamais de nouvelle clé si la base existe ; exclusion des sauvegardes par `allowBackup`, `fullBackupContent` et les règles d'extraction sur Android, `isExcludedFromBackup` sur le dossier de la base sur iOS. Le clavier n'apprend pas les mots du journal (`enableIMEPersonalizedLearning: false`).
 - **Secrets** : aucun dans le dépôt ni dans l'app ; la seule clé est générée sur le téléphone. Seul `.env.example` serait versionné.
 
 ## Infrastructure

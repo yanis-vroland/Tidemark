@@ -105,11 +105,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final now = (widget.clock ?? DateTime.now)();
-    final length = _text.text.runes.length;
+    final length = _text.text.characters.length;
     return PopScope(
-      canPop: !_hasText,
+      // Pendant l'enregistrement, aucun retour : la fermeture viendra de _save.
+      canPop: !_hasText && !_saving,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _cancel();
+        if (!didPop && !_saving) _cancel();
       },
       child: Scaffold(
         body: SafeArea(
@@ -166,9 +167,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                       const SizedBox(height: TidemarkSpacing.space2),
                       Row(
                         children: [
-                          for (final (index, label) in const [
-                            'Très bas',
-                            'Très bien',
+                          for (final (index, label) in [
+                            moodLabels.first,
+                            moodLabels.last,
                           ].indexed)
                             Expanded(
                               child: Text(
@@ -203,6 +204,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         minLines: 5,
                         maxLines: null,
                         maxLength: maxTextLength,
+                        // Le clavier n'apprend pas les mots du journal (RM1).
+                        enableIMEPersonalizedLearning: false,
                         maxLengthEnforcement: MaxLengthEnforcement.enforced,
                         buildCounter: (
                           context, {
@@ -278,12 +281,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                       const SizedBox(height: TidemarkSpacing.space2),
                     ],
                     FilledButton(
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size.fromHeight(52),
-                        textStyle: TidemarkTypography.label.copyWith(
-                          fontSize: 16,
-                        ),
-                      ),
                       onPressed: _mood == null || _saving ? null : _save,
                       child: Text(
                         _saving

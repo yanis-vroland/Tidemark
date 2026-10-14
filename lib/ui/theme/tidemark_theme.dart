@@ -45,5 +45,16 @@ ThemeData buildTidemarkTheme(Brightness brightness) {
     fontFamily: TidemarkTypography.bodyFamily,
     textTheme: textTheme,
     extensions: [colors],
+    // Boutons pleine largeur de la charte : 52 points de haut, libellé à 16.
+    filledButtonTheme: FilledButtonThemeData(style: _buttonStyle),
+    outlinedButtonTheme: OutlinedButtonThemeData(style: _buttonStyle),
   );
 }
+
+final _buttonStyle = ButtonStyle(
+  minimumSize: const WidgetStatePropertyAll(Size.fromHeight(52)),
+  shape: const WidgetStatePropertyAll(StadiumBorder()),
+  textStyle: WidgetStatePropertyAll(
+    TidemarkTypography.label.copyWith(fontSize: 16),
+  ),
+);

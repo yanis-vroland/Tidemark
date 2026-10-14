@@ -89,4 +89,28 @@ void main() {
 
     expect(key.split('').toSet().length, greaterThan(4));
   });
+
+  test('Cas limite : clé absente alors que la base existe, aucune clé n\'est '
+      'créée ni écrite', () async {
+    final store = InMemoryKeyStore();
+
+    await expectLater(
+      obtainDatabaseKey(store, random: Random(1), databaseExists: true),
+      throwsA(isA<DatabaseKeyMissingError>()),
+    );
+    expect(store.writes, 0);
+    expect(store.stored, isNull);
+  });
+
+  test(
+    'Cas limite : clé présente et base existante, la clé est rendue',
+    () async {
+      final store = InMemoryKeyStore()..stored = 'cd' * 32;
+
+      final key = await obtainDatabaseKey(store, databaseExists: true);
+
+      expect(key, 'cd' * 32);
+      expect(store.writes, 0);
+    },
+  );
 }

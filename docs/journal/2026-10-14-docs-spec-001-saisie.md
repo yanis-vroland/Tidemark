@@ -88,3 +88,31 @@ Implémentation jusqu'au vert : base `drift` chiffrée, clé, regroupement par j
 ### Prochaine étape
 
 Revues `reviewer` et `security-reviewer`, essai sur le simulateur, puis test humain de Yanis sur l'iPhone 15 Pro.
+
+## 2026-10-14 16:20
+
+### Fait
+
+- Revues `reviewer` (3 bloquants, 10 à corriger, 8 suggestions), `security-reviewer` (0 bloquant, 2 à corriger, 4 suggestions) et revue IA en CI de la PR #12 (7 à corriger, 6 suggestions), traitées :
+  - comptage en caractères visibles (`characters`) dans le dépôt et le compteur, tests avec drapeau, émoji composé et accent combinant ;
+  - clé jamais recréée si la base existe (`DatabaseKeyMissingError`), `resetOnError: false` sur Android, message d'erreur au démarrage selon la cause (CA35) ;
+  - tests CA28 recentrés sur l'écran affiché et sur des couleurs peintes ;
+  - retour système bloqué pendant l'enregistrement (CA34), échec de suppression annoncé (CA33), liste : chargement (CA31) et erreur de lecture (CA32), flux créé une fois, intertitres recalculés au retour au premier plan, annonce complète des cartes ;
+  - règles d'extraction Android complètes (`path`, domaines `device_*`), test renforcé ; écran de démarrage Android 12+ et fond des thèmes Android en `surface` ; garde-fou du chiffrement extrait et testé ; `secure_delete` ; clavier sans apprentissage des mots ;
+  - date du détail alignée sur la maquette (année seulement si différente) ; bornes du sélecteur tirées de `moodLabels` ; style des boutons centralisé dans le thème ; dépôt factice aligné sur le contrat réel ;
+  - spec : CA14 avec le texte exact, CA31 à CA35 (à valider par Yanis), interfaces nommées, jour local et tri précisés, trou du garde-fou de détresse entre les lots E et F consigné pour le lot G ; glossaire : `EntryRepository`, `KeyStore` ; RM5 précisé ; maquette : statut validé, limites ; architecture : vue d'ensemble, schéma, sécurité.
+- Contrôle par mutation des garde-fous Android (attribut du manifeste, règle d'extraction, écran de démarrage v31) : chaque retrait est détecté.
+- `flutter test` : 155 réussis ; `dart analyze --fatal-infos` propre. Essai sur le simulateur iPhone 17 Pro : démarrage, base chiffrée (pas d'en-tête SQLite en clair), dossier exclu des sauvegardes (attribut iOS présent).
+
+### Décisions
+
+- Corrections ci-dessus : agent. À trancher par Yanis : CA31 à CA35 ; suggestions et correction automatique du clavier, claviers tiers sur iOS ; masquage dans l'écran des apps récentes ; exclusion iOS « fermée » en cas d'échec.
+
+### Corrections et limites
+
+- **Tests modifiés, à signaler dans la PR** : les trois tests CA14, CA14, CA15 n'activent plus eux-mêmes la sémantique (déjà active par défaut) ; les tests CA28 visent l'écran affiché et vérifient des couleurs peintes (ils vérifiaient la liste) ; `FakeEntryRepository` garde le texte tel quel comme le vrai dépôt, et gagne `beforeDelete`, `watchError`, `neverEmit`. Aucune vérification retirée.
+- Non traité : maquette (tailles des pastilles, anneau de focus en dur, états sombres non dessinés, captures PNG), exclusion iOS qui échoue en silence (`try?`).
+
+### Prochaine étape
+
+Yanis valide CA31 à CA35 et tranche les questions de confidentialité ; test humain sur l'iPhone 15 Pro.

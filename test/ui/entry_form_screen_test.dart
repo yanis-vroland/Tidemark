@@ -1,3 +1,5 @@
+import 'package:characters/characters.dart';
+
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -129,6 +131,17 @@ void main() {
       await enter(tester, '😀' * (maxTextLength + 5));
 
       expect(inputText(tester).runes.length, maxTextLength);
+    });
+
+    dbTestWidgets('CA12 : un drapeau compte pour un caractère, dans le champ '
+        'comme dans le compteur', (tester, env) async {
+      await tester.pumpWidget(testApp(EntryFormScreen(repository: env.repo)));
+      await settle(tester);
+
+      await enter(tester, '🇫🇷' * (maxTextLength + 100));
+
+      expect(inputText(tester).characters.length, maxTextLength);
+      expect(find.text('2 000 / 2 000'), findsOneWidget);
     });
 
     dbTestWidgets('CA12 : à 1 850 caractères, le compteur « 1 850 / 2 000 » '
@@ -399,9 +412,8 @@ void main() {
     testWidgets('CA14 : l\'échec affiche le bandeau, garde la saisie et '
         'propose « Réessayer »', (tester) async {
       usePhoneScreen(tester);
-      // Libérée à la fin du corps : un addTearDown passe après la vérification
-      // de fin de test de Flutter, qui échoue si la sémantique est encore active.
-      final semantics = tester.ensureSemantics();
+      // Pas d'ensureSemantics ici : testWidgets active déjà la sémantique, et un
+      // addTearDown passerait après la vérification de fin de test de Flutter.
       final repo = FakeEntryRepository(
         beforeAdd: () async => throw StateError('stockage plein'),
       );
@@ -420,17 +432,14 @@ void main() {
       expect(isChosen(tester, 4), isTrue);
       expect(inputText(tester), 'Un texte à ne pas perdre.');
       expect(find.text('Comment ça va ?'), findsOneWidget);
-
-      semantics.dispose();
     });
 
     testWidgets('CA14 : « Réessayer » enregistre quand la cause a disparu', (
       tester,
     ) async {
       usePhoneScreen(tester);
-      // Libérée à la fin du corps : un addTearDown passe après la vérification
-      // de fin de test de Flutter, qui échoue si la sémantique est encore active.
-      final semantics = tester.ensureSemantics();
+      // Pas d'ensureSemantics ici : testWidgets active déjà la sémantique, et un
+      // addTearDown passerait après la vérification de fin de test de Flutter.
       final repo = FakeEntryRepository(
         beforeAdd: () async => throw StateError('stockage plein'),
       );
@@ -456,17 +465,14 @@ void main() {
       expect(repo.entries, hasLength(1));
       expect(find.text('Comment ça va ?'), findsNothing);
       expect(find.text("L'entrée n'a pas été enregistrée"), findsNothing);
-
-      semantics.dispose();
     });
 
     testWidgets('CA15 : pendant l\'enregistrement, le bouton affiche '
         '« Enregistrement… », désactivé, et un second appui n\'enregistre '
         'pas deux fois', (tester) async {
       usePhoneScreen(tester);
-      // Libérée à la fin du corps : un addTearDown passe après la vérification
-      // de fin de test de Flutter, qui échoue si la sémantique est encore active.
-      final semantics = tester.ensureSemantics();
+      // Pas d'ensureSemantics ici : testWidgets active déjà la sémantique, et un
+      // addTearDown passerait après la vérification de fin de test de Flutter.
       final gate = Completer<void>();
       final repo = FakeEntryRepository(beforeAdd: () => gate.future);
       await tester.pumpWidget(
@@ -495,8 +501,6 @@ void main() {
       expect(repo.addCalls, hasLength(1));
       expect(repo.entries, hasLength(1));
       expect(find.text('Comment ça va ?'), findsNothing);
-
-      semantics.dispose();
     });
   });
 }

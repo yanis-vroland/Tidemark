@@ -15,10 +15,15 @@ class EntryDetailScreen extends StatelessWidget {
     super.key,
     required this.entry,
     required this.repository,
+    this.clock,
   });
 
   final Entry entry;
   final EntryRepository repository;
+
+  /// Date et heure locales, pour n'afficher l'année que si elle diffère de l'année
+  /// en cours (maquette) ; [DateTime.now] par défaut.
+  final DateTime Function()? clock;
 
   Future<void> _confirmDelete(BuildContext context) async {
     final colors = context.colors;
@@ -57,7 +62,6 @@ class EntryDetailScreen extends StatelessWidget {
               const SizedBox(height: TidemarkSpacing.space3),
               OutlinedButton(
                 style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
                   side: BorderSide(color: colors.line),
                 ),
                 onPressed: () => Navigator.of(context).pop(false),
@@ -69,7 +73,18 @@ class EntryDetailScreen extends StatelessWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    await repository.deleteEntry(entry.id);
+    try {
+      await repository.deleteEntry(entry.id);
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("L'entrée n'a pas été supprimée. Réessaie."),
+          ),
+        );
+      }
+      return;
+    }
     if (context.mounted) Navigator.of(context).pop();
   }
 
@@ -101,7 +116,9 @@ class EntryDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: TidemarkSpacing.space4),
                     Text(
-                      fullDateLabel(local),
+                      local.year == (clock ?? DateTime.now)().year
+                          ? weekdayAndDate(local)
+                          : fullDateLabel(local),
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     Text(
@@ -168,11 +185,9 @@ class _DangerButton extends StatelessWidget {
     final colors = context.colors;
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
-        minimumSize: const Size.fromHeight(52),
         foregroundColor: colors.danger,
         backgroundColor: colors.surfaceRaised,
         side: BorderSide(color: colors.danger),
-        textStyle: TidemarkTypography.label.copyWith(fontSize: 16),
       ),
       onPressed: onPressed,
       child: Text(label),

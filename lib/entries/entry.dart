@@ -22,7 +22,8 @@ const moodLabels = ['Très bas', 'Bas', 'Neutre', 'Bien', 'Très bien'];
 /// Libellé de l'humeur [mood], de 1 à 5.
 String moodLabel(int mood) => moodLabels[mood - 1];
 
-/// Longueur maximale du texte d'une entrée (RM27).
+/// Longueur maximale du texte d'une entrée (RM27), en caractères visibles : un
+/// drapeau ou un émoji composé compte pour un.
 const maxTextLength = 2000;
 
 class Entry {

@@ -11,7 +11,7 @@ import 'entry_detail_screen.dart';
 import 'entry_form_screen.dart';
 
 /// Liste des entrées, écran d'accueil (spec 001).
-class EntryListScreen extends StatelessWidget {
+class EntryListScreen extends StatefulWidget {
   const EntryListScreen({
     super.key,
     required this.repository,
@@ -23,9 +23,35 @@ class EntryListScreen extends StatelessWidget {
   /// Date et heure locales, pour les intertitres « Aujourd'hui » et « Hier ».
   final DateTime Function() clock;
 
+  @override
+  State<EntryListScreen> createState() => _EntryListScreenState();
+}
+
+class _EntryListScreenState extends State<EntryListScreen> {
+  late final Stream<List<Entry>> _entries = widget.repository.watchEntries();
+
+  /// Au retour au premier plan, « Aujourd'hui » et « Hier » sont recalculés : l'app
+  /// a pu rester ouverte après minuit.
+  late final AppLifecycleListener _lifecycle = AppLifecycleListener(
+    onResume: () => setState(() {}),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle;
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
   void _openForm(BuildContext context) => Navigator.of(context).push(
     MaterialPageRoute<void>(
-      builder: (_) => EntryFormScreen(repository: repository, clock: clock),
+      builder: (_) =>
+          EntryFormScreen(repository: widget.repository, clock: widget.clock),
     ),
   );
 
@@ -34,20 +60,23 @@ class EntryListScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: StreamBuilder<List<Entry>>(
-          stream: repository.watchEntries(),
+          stream: _entries,
           builder: (context, snapshot) {
             final entries = snapshot.data;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
-                  child: entries == null
-                      ? const SizedBox.shrink()
+                  child: snapshot.hasError
+                      ? const _ReadError()
+                      : entries == null
+                      ? const _Loading()
                       : entries.isEmpty
                       ? const _EmptyState()
                       : _EntryList(
-                          groups: groupByDay(entries, clock()),
-                          repository: repository,
+                          groups: groupByDay(entries, widget.clock()),
+                          repository: widget.repository,
+                          clock: widget.clock,
                         ),
                 ),
                 Padding(
@@ -58,12 +87,6 @@ class EntryListScreen extends StatelessWidget {
                     TidemarkSpacing.space4,
                   ),
                   child: FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(52),
-                      textStyle: TidemarkTypography.label.copyWith(
-                        fontSize: 16,
-                      ),
-                    ),
                     onPressed: () => _openForm(context),
                     icon: const Icon(Icons.add),
                     label: const Text('Nouvelle entrée'),
@@ -91,6 +114,42 @@ class _Title extends StatelessWidget {
   );
 }
 
+/// Chargement : le titre seulement, la lecture de la base est brève.
+class _Loading extends StatelessWidget {
+  const _Loading();
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: const EdgeInsets.symmetric(horizontal: TidemarkSpacing.space4),
+    children: const [_Title()],
+  );
+}
+
+/// Lecture impossible : ce qui s'est passé, sans rien effacer.
+class _ReadError extends StatelessWidget {
+  const _ReadError();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: TidemarkSpacing.space4),
+      children: [
+        const _Title(),
+        const SizedBox(height: TidemarkSpacing.space6),
+        Text(
+          "Ton journal n'a pas pu être lu",
+          style: TidemarkTypography.headline.copyWith(color: colors.danger),
+        ),
+        const SizedBox(height: TidemarkSpacing.space1),
+        const Text(
+          "Tes entrées sont toujours sur le téléphone. Ferme l'app, puis rouvre-la.",
+        ),
+      ],
+    );
+  }
+}
+
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
 
@@ -114,10 +173,15 @@ class _EmptyState extends StatelessWidget {
 }
 
 class _EntryList extends StatelessWidget {
-  const _EntryList({required this.groups, required this.repository});
+  const _EntryList({
+    required this.groups,
+    required this.repository,
+    required this.clock,
+  });
 
   final List<DayGroup> groups;
   final EntryRepository repository;
+  final DateTime Function() clock;
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +209,11 @@ class _EntryList extends StatelessWidget {
           for (final entry in group.entries)
             Padding(
               padding: const EdgeInsets.only(bottom: TidemarkSpacing.space2),
-              child: _EntryCard(entry: entry, repository: repository),
+              child: _EntryCard(
+                entry: entry,
+                repository: repository,
+                clock: clock,
+              ),
             ),
         ],
       ],
@@ -155,26 +223,47 @@ class _EntryList extends StatelessWidget {
 
 /// Carte d'entrée (charte : `EntryCard`).
 class _EntryCard extends StatelessWidget {
-  const _EntryCard({required this.entry, required this.repository});
+  const _EntryCard({
+    required this.entry,
+    required this.repository,
+    required this.clock,
+  });
 
   final Entry entry;
   final EntryRepository repository;
+  final DateTime Function() clock;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final text = entry.text;
+    final time = timeLabel(entry.localCreatedAt);
+    // Annonce complète de la carte, chiffre compris (la pastille est muette).
+    return Semantics(
+      button: true,
+      label:
+          '${moodLabel(entry.mood)}, humeur ${entry.mood} sur 5, $time'
+          '${text == null ? '' : ', $text'}',
+      excludeSemantics: true,
+      onTap: () => _open(context),
+      child: _cardBody(context, colors, text),
+    );
+  }
+
+  void _open(BuildContext context) => Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) =>
+          EntryDetailScreen(entry: entry, repository: repository, clock: clock),
+    ),
+  );
+
+  Widget _cardBody(BuildContext context, TidemarkColors colors, String? text) {
     return Material(
       color: colors.surfaceRaised,
       borderRadius: BorderRadius.circular(TidemarkRadius.radiusMd),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) =>
-                EntryDetailScreen(entry: entry, repository: repository),
-          ),
-        ),
+        onTap: () => _open(context),
         child: Padding(
           padding: const EdgeInsets.all(TidemarkSpacing.space4),
           child: Column(

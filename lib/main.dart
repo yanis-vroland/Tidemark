@@ -16,9 +16,11 @@ Future<void> main() async {
   try {
     final repository = await openJournal();
     runApp(TidemarkApp(repository: repository));
+  } on DatabaseKeyMissingError {
+    // Aucune perte silencieuse : ni nouvelle clé, ni base recréée (spec 001).
+    runApp(const StartupErrorApp(keyMissing: true));
   } catch (_) {
-    // Aucune perte silencieuse : la base n'est ni recréée ni effacée (spec 001).
-    runApp(const StartupErrorApp());
+    runApp(const StartupErrorApp(keyMissing: false));
   }
 }
 
@@ -29,11 +31,12 @@ Future<EntryRepository> openJournal() async {
   final support = await getApplicationSupportDirectory();
   final folder = Directory('${support.path}/tidemark');
   await folder.create(recursive: true);
-  final key = await obtainDatabaseKey(SecureKeyStore());
-  final db = await AppDatabase.openEncrypted(
-    File('${folder.path}/journal.db'),
-    key,
+  final file = File('${folder.path}/journal.db');
+  final key = await obtainDatabaseKey(
+    SecureKeyStore(),
+    databaseExists: file.existsSync(),
   );
+  final db = await AppDatabase.openEncrypted(file, key);
   // Vérifie la clé dès le démarrage, plutôt qu'à la première lecture.
   await db.countEntries();
   return DriftEntryRepository(db);
@@ -63,7 +66,11 @@ class TidemarkApp extends StatelessWidget {
 
 /// Écran affiché si le journal ne peut pas être ouvert (clé absente, base illisible).
 class StartupErrorApp extends StatelessWidget {
-  const StartupErrorApp({super.key});
+  const StartupErrorApp({super.key, required this.keyMissing});
+
+  /// La base existe mais sa clé est introuvable ; sinon, autre cause (disque,
+  /// moteur sans chiffrement, base illisible).
+  final bool keyMissing;
 
   @override
   Widget build(BuildContext context) {
@@ -86,9 +93,11 @@ class StartupErrorApp extends StatelessWidget {
                         ?.copyWith(color: context.colors.danger),
                   ),
                   const SizedBox(height: TidemarkSpacing.space2),
-                  const Text(
-                    "Tes entrées sont toujours sur le téléphone, mais la clé qui les "
-                    "protège est introuvable. Rien n'a été effacé.",
+                  Text(
+                    keyMissing
+                        ? "Tes entrées sont toujours sur le téléphone, mais la clé "
+                              "qui les protège est introuvable. Rien n'a été effacé."
+                        : "Rien n'a été effacé. Ferme l'app, puis rouvre-la.",
                   ),
                 ],
               ),
