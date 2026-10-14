@@ -22,16 +22,25 @@ flowchart LR
 
 ## Modèle de données
 
-À ADAPTER : les entités, leurs relations et leurs contraintes. Les noms sont ceux du glossaire du cahier des charges.
+Base SQLite chiffrée (`drift`, SQLite3MultipleCiphers, [ADR-002](adr/002-stockage-local-chiffre.md)), fichier `Application Support/tidemark/journal.db`, exclu des sauvegardes. Les noms sont ceux du glossaire.
 
 ```mermaid
 erDiagram
-  ENTITE_A ||--o{ ENTITE_B : "À ADAPTER"
+  ENTRIES {
+    int id PK
+    int mood "1 à 5"
+    text text "facultatif, 2 000 caractères au plus"
+    datetime created_at "UTC, à la seconde"
+    int utc_offset_minutes "décalage local à la saisie"
+    text analysis_status "pending, tagged, untagged, skipped"
+  }
 ```
 
 | Entité | Contraintes et invariants | Règle métier |
 | --- | --- | --- |
-| À ADAPTER | | RMn |
+| `Entry` (table `entries`) | `mood` entre 1 et 5 (contrainte `CHECK`) ; texte absent plutôt que vide ; date de saisie en UTC avec le décalage local, pour ranger l'entrée dans son jour local ; statut `pending` avec texte, `skipped` sans texte | RM3, RM13, RM16, RM24, RM27 ([spec 001](specs/001-saisie-et-liste-des-entrees.md)) |
+
+La table des étiquettes, liée aux entrées par clé étrangère avec suppression en cascade, arrive au lot G.
 
 ## Contrats entre composants
 

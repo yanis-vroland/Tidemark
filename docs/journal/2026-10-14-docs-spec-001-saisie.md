@@ -65,3 +65,26 @@ Tests des 30 critères par le subagent `test-writer`, vérifiés en échec pour 
 ### Prochaine étape
 
 Implémentation jusqu'au vert : base `drift` chiffrée, clé, regroupement par jour, trois écrans, écran de lancement, exclusion des sauvegardes.
+
+## 2026-10-14 16:09
+
+### Fait
+
+- Implémentation de la spec 001 jusqu'au vert : regroupement par jour et libellés en français, base `drift` chiffrée (`PRAGMA hexkey`, refus d'ouvrir sans SQLite3MultipleCiphers), dépôt, clé de 256 bits dans le trousseau ou le Keystore (`SecureKeyStore`), écrans de liste, de saisie et de détail, écran d'erreur au démarrage, écran de lancement aux couleurs de la charte (couleurs nommées Android et iOS), exclusion des sauvegardes (Android : `allowBackup`, `fullBackupContent`, règles d'extraction ; iOS : `isExcludedFromBackup` sur le dossier de la base dans `AppDelegate`).
+- `flutter test` : 137 réussis, 0 en échec ; `dart analyze --fatal-infos` propre.
+- Architecture technique : modèle de données ; plan : lot D clos.
+
+### Décisions
+
+- Compteur de caractères dans la zone fixe du bas : sous un long texte, il sortait de l'écran (agent).
+- Libellé du champ au-dessus du champ, bornes « Très bas » / « Très bien » souples, formulaire et détail en `SingleChildScrollView`, feuille de confirmation défilable : nécessaires à 200 % de taille de texte (CA27) (agent).
+
+### Corrections et limites
+
+- **Tests modifiés, à signaler dans la PR** : dans trois tests de `test/ui/entry_form_screen_test.dart` (CA14 deux fois, CA15), la sémantique était libérée par `addTearDown`, exécuté après la vérification de fin de test de Flutter : échec même avec un code correct. Libérée désormais à la fin du corps du test ; aucune vérification retirée ni affaiblie.
+- Diagnostic du débordement à 200 % : la police de test (Ahem, un carré par caractère) est plus large que Figtree ; la correction vaut aussi pour les petits écrans.
+- Exclusion de sauvegarde iOS et chiffrement sur iPhone : à vérifier au test humain.
+
+### Prochaine étape
+
+Revues `reviewer` et `security-reviewer`, essai sur le simulateur, puis test humain de Yanis sur l'iPhone 15 Pro.
