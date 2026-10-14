@@ -1,6 +1,6 @@
 # Spec 006 : bilan de la semaine
 
-Statut : validée (décisions métier prises par l'agent à la demande de Yanis, 2026-10-14) ; maquette à valider par Yanis avant les tests
+Statut : brouillon (décisions métier prises par l'agent à la demande de Yanis, 2026-10-14) ; spec et maquette à valider par Yanis avant les tests
 Date : 2026-10-14
 
 ## Besoin
@@ -11,7 +11,9 @@ Lot I du [plan](../plan.md) (« si le temps le permet »). Règles du [cahier de
 
 Le principe : **l'app calcule, le modèle met en mots.** Tous les chiffres sont calculés en Dart (RM10). Le modèle local reçoit seulement des faits sans chiffre, jamais une entrée, et rend une ou deux phrases que l'app valide par des règles déterministes avant de les montrer. Sans modèle, sans texte valide, ou pour une semaine sensible, le bilan s'affiche avec ses seuls chiffres.
 
-Dépendances : la spec 001 (entrées, jour local) et la spec 002 (`DistressDetector`) sont validées. Les étiquettes et l'état du modèle viennent du lot G (spec 004, étiquetage automatique, et la spec du téléchargement du modèle) : tant que le lot G n'est pas livré, le bilan s'affiche sans étiquettes (CA13) et sans texte (CA26).
+Dépendances : la spec 001 (entrées, jour local) et la spec 002 (`DistressDetector`) sont validées. Les étiquettes et l'état du modèle viennent du lot G (spec 004, étiquetage automatique, et la spec du téléchargement du modèle) : tant que le lot G n'est pas livré, le bilan s'affiche sans étiquettes (CA13) et sans texte (CA27).
+
+Exigence pour la spec 004, étiquetage automatique : aucun libellé de la liste fermée des étiquettes (RM19) ne figure dans les listes de rejet de cette spec (« Liste des mots de nombre », « Liste des expressions interdites »), vérifié par un test. Sinon, toute semaine où cette étiquette domine verrait son texte rejeté.
 
 ## Écrans
 
@@ -25,7 +27,7 @@ Dépendances : la spec 001 (entrées, jour local) et la spec 002 (`DistressDetec
 - **Seuil** : moins de 3 entrées dans la semaine, pas de bilan (RM21) : ni chiffre, ni texte, ni appel au modèle.
 - **Humeur moyenne** : moyenne arithmétique des humeurs des entrées (pas des jours), arrondie au dixième le plus proche, la moitié vers le haut. Calcul en entiers, sans virgule flottante : dixièmes = (20 × somme + nombre) ÷ (2 × nombre), division entière. Affichage avec une virgule (« 3,6 »).
 - **Répartition** : nombre d'entrées pour chaque humeur de 1 à 5, zéros compris.
-- **Jours notés** : nombre de jours de la semaine avec au moins une entrée (de 1 à 7), et lesquels.
+- **Jours notés** : nombre de jours de la semaine avec au moins une entrée (de 1 à 7), et lesquels. Singulier pour un seul jour : « 1 jour sur 7 », « sur 1 jour ».
 - **Étiquettes fréquentes** : au plus 3 étiquettes, comptées par nombre d'entrées « étiquetées » qui les portent, triées par nombre décroissant, puis par libellé dans l'ordre alphabétique. Émotions et thèmes sont mêlés.
 - **Évolution** : seulement si la semaine précédente compte au moins 3 entrées. Elle compare les moyennes arrondies au dixième (« 3,6, contre 3,0 ») et le nombre d'entrées. Différence des moyennes arrondies : positive, « En hausse de 0,6. » ; négative, « En baisse de 0,6. » ; nulle, « Stable. ».
 - **Semaines consultables** : la semaine en cours et chaque semaine précédente, jusqu'à celle de l'entrée la plus ancienne du journal.
@@ -48,10 +50,10 @@ Le rédacteur du bilan (`ReviewWriter`) reçoit seulement les faits du bilan (`R
 
 | Fait | Nom dans le code | Valeurs |
 | --- | --- | --- |
-| Humeur moyenne, en mots | `averageMoodLabel` | Libellé de RM3 de la moyenne arrondie à l'unité, la moitié vers le haut (3,6 → « Bien ») |
+| Humeur moyenne, en mots | `averageMoodLabel` | Libellé de RM3 de la moyenne **exacte** arrondie à l'unité, la moitié vers le haut, en entiers : unité = (2 × somme + nombre) ÷ (2 × nombre), division entière (3,6 → « Bien »). Jamais depuis les dixièmes déjà arrondis : 11 entrées de somme 38 (3,4545…, affichée « 3,5 ») donnent « Neutre » (CA35) |
 | Régularité | `regularity` (`WeekRegularity`) | `everyDay` (7 jours notés), `mostDays` (5 ou 6), `someDays` (3 ou 4), `fewDays` (1 ou 2) |
 | Étiquettes fréquentes | `topTagLabels` | Libellés de la liste fermée (RM19), au plus 3, dans l'ordre des chiffres |
-| Tendance | `trend` (`ReviewTrend`) | `up`, `down`, `stable`, ou `none` sans semaine précédente comparable |
+| Tendance | `trend` (`ReviewTrend`) | Signe de la différence des moyennes arrondies au dixième, comme l'évolution affichée (CA14) : `up`, `down`, `stable` ; `none` sans semaine précédente comparable |
 
 Jamais le texte, la date, l'heure ni l'humeur d'une entrée : aucune entrée n'est transmise au modèle, et RM8 tient pour le bilan quoi qu'il arrive. Pas de chiffre en entrée, pour ne pas en suggérer en sortie.
 
@@ -118,6 +120,17 @@ deuxieme
 second
 seconde
 troisieme
+quatrieme
+cinquieme
+sixieme
+septieme
+huitieme
+neuvieme
+dixieme
+demi
+demie
+quadruple
+quintuple
 dizaine
 douzaine
 centaine
@@ -134,17 +147,31 @@ tu dois
 il faut
 il faudrait
 tu pourrais
+tu peux
+pourquoi ne pas
 essaie
 essaye
+essayer
 pense a
-n oublie pas
+n oublie
 n hesite pas
 prends soin
 prendre soin
+prends le temps
+prendre le temps
+repose toi
+accorde toi
+occupe toi
+laisse toi
+autorise toi
+offre toi
+fais toi
 conseil
 conseils
 conseille
+conseiller
 recommande
+recommandation
 # Santé et soin
 medecin
 medecins
@@ -184,12 +211,23 @@ bravo
 felicitations
 inquietant
 inquietante
+inquietants
+inquietantes
 alarmant
 alarmante
+alarmants
+alarmantes
 grave
+graves
 normal
+normale
+normaux
 anormal
+anormale
+anormaux
 ```
+
+Limite assumée : un impératif absent de la liste (« Sors marcher davantage ») n'est pas reconnu, faute d'analyse grammaticale. Les consignes du modèle l'interdisent, la sortie est courte, et les injonctions les plus courantes sont listées ; un tel texte reste sans chiffre ni vocabulaire médical (CA36).
 
 « neuf » (au sens de « nouveau ») ou « aide » au sens banal sont rejetés aussi : un texte rejeté à tort ne coûte qu'un bilan sans texte, un conseil ou un chiffre inventé coûte la confiance.
 
@@ -197,11 +235,13 @@ anormal
 
 Le texte validé n'est jamais enregistré dans la base. Il est gardé en mémoire tant que l'app est ouverte, pour une semaine et des faits donnés : revenir sur la même semaine sans changement ne rappelle pas le modèle ; une entrée ajoutée ou supprimée qui change les faits relance la mise en mots.
 
+**Ordre des vérifications, à chaque affichage** : la sensibilité de la semaine est évaluée sur ses entrées actuelles **avant** toute lecture de la mémoire. Une semaine sensible n'affiche jamais de texte et efface celui gardé pour elle, même si ses faits n'ont pas changé : une entrée à « Très bas » ou en détresse ajoutée un jour déjà noté peut laisser les faits identiques. Garde-fou couvert par CA34.
+
 ## Critères d'acceptation
 
 ### Accès depuis la liste
 
-- CA1 : Étant donné au moins une entrée dans le journal, quand la liste s'affiche, alors une carte « Bilan de la semaine » apparaît sous le titre, avant le premier jour, avec les dates de la semaine en cours (« Du lundi 12 au dimanche 18 octobre ») ; elle s'annonce au lecteur d'écran comme un bouton « Bilan de la semaine, du lundi 12 au dimanche 18 octobre ».
+- CA1 : Étant donné au moins une entrée dans le journal, quand la liste s'affiche, alors une carte « Bilan de la semaine » apparaît sous le titre, avant le premier jour, avec les dates de la semaine en cours (« Du lundi 12 au dimanche 18 octobre » ; « Du lundi 28 septembre au dimanche 4 octobre » quand le mois change ; l'année à chaque borne quand l'année change) ; elle s'annonce au lecteur d'écran comme un bouton « Bilan de la semaine, du lundi 12 au dimanche 18 octobre ».
 - CA2 : Étant donné la liste vide, en cours de lecture ou en erreur (spec 001), quand elle s'affiche, alors la carte n'apparaît pas.
 - CA3 : Étant donné la carte, quand la personne la touche, alors l'écran du bilan s'ouvre sur la semaine en cours, même si elle compte moins de 3 entrées.
 
@@ -209,7 +249,7 @@ Le texte validé n'est jamais enregistré dans la base. Il est gardé en mémoir
 
 - CA4 : Étant donné l'écran du bilan, quand il s'affiche, alors il montre le retour « Journal », le titre « Ta semaine », les dates de la semaine (« 12 – 18 octobre » ; « 28 septembre – 4 octobre » quand le mois change ; avec l'année à chaque borne si elle diffère de l'année en cours), et la mention « Semaine en cours » ou « Semaine dernière » pour ces deux semaines, aucune pour les autres.
 - CA5 : Étant donné l'écran du bilan, quand la personne touche « Semaine précédente » ou « Semaine suivante », alors la semaine affichée change. « Semaine suivante » est désactivé sur la semaine en cours, « Semaine précédente » sur la semaine de l'entrée la plus ancienne.
-- CA6 : Étant donné une semaine de 0, 1 ou 2 entrées, quand elle s'affiche, alors l'écran montre « Pas encore de bilan pour cette semaine » et « Le bilan demande au moins 3 entrées dans la semaine ; celle-ci en compte 2. » (« aucune » pour 0), sans chiffre ni texte, et le rédacteur n'est pas appelé (RM21).
+- CA6 : Étant donné une semaine de 0, 1 ou 2 entrées, quand elle s'affiche, alors l'écran montre « Pas encore de bilan pour cette semaine » et « Le bilan demande au moins 3 entrées dans la semaine ; celle-ci en compte 2. » (« celle-ci en compte 1. » pour 1 ; « celle-ci n'en compte aucune. » pour 0), sans chiffre ni texte, et le rédacteur n'est pas appelé (RM21).
 - CA7 : Étant donné une entrée saisie le dimanche à 23:30, heure locale, dans un fuseau, et l'app ouverte ensuite dans un autre fuseau, quand le bilan est calculé, alors l'entrée compte dans la semaine de ce dimanche (jour local de saisie, spec 001).
 
 ### Chiffres
@@ -217,7 +257,7 @@ Le texte validé n'est jamais enregistré dans la base. Il est gardé en mémoir
 - CA8 : Étant donné une semaine de 7 entrées, dont une non analysée sans texte, une non analysée avec texte (détresse) et une en attente, quand le bilan s'affiche, alors « Entrées » vaut 7 : toutes les entrées comptent, quel que soit leur statut.
 - CA9 : Étant donné des entrées d'humeurs 4, 3, 2, 4, 5, 3, 4, quand le bilan s'affiche, alors « Humeur moyenne » vaut « 3,6 », suivi de « sur 5 ». Étant donné des humeurs 3, 4, 3, 4 (moyenne 3,5), alors elle vaut « 3,5 » ; étant donné 2, 3, 3 (moyenne 2,666…), alors « 2,7 » ; étant donné 3, 3, 4, 4, 4, 4, 4, 4 (moyenne 3,75), alors « 3,8 ».
 - CA10 : Étant donné les mêmes 7 entrées, quand la répartition s'affiche, alors elle montre une ligne par humeur, de « Très bas » à « Très bien », avec leur nombre (0, 1, 2, 3, 1), y compris les zéros, et une barre proportionnelle au plus grand nombre.
-- CA11 : Étant donné des entrées le lundi, le mardi, le jeudi, le samedi et le dimanche, dont plusieurs le même jour, quand le bilan s'affiche, alors « Jours notés » montre « 5 jours sur 7 », les sept jours de L à D distingués entre notés et non notés, et « Entrées » porte la mention « sur 5 jours » (« sur 1 jour » au singulier).
+- CA11 : Étant donné des entrées le lundi, le mardi, le jeudi, le samedi et le dimanche, dont plusieurs le même jour, quand le bilan s'affiche, alors « Jours notés » montre « 5 jours sur 7 », les sept jours de L à D distingués entre notés et non notés, et « Entrées » porte la mention « sur 5 jours ». Étant donné 3 entrées le même jour, alors « 1 jour sur 7 » et « sur 1 jour ».
 - CA12 : Étant donné des entrées étiquetées portant « fatigue » (3 entrées), « travail » (3), « calme » (2) et « joie » (1), quand le bilan s'affiche, alors « Étiquettes fréquentes » montre, dans cet ordre, « fatigue · 3 », « travail · 3 », « calme · 2 », et la mention « Analysé sur ton téléphone ». Seules les entrées au statut « étiquetée » comptent.
 - CA13 : Étant donné aucune entrée étiquetée dans la semaine, quand le bilan s'affiche, alors la section montre « Aucune étiquette cette semaine. ».
 - CA14 : Étant donné une semaine précédente d'au moins 3 entrées, de moyenne 3,0 et de 5 entrées, et une semaine de moyenne 3,6 et de 7 entrées, quand le bilan s'affiche, alors la carte « Par rapport à la semaine précédente » montre « Humeur moyenne : 3,6, contre 3,0. En hausse de 0,6. » et « Entrées : 7, contre 5. » ; avec des moyennes arrondies égales, « Stable. » ; plus basses, « En baisse de … ».
@@ -232,12 +272,15 @@ Le texte validé n'est jamais enregistré dans la base. Il est gardé en mémoir
 - CA20 : Étant donné une semaine sensible (une entrée à 1 ; ou une entrée non analysée avec texte ; ou une entrée dont le texte est détecté par `detectInText`, quel que soit son statut), quand le bilan s'affiche, alors le rédacteur n'est pas appelé et la carte montre « Pas de texte pour cette semaine : le bilan s'en tient aux chiffres. » ; l'écran ne mentionne ni la détresse, ni l'écran d'aide, ni le 3114. Chaque critère de sensibilité est testé seul.
 - CA21 : Étant donné une semaine non sensible, quand le rédacteur est appelé, alors il reçoit seulement un `ReviewFacts` : libellé de l'humeur moyenne, régularité, au plus 3 libellés d'étiquettes et tendance. Le test vérifie, sur le rédacteur factice qui enregistre ce qu'il reçoit, qu'aucun texte d'entrée n'y apparaît et qu'aucun chiffre n'apparaît dans sa forme sérialisée.
 - CA22 : Étant donné une sortie dont le texte contient un chiffre (« 3 jours »), un chiffre d'une autre écriture, une fraction (« ½ ») ou « % », quand elle est validée, alors elle est rejetée et le bilan s'affiche sans texte, avec « Pas de texte pour cette semaine : le bilan s'en tient aux chiffres. ».
-- CA23 : Étant donné une sortie qui contient un mot de nombre de la liste, avec majuscules, accents ou ponctuation (« Trois jours », « la moitié »), quand elle est validée, alors elle est rejetée ; un mot qui ne fait que contenir une expression (« dixième » contient « dix » mais n'est pas le mot « dix », « septembre » contient « sept ») n'est pas rejeté pour cette raison.
+- CA23 : Étant donné une sortie qui contient un mot de nombre de la liste, avec majuscules, accents ou ponctuation (« Trois jours », « la moitié »), quand elle est validée, alors elle est rejetée ; un mot qui ne fait que contenir une expression (« septembre » contient « sept », « deuxièmement » contient « deuxième ») n'est pas rejeté pour cette raison.
 - CA24 : Étant donné une sortie qui contient une expression interdite (« Tu devrais consulter. », « Une semaine inquiétante. ») ou une expression de la liste de détresse de la spec 002, quand elle est validée, alors elle est rejetée.
 - CA25 : Étant donné les deux listes de cette spec, quand les tests s'exécutent, alors les listes du code sont identiques aux blocs « Liste des mots de nombre » et « Liste des expressions interdites » de ce fichier (même ensemble d'expressions, lignes `#` et vides ignorées), et chaque expression, insérée dans une phrase fictive, fait rejeter la sortie.
 - CA26 : Étant donné une sortie non conforme au schéma JSON, un texte vide, un texte de plus de 300 caractères visibles, une erreur du modèle ou aucune réponse en 30 secondes, quand le bilan s'affiche, alors il s'affiche sans texte, avec le même message que CA22, sans plantage, et la sortie brute n'est ni affichée ni enregistrée.
-- CA27 : Étant donné le modèle absent (pas téléchargé, ou en cours de téléchargement), quand le bilan d'une semaine d'au moins 3 entrées s'affiche, alors le rédacteur n'est pas appelé, et la carte montre « Pas de texte : le modèle local n'est pas sur ce téléphone. Les chiffres sont calculés sans lui. » ; l'écran ne propose pas le téléchargement (RM18 reste la seule porte d'entrée).
+- CA27 : Étant donné le modèle absent (pas téléchargé, ou en cours de téléchargement), quand le bilan d'une semaine d'au moins 3 entrées s'affiche, alors le rédacteur n'est pas appelé, et la carte montre « Pas de texte : le modèle local n'est pas sur ce téléphone. Les chiffres sont calculés sans lui. » ; l'écran ne propose pas le téléchargement (RM18 reste la seule porte d'entrée). Étant donné un rédacteur appelé qui rend quand même `ModelMissing` (modèle supprimé entre-temps), alors la carte montre ce même message ; `WriterFailed` donne celui de CA22.
 - CA28 : Étant donné un texte validé pour une semaine, quand la personne change de semaine puis revient, sans entrée ajoutée ni supprimée, alors le même texte s'affiche sans nouvel appel au rédacteur. Le texte n'est jamais écrit dans la base (RM54).
+- CA34 : Étant donné un texte en mémoire pour une semaine non sensible, quand une entrée à 1 y est ajoutée un jour déjà noté sans changer les faits du bilan, alors le texte n'est plus affiché, la carte montre le message de CA20 et le rédacteur n'est pas appelé ; même vérification dans un second cas, avec une entrée en détresse d'humeur 3. Après la suppression de cette entrée, revenir sur la semaine relance la mise en mots : le texte effacé n'est pas réutilisé.
+- CA35 : Étant donné 11 entrées de somme 38 (moyenne 3,4545…), quand le bilan s'affiche, alors « Humeur moyenne » vaut « 3,5 » et le rédacteur reçoit `averageMoodLabel` « Neutre », arrondi depuis la moyenne exacte ; la tendance transmise suit le signe de l'évolution affichée (CA14).
+- CA36 : Étant donné la sortie `{"text": "Une semaine calme. Sors marcher davantage."}`, quand elle est validée, alors elle est acceptée. Ce critère documente la limite assumée des impératifs absents de la liste ; la changer exige de mettre la spec à jour.
 
 ### États
 
@@ -276,7 +319,7 @@ Artefact Claude de type « Design » ([lien privé](https://claude.ai/artifact/H
 - **Bilan** : nominal (avec texte, interactif : la semaine précédente montre une semaine sensible, la suivante une semaine de 2 entrées), mise en mots en cours, sans texte généré, modèle absent, moins de 3 entrées, chargement, erreur.
 - **Liste** : avec la carte « Bilan de la semaine » en tête.
 
-Jetons : la maquette n'utilise que les jetons de la charte, à quatre exceptions près, à ajouter à la charte, à `tokens.json` et au test de fidélité dans la PR d'implémentation : `icon-md` (24) et `icon-button` (18), déjà demandés par la spec 002, `bar-thickness` (8, barre de la répartition) et `day-cell` (40, case d'un jour). Détail dans le [README de la maquette](../maquettes/006-bilan-de-la-semaine/README.md). Pas de captures PNG, comme pour les maquettes 001 et 002.
+Jetons : la maquette n'utilise que les jetons de la charte, à quatre exceptions près, à ajouter à la charte, à `tokens.json` et au test de fidélité dans la PR d'implémentation : `icon-md` (24) et `icon-button` (18), déjà demandés par la spec 002, `bar-thickness` (8, barre de la répartition) et `day-cell` (40, case d'un jour). Détail dans le [README de la maquette](../maquettes/006-bilan-de-la-semaine/README.md). Captures PNG absentes, comme pour les maquettes 001 et 002 : l'agent ne peut pas exporter l'artefact. Reporté à une issue de suivi, proposée dans la PR #17 et à créer avec l'accord de Yanis ; d'ici là, la spec renvoie vers l'artefact et vers la source HTML versionnée.
 
 ## Cas limites et erreurs
 
@@ -311,3 +354,7 @@ Aucune. Décisions prises par l'agent, à la demande de Yanis (2026-10-14) :
 7. **Modèle absent** : chiffres seuls, message propre, pas de proposition de téléchargement depuis le bilan (CA27).
 8. **Conservation** : texte jamais enregistré, gardé en mémoire tant que l'app est ouverte (RM54, CA28) : rien de plus à chiffrer ni à effacer.
 9. **Évolution** : seulement si la semaine précédente a un bilan, sur les moyennes arrondies et le nombre d'entrées (CA14, CA15).
+10. **Mémoire et sensibilité** (revue IA de la PR #17) : sensibilité évaluée avant toute lecture de la mémoire, texte effacé pour une semaine devenue sensible (CA34).
+11. **Arrondis** : libellé transmis au modèle depuis la moyenne exacte, tendance depuis les moyennes affichées (CA35).
+12. **Impératifs** : injonctions courantes ajoutées à la liste ; les autres impératifs sont une limite assumée, documentée par CA36, plutôt qu'une analyse grammaticale fragile.
+13. **`ModelMissing` et `WriterFailed`** : messages de CA27 et de CA22.

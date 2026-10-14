@@ -172,8 +172,8 @@ class Component extends DCLogic {
     const noted = w.days.reduce((a, b) => a + b, 0);
     const notedNames = dayNames.filter((_, i) => w.days[i]);
     const week = Object.assign({}, w, {
-      daysText: 'sur ' + noted + ' jours',
-      daysShort: noted + ' jours sur 7',
+      daysText: 'sur ' + noted + (noted > 1 ? ' jours' : ' jour'),
+      daysShort: noted + (noted > 1 ? ' jours' : ' jour') + ' sur 7',
       daysA11y: 'Jours notés : ' + notedNames.join(', ') + '.',
       distText: 'Répartition des humeurs : ' + w.moods.map((c, i) => labels[i] + ', ' + c + (c > 1 ? ' entrées' : ' entrée')).join(' ; ') + '.'
     });

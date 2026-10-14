@@ -107,6 +107,7 @@ Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a intr
 - RM28 : la suppression d'une entrée est définitive et demande une confirmation (spec : [`docs/specs/001-saisie-et-liste-des-entrees.md`](specs/001-saisie-et-liste-des-entrees.md)).
 - RM29 : aucun degré de sensibilité ne désactive le garde-fou ; la détection par le texte ne dépend pas de ce réglage, et une erreur de lecture du réglage applique le degré par défaut (spec : [`docs/specs/002-garde-fou-detresse.md`](specs/002-garde-fou-detresse.md)).
 
+- RM30 à RM49 : numéros réservés aux specs rédigées en parallèle (lots G et H) ; un numéro absent n'est pas une règle supprimée.
 - RM50 : le bilan compte toutes les entrées de la semaine, quel que soit leur statut d'analyse, chacune dans la semaine de son jour local de saisie. Ses chiffres : nombre d'entrées, humeur moyenne au dixième, répartition des humeurs, jours notés, au plus 3 étiquettes fréquentes, et l'évolution par rapport à la semaine précédente si celle-ci a un bilan (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
 - RM51 : pour le bilan, le modèle ne reçoit que des faits sans chiffre calculés par l'app, jamais le texte, la date ni l'humeur d'une entrée (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
 - RM52 : une semaine dont une entrée est à « Très bas » ou en détresse n'a pas de texte généré : son bilan s'en tient aux chiffres, sans mention de l'écran d'aide (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
@@ -138,7 +139,7 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 | MVP (lot G) | Téléchargement du modèle local | — | à spécifier |
 | MVP (lot G) | Étiquetage automatique | — | à spécifier |
 | MVP (lot H) | Export et suppression totale | — | à spécifier |
-| Si le temps le permet (lot I) | Bilan de la semaine | [006](specs/006-bilan-de-la-semaine.md) | spec validée (maquette à valider) |
+| Si le temps le permet (lot I) | Bilan de la semaine | [006](specs/006-bilan-de-la-semaine.md) | spec brouillon |
 
 ## Questions ouvertes
 

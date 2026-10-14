@@ -32,3 +32,31 @@ Toutes prises par l'agent, à la demande de Yanis (« prends les décisions mét
 ### Prochaine étape
 
 Yanis relit la spec et valide la maquette (commentaires sur l'artefact). Ensuite, après le lot G : tests par le subagent `test-writer`, committés seuls, puis implémentation sur `feat/bilan-semaine`.
+
+## 2026-10-14 21:11
+
+### Fait
+
+- Revue IA de la PR #17 traitée :
+  - mémoire du texte : sensibilité évaluée avant toute lecture de la mémoire, CA34 ;
+  - listes : injonctions courantes, formes fléchies, ordinaux et « demi » ajoutés ;
+  - arrondi du libellé transmis au modèle fixé depuis la moyenne exacte, CA35 ;
+  - `ModelMissing` et `WriterFailed` reliés à leurs messages ;
+  - phrase exacte de CA6 ; format de CA1 quand le mois change ; singulier de CA11, corrigé aussi dans la maquette ;
+  - exigence pour la spec 004 (aucune étiquette dans les listes de rejet) ; usage de `line` pour les flèches désactivées ; numéros RM30 à RM49 déclarés réservés.
+- Statut ramené à « spec brouillon » dans la spec, la maquette et le cahier des charges.
+
+### Décisions
+
+- Impératifs absents de la liste : limite assumée, documentée par CA36, plutôt qu'une analyse grammaticale (agent, sur délégation de Yanis).
+- « spec brouillon » jusqu'à la validation explicite de Yanis : la délégation des décisions métier ne vaut pas validation de la spec ni de la maquette (agent, suite à la revue IA ; écart avec la consigne initiale « spec validée »).
+
+### Corrections et limites
+
+- Captures PNG toujours absentes : issue de suivi proposée dans la réponse à la revue, à créer avec l'accord de Yanis.
+- États « Aucune étiquette » et texte à 200 % toujours pas dessinés (signalés dans le README de la maquette).
+- À ne pas oublier dans la PR d'implémentation : reporter le contrat `ReviewWriter` dans l'architecture technique.
+
+### Prochaine étape
+
+Yanis valide la spec et la maquette, et dit si l'issue des captures PNG doit être créée. Ensuite, après le lot G : tests par `test-writer`, puis implémentation sur `feat/bilan-semaine`.
