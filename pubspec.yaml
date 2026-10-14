@@ -1,0 +1,29 @@
+name: tidemark
+description: "Journal d'humeur dont l'IA tourne entièrement sur le téléphone."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Polices embarquées (licence OFL, assets/fonts) : aucune police chargée depuis le
+  # réseau (RM1). Polices variables : la graisse passe par FontVariation.
+  fonts:
+    - family: BricolageGrotesque
+      fonts:
+        - asset: assets/fonts/BricolageGrotesque-Variable.ttf
+    - family: Figtree
+      fonts:
+        - asset: assets/fonts/Figtree-Variable.ttf
