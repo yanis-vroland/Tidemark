@@ -20,4 +20,4 @@ Données d'exemple fictives.
 - Lien et anneau de focus écrits en dur avec la valeur claire de `tide` dans la feuille de style de l'artefact, comme pour la maquette 001 : sans effet sur l'app.
 - Pas d'état vide ni de chargement pour l'écran d'aide : son contenu est fixe.
 - États vide, chargement et erreur de la liste : ceux de la maquette 001, avec l'icône « Réglages » à côté du titre, présent dans tous les états.
-- Jetons à ajouter à la charte dans la PR d'implémentation : `icon-md` (24) et `icon-button` (18). Tout le reste suit les jetons existants.
+- Jetons `icon-md` (24) et `icon-button` (18) ajoutés à la charte par la PR d'implémentation. Bordure du degré choisi : `ring-width` (3).

@@ -23,4 +23,45 @@ Future<SaveOutcome> saveEntryWithGuard({
   String? text,
   DistressDetector detector = const DistressDetector(),
   DateTime Function() clock = DateTime.now,
-}) => throw UnimplementedError();
+}) async {
+  final inText = text != null && detector.detectInText(text);
+  final inSeries =
+      mood == 1 &&
+      await _completesSeries(repository, settings, detector, mood, clock);
+  final distress = inText || inSeries;
+  final entry = await repository.addEntry(
+    mood: mood,
+    text: text,
+    status: distress ? AnalysisStatus.skipped : AnalysisStatus.pending,
+  );
+  return SaveOutcome(entry: entry, showHelp: distress);
+}
+
+/// La nouvelle entrée, saisie maintenant, complète-t-elle une série ? Évalué avant
+/// l'enregistrement, pour que l'entrée soit enregistrée d'emblée avec son statut.
+Future<bool> _completesSeries(
+  EntryRepository repository,
+  SettingsRepository settings,
+  DistressDetector detector,
+  int mood,
+  DateTime Function() clock,
+) async {
+  LowMoodSensitivity sensitivity;
+  try {
+    sensitivity = await settings.readLowMoodSensitivity();
+  } catch (_) {
+    // Le garde-fou ne se désactive jamais sur une erreur (CA21, RM29).
+    sensitivity = LowMoodSensitivity.normal;
+  }
+  final previous = await repository.latestEntries(sensitivity.entryCount - 1);
+  final now = clock();
+  final candidate = Entry(
+    id: -1,
+    mood: mood,
+    text: null,
+    createdAt: now.toUtc(),
+    utcOffset: now.timeZoneOffset,
+    analysisStatus: AnalysisStatus.pending,
+  );
+  return detector.detectLowMoodSeries([candidate, ...previous], sensitivity);
+}

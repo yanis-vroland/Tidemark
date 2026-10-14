@@ -60,3 +60,36 @@ Tests de la spec 002 par le subagent `test-writer`, committés seuls et rouges ;
 ### Prochaine étape
 
 Relire les tests, puis implémenter jusqu'au vert, dans un commit séparé.
+
+## 2026-10-14 21:03
+
+### Fait
+
+- Implémentation de la spec 002 :
+  - détecteur (normalisation, expressions en mots entiers, série) et liste de 83 termes reprise de la spec ;
+  - `saveEntryWithGuard` : statut `skipped` et écran d'aide en cas de détresse, degré « Normale » si la lecture échoue ;
+  - vérification au démarrage dans `startApp` ;
+  - table `settings` et migration vers la version 2 du schéma ;
+  - `HelpScreen`, `SettingsScreen` et l'icône « Réglages » dans tous les états de la liste ;
+  - `UrlLauncherDialer`, et le schéma `tel` déclaré sur Android (`<queries>`) et iOS (`LSApplicationQueriesSchemes`).
+- Composant commun `ErrorBanner` extrait de la saisie, réutilisé par les Réglages.
+- Jetons `icon-md` (24) et `icon-button` (18) ajoutés à la charte (`tokens.json`, artefact de la charte, `TidemarkSize`). La maquette 002 suit `ring-width` pour la bordure du degré choisi.
+- Architecture technique : table `settings`, schéma v2, contrats `EntryRepository`, `SettingsRepository`, `DistressDetector`, `PhoneDialer`, sécurité.
+- 434 tests verts. Contrôle par mutation sur 18 protections, toutes détectées après l'ajout d'un test (voir ci-dessous).
+
+### Décisions
+
+- Les deux tests de configuration native (`test/platform/dialer_config_test.dart`) sont ajoutés après l'implémentation : la spec impose cette configuration, aucun test ne la couvrait (agent).
+- Chaque degré des Réglages porte un nœud de sémantique explicite (radio, coché, nom et description), et l'icône « Réglages » un libellé explicite : l'infobulle seule n'en donne pas (agent).
+
+### Corrections et limites
+
+- Tests modifiés ou ajoutés après le commit des tests, à signaler :
+  - `test/ui/help_screen_test.dart` (CA25, appel impossible à 200 %) : défilement jusqu'au bouton avant de le toucher. À 200 %, le bouton est sous l'écran, et la spec dit que l'écran défile. Sans ce défilement, le toucher tombait hors de l'écran. Aucune vérification retirée.
+  - `test/distress/distress_detector_test.dart` : nouveau test de l'accent combinant (forme décomposée). Retirer sa prise en charge n'était détecté par aucun test.
+- Écran Réglages : passé de `ListView` à `SingleChildScrollView`, parce qu'à 200 % le bandeau d'erreur sortait de l'arbre après le défilement. C'est le même piège qu'au lot E.
+- Non testé : l'ouverture réelle du composeur, à vérifier au test humain sur l'iPhone.
+
+### Prochaine étape
+
+Revues `reviewer` et `security-reviewer`, essai sur simulateur, puis PR.

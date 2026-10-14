@@ -71,7 +71,7 @@ class Component extends DCLogic {
         ...d,
         checked,
         pick: () => this.setState({ picked: d.id }),
-        box: 'min-height: 44px; display: flex; align-items: flex-start; gap: 12px; padding: 16px; border-radius: 16px; cursor: pointer; background: ' + (checked ? t.tideSoft : t.raised) + '; border: ' + (checked ? '2px solid ' + t.tide : '1px solid ' + t.line) + ';'
+        box: 'min-height: 44px; display: flex; align-items: flex-start; gap: 12px; padding: 16px; border-radius: 16px; cursor: pointer; background: ' + (checked ? t.tideSoft : t.raised) + '; border: ' + (checked ? '3px solid ' + t.tide : '1px solid ' + t.line) + ';'
       };
     });
     return { t, options, error: state === 'erreur', ready: state !== 'chargement' };

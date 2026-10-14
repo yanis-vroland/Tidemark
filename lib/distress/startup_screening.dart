@@ -7,4 +7,16 @@ import 'distress_detector.dart';
 Future<void> screenPendingEntries(
   EntryRepository repository, {
   DistressDetector detector = const DistressDetector(),
-}) => throw UnimplementedError();
+}) async {
+  try {
+    final pending = await repository.pendingEntriesWithText();
+    final distressed = [
+      for (final entry in pending)
+        if (detector.detectInText(entry.text!)) entry.id,
+    ];
+    if (distressed.isNotEmpty) await repository.markSkipped(distressed);
+  } catch (_) {
+    // Rien n'est perdu : les entrées restent « en attente » et le lot G les
+    // revérifie avant toute analyse (spec 002, « Hors périmètre »).
+  }
+}

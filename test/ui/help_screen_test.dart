@@ -287,6 +287,8 @@ void main() {
     ) async {
       usePhoneScreen(tester);
       await showHelp(tester, FakePhoneDialer(succeeds: false), textScale: 2.0);
+      await tester.ensureVisible(find.text(call3114));
+      await tester.pump();
       await tester.tap(find.text(call3114));
       await tester.pump(const Duration(milliseconds: 400));
 

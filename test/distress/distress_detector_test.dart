@@ -29,6 +29,14 @@ List<Entry> series(List<int> moods, Duration span) => [
 
 void main() {
   group('texte : normalisation (CA2)', () {
+    // Ajouté après le contrôle par mutation : certains claviers écrivent un accent
+    // comme un caractère combinant qui suit la lettre (forme décomposée).
+    test('CA2 : un accent combinant (forme décomposée) est retiré', () {
+      const decomposed = 'Je pre\u0301fe\u0300re mourir.';
+      expect(DistressDetector.normalize(decomposed), 'je prefere mourir');
+      expect(const DistressDetector().detectInText(decomposed), isTrue);
+    });
+
     test('CA2 : la phrase de la spec est détectée', () {
       expect(detector.detectInText('J’ai ENVIE de… mourir.'), isTrue);
     });
