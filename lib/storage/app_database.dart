@@ -5,7 +5,9 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 
 import '../entries/entry.dart';
+import '../distress/distress_detector.dart';
 import '../entries/entry_repository.dart';
+import '../settings/settings_repository.dart';
 
 part 'app_database.g.dart';
 
@@ -107,7 +109,11 @@ class DriftEntryRepository implements EntryRepository {
   }
 
   @override
-  Future<Entry> addEntry({required int mood, String? text}) async {
+  Future<Entry> addEntry({
+    required int mood,
+    String? text,
+    AnalysisStatus status = AnalysisStatus.pending,
+  }) async {
     if (mood < 1 || mood > 5) {
       throw ArgumentError.value(mood, 'mood', 'de 1 à 5');
     }
@@ -158,4 +164,32 @@ class DriftEntryRepository implements EntryRepository {
   @override
   Future<void> deleteEntry(int id) =>
       (db.delete(db.entries)..where((e) => e.id.equals(id))).go();
+
+  @override
+  Future<List<Entry>> latestEntries(int count) => throw UnimplementedError();
+
+  @override
+  Future<List<Entry>> pendingEntriesWithText() => throw UnimplementedError();
+
+  @override
+  Future<void> markSkipped(Iterable<int> ids) => throw UnimplementedError();
+}
+
+/// [SettingsRepository] sur [AppDatabase] (spec 002) : table `settings`, une ligne.
+class DriftSettingsRepository implements SettingsRepository {
+  DriftSettingsRepository(this.db);
+
+  final AppDatabase db;
+
+  @override
+  Stream<LowMoodSensitivity> watchLowMoodSensitivity() =>
+      throw UnimplementedError();
+
+  @override
+  Future<LowMoodSensitivity> readLowMoodSensitivity() =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> setLowMoodSensitivity(LowMoodSensitivity sensitivity) =>
+      throw UnimplementedError();
 }
