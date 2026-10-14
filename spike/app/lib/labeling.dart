@@ -93,3 +93,24 @@ double recall(Labels labels, SpikeEntry entry) {
   final found = {...labels.emotions, ...labels.themes};
   return expected.where(found.contains).length / expected.length;
 }
+
+/// Schéma JSON des étiquettes, commun aux deux moteurs quand la sortie est contrainte.
+Map<String, dynamic> labelSchema(Vocabulary vocabulary) => {
+  'type': 'object',
+  'properties': {
+    'emotions': {
+      'type': 'array',
+      'items': {'enum': vocabulary.emotions},
+      'minItems': 1,
+      'maxItems': 3,
+    },
+    'themes': {
+      'type': 'array',
+      'items': {'enum': vocabulary.themes},
+      'minItems': 1,
+      'maxItems': 2,
+    },
+  },
+  'required': ['emotions', 'themes'],
+  'additionalProperties': false,
+};

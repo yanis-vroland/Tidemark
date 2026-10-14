@@ -18,6 +18,7 @@ const _engine = String.fromEnvironment('ENGINE', defaultValue: 'llamadart');
 const _model = String.fromEnvironment('MODEL');
 const _constrained = bool.fromEnvironment('CONSTRAINED');
 const _limit = int.fromEnvironment('LIMIT', defaultValue: 20);
+const _gpuLayers = int.fromEnvironment('GPU_LAYERS', defaultValue: 99);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,8 +71,16 @@ class _SpikeAppState extends State<SpikeApp> {
         return;
       }
       final SpikeEngine engine = switch (_engine) {
-        'edge' => EdgeAiEngine(ModelType.qwen3),
-        _ => LlamadartEngine(vocabulary, constrained: _constrained),
+        'edge' => EdgeAiEngine(
+          vocabulary,
+          ModelType.qwen3,
+          useTools: _constrained,
+        ),
+        _ => LlamadartEngine(
+          vocabulary,
+          constrained: _constrained,
+          gpuLayers: _gpuLayers,
+        ),
       };
       _log('Chargement de $_model avec ${engine.name}');
       final result = await runBench(

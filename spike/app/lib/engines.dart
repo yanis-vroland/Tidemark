@@ -1,5 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter_edge_ai/flutter_edge_ai.dart' hide ModelSource;
-import 'package:llamadart/llamadart.dart' hide ModelFileType;
+import 'package:llamadart/llamadart.dart' hide ModelFileType, ToolChoice;
 
 import 'engine.dart';
 import 'labeling.dart';
@@ -7,10 +9,17 @@ import 'labeling.dart';
 /// llama.cpp par `llamadart` : fichier GGUF, sortie contrainte par un schéma JSON
 /// quand [constrained] est vrai.
 class LlamadartEngine implements SpikeEngine {
-  LlamadartEngine(this.vocabulary, {required this.constrained});
+  LlamadartEngine(
+    this.vocabulary, {
+    required this.constrained,
+    this.gpuLayers = 99,
+  });
 
   final Vocabulary vocabulary;
   final bool constrained;
+
+  /// 0 : processeur seul.
+  final int gpuLayers;
   final LlamaEngine _engine = LlamaEngine(LlamaBackend());
 
   @override
@@ -19,28 +28,8 @@ class LlamadartEngine implements SpikeEngine {
   @override
   Future<void> load(String modelPath) => _engine.setModel(
     LlamaModel(ModelSource.path(modelPath)),
-    params: const ModelParams(gpuLayers: 99),
+    params: ModelParams(gpuLayers: gpuLayers),
   );
-
-  Map<String, dynamic> get _schema => {
-    'type': 'object',
-    'properties': {
-      'emotions': {
-        'type': 'array',
-        'items': {'enum': vocabulary.emotions},
-        'minItems': 1,
-        'maxItems': 3,
-      },
-      'themes': {
-        'type': 'array',
-        'items': {'enum': vocabulary.themes},
-        'minItems': 1,
-        'maxItems': 2,
-      },
-    },
-    'required': ['emotions', 'themes'],
-    'additionalProperties': false,
-  };
 
   @override
   Future<String> generate(String prompt) async {
@@ -53,7 +42,7 @@ class LlamadartEngine implements SpikeEngine {
       responseFormat: constrained
           ? {
               'type': 'json_schema',
-              'json_schema': {'schema': _schema},
+              'json_schema': {'schema': labelSchema(vocabulary)},
             }
           : null,
     );
@@ -64,15 +53,18 @@ class LlamadartEngine implements SpikeEngine {
   Future<void> dispose() => _engine.dispose();
 }
 
-/// LiteRT-LM par `flutter_edge_ai` : fichier .litertlm, sortie libre.
+/// LiteRT-LM par `flutter_edge_ai` : fichier .litertlm, sortie libre, ou
+/// contrainte par un appel de fonction quand [useTools] est vrai.
 class EdgeAiEngine implements SpikeEngine {
-  EdgeAiEngine(this.modelType);
+  EdgeAiEngine(this.vocabulary, this.modelType, {required this.useTools});
 
+  final Vocabulary vocabulary;
   final ModelType modelType;
+  final bool useTools;
   InferenceModel? _model;
 
   @override
-  String get name => 'flutter_edge_ai';
+  String get name => useTools ? 'flutter_edge_ai+tools' : 'flutter_edge_ai';
 
   @override
   Future<void> load(String modelPath) async {
@@ -89,11 +81,29 @@ class EdgeAiEngine implements SpikeEngine {
       temperature: 0.2,
       maxOutputTokens: 128,
       modelType: modelType,
+      tools: useTools
+          ? [
+              Tool(
+                name: 'tag_entry',
+                description:
+                    "Enregistre les étiquettes d'une entrée de journal.",
+                parameters: labelSchema(vocabulary),
+              ),
+            ]
+          : const [],
+      supportsFunctionCalls: useTools,
+      toolChoice: useTools ? ToolChoice.required : ToolChoice.auto,
     );
     await chat.addQueryChunk(Message.text(text: prompt, isUser: true));
     final reply = StringBuffer();
     await for (final response in chat.generateChatResponseAsync()) {
-      if (response is TextResponse) reply.write(response.token);
+      switch (response) {
+        case TextResponse(:final token):
+          reply.write(token);
+        case FunctionCallResponse(:final args):
+          reply.write(jsonEncode(args));
+        default:
+      }
     }
     return reply.toString();
   }
