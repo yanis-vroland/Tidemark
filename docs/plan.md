@@ -97,14 +97,14 @@ Branches : `docs/plan-projet` (PR #4), `docs/maquettes-artefacts`, puis `docs/ca
 
 Branche : `spike/moteur-ia`. Le code du spike n'est pas mergé : seuls l'ADR et ses mesures le sont. L'app du spike n'a pas d'interface soignée : elle sert à mesurer, pas à montrer.
 
-Candidats : `flutter_gemma` et `llama_cpp_dart`. Foundation Models d'Apple est écarté d'office, puisqu'il n'existe pas sur Android (décision iOS + Android du 2026-10-13) ; l'ADR le mentionne comme option rejetée. À réexaminer seulement si la cible est ramenée à iOS seul.
+Candidats prévus : `flutter_gemma` et `llama_cpp_dart`. Candidats réellement mesurés, et pourquoi : [ADR-001](adr/001-moteur-ia-local.md). Foundation Models d'Apple est écarté d'office, puisqu'il n'existe pas sur Android (décision iOS + Android du 2026-10-13) ; l'ADR le mentionne comme option rejetée. À réexaminer seulement si la cible est ramenée à iOS seul.
 
-- [ ] Pour chaque candidat, étiquetage d'une entrée fictive en JSON sur l'iPhone 15 Pro (mesures) et sur l'émulateur Android (fonctionnement seulement : un émulateur utilise le processeur du Mac, ses temps ne valent pas ceux d'un téléphone, et l'accélération GPU peut y manquer).
-- [ ] Un candidat qui ne tourne pas sur l'émulateur Android est éliminé, ou l'ADR explique pourquoi l'émulateur n'est pas représentatif.
-- [ ] Mesures sur l'iPhone 15 Pro consignées dans l'ADR, avec le modèle utilisé : taille du modèle téléchargé, mémoire, temps de chargement, temps d'étiquetage, taux de JSON valide sur 20 entrées fictives.
-- [ ] Vérification qu'aucun appel réseau n'a lieu après le téléchargement du modèle (mode avion).
-- [ ] Licence du modèle compatible avec un dépôt public.
-- [ ] ADR-001 « Moteur d'IA local » rédigé au statut « proposé ».
+- [x] Pour chaque candidat, étiquetage d'une entrée fictive en JSON sur l'iPhone 15 Pro (mesures) et sur l'émulateur Android (fonctionnement seulement : un émulateur utilise le processeur du Mac, ses temps ne valent pas ceux d'un téléphone, et l'accélération GPU peut y manquer).
+- [x] Un candidat qui ne tourne pas sur l'émulateur Android est éliminé, ou l'ADR explique pourquoi l'émulateur n'est pas représentatif.
+- [x] Mesures sur l'iPhone 15 Pro consignées dans l'ADR, avec le modèle utilisé : taille du modèle téléchargé, mémoire, temps de chargement, temps d'étiquetage, taux de JSON valide sur 20 entrées fictives.
+- [x] Vérification qu'aucun appel réseau n'a lieu après le téléchargement du modèle (mode avion).
+- [x] Licence du modèle compatible avec un dépôt public.
+- [x] ADR-001 « Moteur d'IA local » rédigé, puis accepté par Yanis le 2026-10-14.
 
 ## Lot C : charte graphique
 

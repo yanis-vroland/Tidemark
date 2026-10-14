@@ -6,13 +6,19 @@ Il est mis à jour dans la PR qui change ce qu'il décrit : modèle de données,
 
 ## Vue d'ensemble
 
-À ADAPTER : les composants, ce que chacun fait, et comment ils communiquent.
+Une app Flutter (iOS 16.4+, Android) sans serveur. Le projet Flutter n'existe pas encore (lot D) : seul le composant d'IA est décidé.
 
 ```mermaid
 flowchart LR
-  client[À ADAPTER : client] --> api[À ADAPTER : API]
-  api --> db[(À ADAPTER : base de données)]
+  ui[Écrans Flutter] --> analyzer[MoodAnalyzer]
+  analyzer --> engine[llamadart : llama.cpp]
+  engine --> model[(Qwen2.5-1.5B-Instruct Q4_K_M, GGUF, sur le téléphone)]
 ```
+
+- **`MoodAnalyzer`** : interface qui isole le modèle local. Une implémentation factice sert aux tests et à la CI ; l'implémentation réelle repose sur `llamadart` 0.12.0, version épinglée exactement ([ADR-001](adr/001-moteur-ia-local.md)).
+- **Sortie** : contrainte par un schéma JSON qui porte la liste fermée des étiquettes (RM19), puis validée par l'app (RM9).
+- **Accélération** : GPU (Metal) sur iOS ; processeur seul sur Android tant que le GPU n'est pas vérifié sur un appareil réel.
+- **Modèle** : environ 1,1 Go, téléchargé une fois (RM11, RM18), chargé en arrière-plan (jusqu'à 12 s au premier chargement sur iPhone 15 Pro).
 
 ## Modèle de données
 
@@ -57,4 +63,4 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 
 | ADR | Titre | Statut |
 | --- | --- | --- |
-| À ADAPTER | | proposé, accepté, remplacé |
+| [ADR-001](adr/001-moteur-ia-local.md) | Moteur d'IA local | accepté |
