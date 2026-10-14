@@ -134,6 +134,29 @@ void main() {
       expect(await db.countEntries(), 0);
     });
 
+    for (final (name, unit) in [
+      ('drapeau', '🇫🇷'),
+      ('émoji composé', '👩‍👩‍👧'),
+      ('accent combinant', 'e\u0301'),
+    ]) {
+      test(
+        'RM27 : un caractère fait de plusieurs points de code ($name) compte '
+        'pour un',
+        () async {
+          final saved = await repo.addEntry(
+            mood: 3,
+            text: unit * maxTextLength,
+          );
+          expect(saved.text, unit * maxTextLength);
+
+          await expectLater(
+            repo.addEntry(mood: 3, text: unit * (maxTextLength + 1)),
+            throwsA(isA<ArgumentError>()),
+          );
+        },
+      );
+    }
+
     test('CA2 : la plus récente est en tête, quel que soit l\'ordre '
         'd\'enregistrement', () async {
       now = DateTime(2026, 10, 14, 8, 15);

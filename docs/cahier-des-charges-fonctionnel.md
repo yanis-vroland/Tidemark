@@ -39,6 +39,8 @@ Les termes du métier et leur nom dans le code. Les specs, le code et les PR uti
 | Étiquette | `Tag` | Émotion ou thème que le modèle local associe à une entrée. |
 | Type d'étiquette | `TagKind` | `emotion` ou `theme`. |
 | Analyse | `analysis` | Traitement d'une entrée par le modèle local, qui produit ses étiquettes. |
+| Dépôt des entrées | `EntryRepository` | Interface par laquelle les écrans lisent, ajoutent et suppriment les entrées ; la base chiffrée est derrière ([spec 001](specs/001-saisie-et-liste-des-entrees.md)). |
+| Lieu de la clé | `KeyStore` | Interface du lieu où la clé de la base est gardée : trousseau iOS ou Keystore Android (ADR-002). |
 | Analyseur | `MoodAnalyzer` | Interface qui isole le modèle local ; une implémentation factice sert aux tests et à la CI. |
 | Statut d'analyse | `AnalysisStatus` : `pending`, `tagged`, `untagged`, `skipped` | Où en est l'analyse d'une entrée : en attente, étiquetée, sans étiquette (RM9), non analysée (sans texte, RM24, ou détresse, RM17). Propre à l'entrée ([spec 001](specs/001-saisie-et-liste-des-entrees.md)). |
 | Résultat d'analyse | `AnalysisResult` : `Tagged`, `Untagged` | Ce que rend l'analyseur : « étiquetée » (`Tagged`, avec ses étiquettes) ou « sans étiquette » (`Untagged`, RM9). Le statut « non analysée » n'est pas un résultat de l'analyseur, qui n'est pas appelé : il relève de l'entrée (`AnalysisStatus.skipped`). |
@@ -73,7 +75,7 @@ Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a intr
 - RM2 : les entrées sont chiffrées au repos sur le téléphone (source : plan, lot E).
 - RM3 : l'humeur est un entier de 1 à 5. Libellés fixes : 1 « Très bas », 2 « Bas », 3 « Neutre », 4 « Bien », 5 « Très bien » (source : décision de Yanis du 2026-10-14, libellés d'humeur).
 - RM4 : l'app ne donne aucun conseil médical, aucun diagnostic, aucun jugement sur l'humeur (source : `CLAUDE.md`).
-- RM5 : toute entrée avec un texte passe par le détecteur de détresse avant toute analyse (source : plan, lot F).
+- RM5 : toute entrée avec un texte passe par le détecteur de détresse avant toute analyse, y compris une entrée enregistrée avant l'arrivée du détecteur (source : plan, lot F ; spec 001).
 - RM6 : la détection de détresse repose sur des règles déterministes, sans modèle. La liste des termes est rédigée pour le projet et validée par Yanis (source : décision de Yanis du 2026-10-14).
 - RM7 : en cas de détresse détectée, l'app affiche l'écran d'aide fixe avec le 3114 (numéro national de prévention du suicide), jamais une réponse générée par le modèle (source : `CLAUDE.md`).
 - RM8 : une entrée où la détresse est détectée n'est jamais transmise au modèle (source : plan, lot F).

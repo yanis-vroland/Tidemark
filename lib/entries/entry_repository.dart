@@ -8,7 +8,7 @@ abstract interface class EntryRepository {
 
   /// Enregistre une entrée saisie maintenant. Un [text] vide ou fait seulement
   /// d'espaces est enregistré comme absent (null) ; au-delà de [maxTextLength]
-  /// caractères, il est refusé par une [ArgumentError].
+  /// caractères visibles, il est refusé par une [ArgumentError].
   Future<Entry> addEntry({required int mood, String? text});
 
   /// Supprime définitivement l'entrée [id] (RM15, RM28).
