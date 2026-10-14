@@ -7,7 +7,7 @@ Statut : **à valider par Yanis.**
 | Écran | Fichiers (artboards) | Critères |
 | --- | --- | --- |
 | Réglages, section « Mes données » (page entière, 393 × 1 240 : l'écran défile) | `Main` (nominal), `ReglagesSombre`, `ReglagesExportEnCours`, `ReglagesExportEnCoursSombre`, `ReglagesExportErreur`, `ReglagesExportErreurSombre`, `ReglagesVide`, `ReglagesVideSombre` | CA1, CA3, CA11, CA12, CA33 à CA35 |
-| Confirmation de la suppression totale | `Confirmation` (champ vide), `ConfirmationSombre`, `ConfirmationSaisie`, `ConfirmationSaisieSombre`, `ConfirmationEnCours`, `ConfirmationEnCoursSombre`, `ConfirmationErreur`, `ConfirmationErreurSombre` | CA14 à CA17, CA21, CA33 à CA35 |
+| Confirmation de la suppression totale | `Confirmation` (champ vide), `ConfirmationSombre`, `ConfirmationSaisie`, `ConfirmationSaisieSombre`, `ConfirmationEnCours`, `ConfirmationEnCoursSombre`, `ConfirmationNonCommencee`, `ConfirmationNonCommenceeSombre` (CA20), `ConfirmationErreur`, `ConfirmationErreurSombre` (CA21) | CA14 à CA17, CA20, CA21, CA33 à CA35 |
 | Confirmation depuis la clé introuvable | `ConfirmationCle`, `ConfirmationCleSombre` | CA27 |
 | Liste après la suppression | `ListeApresSuppression`, `ListeApresSuppressionSombre` | CA18 |
 | Démarrage : clé introuvable | `DemarrageCle`, `DemarrageCleSombre` | CA26 |
@@ -32,8 +32,7 @@ Aucun autre jeton manquant.
 
 ## Limites
 
-- Captures PNG : absentes, comme pour les maquettes 001 et 002 (export depuis l'artefact).
+- Captures PNG : absentes, comme pour les maquettes 001 et 002. L'agent ne peut pas les exporter depuis l'artefact (pas de navigateur connecté) ni ouvrir d'issue sans l'accord de Yanis : une issue commune aux maquettes 001, 002 et 005 est demandée à Yanis dans la PR #16, et sera citée ici.
 - Lien et anneau de focus écrits en dur avec la valeur claire de `tide` dans la feuille de style de l'artefact, comme pour les maquettes 001 et 002 : sans effet sur l'app.
 - Feuille de partage : écran du système, non dessiné.
-- Bandeau « La suppression n'a pas commencé » (CA20) : non dessiné ; il suit le bandeau de `ConfirmationErreur`, avec ses propres textes et « Annuler » toujours visible.
 - Marges hautes : 64 points pour les écrans avec retour (comme la maquette 002), 72 pour la liste (maquette 001), 92 pour l'écran de démarrage, qui reprend l'espacement du code actuel (zone sûre puis `space-8`).

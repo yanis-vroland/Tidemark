@@ -35,3 +35,28 @@ Toutes prises par l'agent, à la demande de Yanis (2026-10-14, décisions métie
 ### Prochaine étape
 
 Yanis valide la spec et la maquette, et accepte (ou non) l'ADR-003. Ensuite : tests par le subagent `test-writer`, committés seuls, puis implémentation (branche `feat/export-suppression`).
+
+## 2026-10-14 21:10
+
+### Fait
+
+- Revue IA de la PR #16 lue : rien de bloquant, 6 points à corriger, 5 suggestions.
+- Statut de la spec 005 ramené à « proposée, en attente de validation par Yanis », et lot H à « spec brouillon » dans le cahier des charges.
+- Maquette : état « suppression non commencée » (CA20) ajouté à `Confirmation`, avec deux artboards (clair, sombre), publié dans l'artefact et copié.
+- Format version 1 précisé : échappement de `jsonEncode`, tri des étiquettes (`emotion` puis `theme`, libellés en unités de code UTF-16).
+- Architecture technique : fichiers de `Application Support/tidemark/`, contrats « fichier d'export » et `ShareSheet`, export, suppression et marqueur d'installation dans « Sécurité », tous marqués « prévu, lot H ». ADR-002 : section « Mise à jour » qui renvoie à la spec 005 pour la précision du marqueur.
+- Suggestions suivies : cas limite de l'échec répété de la suppression, renvoi de la spec 001 (CA35) vers la spec 005, `TextCapitalization.characters` dans CA15, heure dans le nom du fichier d'export, ligne sur les numéros de règles non contigus.
+
+### Décisions
+
+- Nom du fichier d'export avec l'heure (`AAAA-MM-JJ-HHMM`) ; échec répété de la suppression : pas de retour au journal, la désinstallation est l'issue de secours (agent, décisions métier déléguées par Yanis le 2026-10-14).
+- Numéros RM40 et suivants gardés ; renumérotation au rebase (coordinateur).
+
+### Corrections et limites
+
+- Le premier passage avait mis la spec à « validée » alors que Yanis ne l'avait pas validée : corrigé.
+- Captures PNG toujours absentes : l'agent ne peut ni les exporter ni ouvrir d'issue sans accord. Issue commune aux maquettes 001, 002 et 005 demandée à Yanis dans la PR.
+
+### Prochaine étape
+
+Yanis valide la spec et la maquette, accepte (ou non) l'ADR-003, et dit s'il ouvre l'issue des captures PNG. Ensuite : tests par le subagent `test-writer` (branche `feat/export-suppression`).
