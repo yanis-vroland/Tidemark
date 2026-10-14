@@ -1,0 +1,78 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-14T18:27:34Z"
+ },
+ "title": "Tidemark : export et suppression totale",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Main.dc.html": { "x": 0, "y": 0, "w": 393, "h": 1240, "title": "Réglages · nominal · clair", "is_interactive": true, "radius": 48 },
+  "ReglagesSombre.dc.html": { "x": 473, "y": 0, "w": 393, "h": 1240, "title": "Réglages · nominal · sombre", "radius": 48 },
+  "ReglagesExportEnCours.dc.html": { "x": 946, "y": 0, "w": 393, "h": 1240, "title": "Réglages · export en cours · clair", "radius": 48 },
+  "ReglagesExportEnCoursSombre.dc.html": { "x": 1419, "y": 0, "w": 393, "h": 1240, "title": "Réglages · export en cours · sombre", "radius": 48 },
+  "ReglagesExportErreur.dc.html": { "x": 1892, "y": 0, "w": 393, "h": 1240, "title": "Réglages · export en erreur · clair", "radius": 48 },
+  "ReglagesExportErreurSombre.dc.html": { "x": 2365, "y": 0, "w": 393, "h": 1240, "title": "Réglages · export en erreur · sombre", "radius": 48 },
+  "ReglagesVide.dc.html": { "x": 2838, "y": 0, "w": 393, "h": 1240, "title": "Réglages · journal vide · clair", "radius": 48 },
+  "ReglagesVideSombre.dc.html": { "x": 3311, "y": 0, "w": 393, "h": 1240, "title": "Réglages · journal vide · sombre", "radius": 48 },
+  "Confirmation.dc.html": { "x": 0, "y": 1660, "w": 393, "h": 852, "title": "Confirmation · vide · clair", "is_interactive": true, "radius": 48 },
+  "ConfirmationSombre.dc.html": { "x": 473, "y": 1660, "w": 393, "h": 852, "title": "Confirmation · vide · sombre", "radius": 48 },
+  "ConfirmationSaisie.dc.html": { "x": 946, "y": 1660, "w": 393, "h": 852, "title": "Confirmation · SUPPRIMER saisi · clair", "radius": 48 },
+  "ConfirmationSaisieSombre.dc.html": { "x": 1419, "y": 1660, "w": 393, "h": 852, "title": "Confirmation · SUPPRIMER saisi · sombre", "radius": 48 },
+  "ConfirmationEnCours.dc.html": { "x": 1892, "y": 1660, "w": 393, "h": 852, "title": "Confirmation · suppression en cours · clair", "radius": 48 },
+  "ConfirmationEnCoursSombre.dc.html": { "x": 2365, "y": 1660, "w": 393, "h": 852, "title": "Confirmation · suppression en cours · sombre", "radius": 48 },
+  "ConfirmationErreur.dc.html": { "x": 2838, "y": 1660, "w": 393, "h": 852, "title": "Confirmation · suppression interrompue · clair", "radius": 48 },
+  "ConfirmationErreurSombre.dc.html": { "x": 3311, "y": 1660, "w": 393, "h": 852, "title": "Confirmation · suppression interrompue · sombre", "radius": 48 },
+  "ListeApresSuppression.dc.html": { "x": 0, "y": 2932, "w": 393, "h": 852, "title": "Liste · après la suppression · clair", "radius": 48 },
+  "ListeApresSuppressionSombre.dc.html": { "x": 473, "y": 2932, "w": 393, "h": 852, "title": "Liste · après la suppression · sombre", "radius": 48 },
+  "DemarrageCle.dc.html": { "x": 946, "y": 2932, "w": 393, "h": 852, "title": "Démarrage · clé introuvable · clair", "radius": 48 },
+  "DemarrageCleSombre.dc.html": { "x": 1419, "y": 2932, "w": 393, "h": 852, "title": "Démarrage · clé introuvable · sombre", "radius": 48 },
+  "ConfirmationCle.dc.html": { "x": 1892, "y": 2932, "w": 393, "h": 852, "title": "Confirmation depuis la clé introuvable · clair", "radius": 48 },
+  "ConfirmationCleSombre.dc.html": { "x": 2365, "y": 2932, "w": 393, "h": 852, "title": "Confirmation depuis la clé introuvable · sombre", "radius": 48 },
+  "DemarrageReprise.dc.html": { "x": 2838, "y": 2932, "w": 393, "h": 852, "title": "Démarrage · suppression à reprendre, en échec · clair", "radius": 48 },
+  "DemarrageRepriseSombre.dc.html": { "x": 3311, "y": 2932, "w": 393, "h": 852, "title": "Démarrage · suppression à reprendre, en échec · sombre", "radius": 48 }
+ },
+ "order": [
+  "Main.dc.html",
+  "ReglagesSombre.dc.html",
+  "ReglagesExportEnCours.dc.html",
+  "ReglagesExportEnCoursSombre.dc.html",
+  "ReglagesExportErreur.dc.html",
+  "ReglagesExportErreurSombre.dc.html",
+  "ReglagesVide.dc.html",
+  "ReglagesVideSombre.dc.html",
+  "Confirmation.dc.html",
+  "ConfirmationSombre.dc.html",
+  "ConfirmationSaisie.dc.html",
+  "ConfirmationSaisieSombre.dc.html",
+  "ConfirmationEnCours.dc.html",
+  "ConfirmationEnCoursSombre.dc.html",
+  "ConfirmationErreur.dc.html",
+  "ConfirmationErreurSombre.dc.html",
+  "ListeApresSuppression.dc.html",
+  "ListeApresSuppressionSombre.dc.html",
+  "DemarrageCle.dc.html",
+  "DemarrageCleSombre.dc.html",
+  "ConfirmationCle.dc.html",
+  "ConfirmationCleSombre.dc.html",
+  "DemarrageReprise.dc.html",
+  "DemarrageRepriseSombre.dc.html"
+ ],
+ "notes": {
+  "reglages": { "x": 0, "y": -300, "text": "Réglages : section « Mes données », export (spec 005)", "kind": "title1", "maxW": 3704 },
+  "confirmation": { "x": 0, "y": 1360, "text": "Confirmation de la suppression totale (spec 005)", "kind": "title1", "maxW": 3704 },
+  "suites": { "x": 0, "y": 2632, "text": "Après la suppression, clé introuvable et reprise au démarrage (spec 005)", "kind": "title1", "maxW": 3704 }
+ },
+ "designSystems": [
+  {
+   "title": "Tidemark",
+   "namespace": "tidemark",
+   "artifact": "https://claude.ai/artifact/LxwwPXPaLTB1ciS6m7NVeu",
+   "version": null,
+   "copiedAt": "2026-10-14T18:27:34Z"
+  }
+ ]
+}
