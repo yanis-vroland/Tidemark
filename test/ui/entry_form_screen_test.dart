@@ -1,5 +1,7 @@
 import 'package:characters/characters.dart';
 
+import '../support/fake_settings_repository.dart';
+
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -32,7 +34,14 @@ void main() {
   group('écran de saisie seul', () {
     dbTestWidgets('CA7 : sans humeur, « Enregistrer » est désactivé et l\'aide '
         's\'affiche', (tester, env) async {
-      await tester.pumpWidget(testApp(EntryFormScreen(repository: env.repo)));
+      await tester.pumpWidget(
+        testApp(
+          EntryFormScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+          ),
+        ),
+      );
       await settle(tester);
 
       expect(find.text('Comment ça va ?'), findsOneWidget);
@@ -43,7 +52,14 @@ void main() {
 
     dbTestWidgets('CA7 : toucher « Enregistrer » sans humeur n\'enregistre '
         'rien', (tester, env) async {
-      await tester.pumpWidget(testApp(EntryFormScreen(repository: env.repo)));
+      await tester.pumpWidget(
+        testApp(
+          EntryFormScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+          ),
+        ),
+      );
       await settle(tester);
       await enter(tester, 'Un texte, mais pas d\'humeur.');
 
@@ -55,7 +71,14 @@ void main() {
 
     dbTestWidgets('CA8 : toucher une pastille choisit cette humeur, affiche '
         'son libellé et active « Enregistrer »', (tester, env) async {
-      await tester.pumpWidget(testApp(EntryFormScreen(repository: env.repo)));
+      await tester.pumpWidget(
+        testApp(
+          EntryFormScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+          ),
+        ),
+      );
       await settle(tester);
 
       await pickMood(tester, 4);
@@ -67,7 +90,14 @@ void main() {
     });
 
     dbTestWidgets('CA8 : une seule humeur à la fois', (tester, env) async {
-      await tester.pumpWidget(testApp(EntryFormScreen(repository: env.repo)));
+      await tester.pumpWidget(
+        testApp(
+          EntryFormScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+          ),
+        ),
+      );
       await settle(tester);
 
       await pickMood(tester, 4);
@@ -86,7 +116,14 @@ void main() {
       tester,
       env,
     ) async {
-      await tester.pumpWidget(testApp(EntryFormScreen(repository: env.repo)));
+      await tester.pumpWidget(
+        testApp(
+          EntryFormScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+          ),
+        ),
+      );
       await settle(tester);
 
       for (var mood = 1; mood <= 5; mood++) {
@@ -96,7 +133,14 @@ void main() {
 
     dbTestWidgets('CA12 : le champ garde 2 000 caractères quand on en tape un '
         'de plus', (tester, env) async {
-      await tester.pumpWidget(testApp(EntryFormScreen(repository: env.repo)));
+      await tester.pumpWidget(
+        testApp(
+          EntryFormScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+          ),
+        ),
+      );
       await settle(tester);
       final full = sampleText(maxTextLength);
       await enter(tester, full);
@@ -111,7 +155,14 @@ void main() {
       'CA12 : un texte collé plus long est coupé aux 2 000 premiers '
       'caractères',
       (tester, env) async {
-        await tester.pumpWidget(testApp(EntryFormScreen(repository: env.repo)));
+        await tester.pumpWidget(
+          testApp(
+            EntryFormScreen(
+              repository: env.repo,
+              settings: FakeSettingsRepository(),
+            ),
+          ),
+        );
         await settle(tester);
         final pasted = sampleText(2600);
 
@@ -125,7 +176,14 @@ void main() {
       tester,
       env,
     ) async {
-      await tester.pumpWidget(testApp(EntryFormScreen(repository: env.repo)));
+      await tester.pumpWidget(
+        testApp(
+          EntryFormScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+          ),
+        ),
+      );
       await settle(tester);
 
       await enter(tester, '😀' * (maxTextLength + 5));
@@ -135,7 +193,14 @@ void main() {
 
     dbTestWidgets('CA12 : un drapeau compte pour un caractère, dans le champ '
         'comme dans le compteur', (tester, env) async {
-      await tester.pumpWidget(testApp(EntryFormScreen(repository: env.repo)));
+      await tester.pumpWidget(
+        testApp(
+          EntryFormScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+          ),
+        ),
+      );
       await settle(tester);
 
       await enter(tester, '🇫🇷' * (maxTextLength + 100));
@@ -146,7 +211,14 @@ void main() {
 
     dbTestWidgets('CA12 : à 1 850 caractères, le compteur « 1 850 / 2 000 » '
         's\'affiche', (tester, env) async {
-      await tester.pumpWidget(testApp(EntryFormScreen(repository: env.repo)));
+      await tester.pumpWidget(
+        testApp(
+          EntryFormScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+          ),
+        ),
+      );
       await settle(tester);
 
       await enter(tester, sampleText(1850));
@@ -156,7 +228,14 @@ void main() {
 
     dbTestWidgets('CA12 : le compteur apparaît à 1 800 caractères et pas '
         'avant', (tester, env) async {
-      await tester.pumpWidget(testApp(EntryFormScreen(repository: env.repo)));
+      await tester.pumpWidget(
+        testApp(
+          EntryFormScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+          ),
+        ),
+      );
       await settle(tester);
 
       await enter(tester, sampleText(1799));
@@ -167,7 +246,14 @@ void main() {
     });
 
     dbTestWidgets('CA12 : sans texte, aucun compteur', (tester, env) async {
-      await tester.pumpWidget(testApp(EntryFormScreen(repository: env.repo)));
+      await tester.pumpWidget(
+        testApp(
+          EntryFormScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+          ),
+        ),
+      );
       await settle(tester);
 
       expect(find.textContaining('/ 2 000'), findsNothing);
@@ -175,7 +261,14 @@ void main() {
 
     dbTestWidgets('CA12 : à 2 000 caractères, le compteur affiche '
         '« 2 000 / 2 000 »', (tester, env) async {
-      await tester.pumpWidget(testApp(EntryFormScreen(repository: env.repo)));
+      await tester.pumpWidget(
+        testApp(
+          EntryFormScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+          ),
+        ),
+      );
       await settle(tester);
 
       await enter(tester, sampleText(maxTextLength));
@@ -185,7 +278,14 @@ void main() {
 
     dbTestWidgets('CA26 : chaque pastille s\'annonce « Humeur N sur 5 : '
         'libellé »', (tester, env) async {
-      await tester.pumpWidget(testApp(EntryFormScreen(repository: env.repo)));
+      await tester.pumpWidget(
+        testApp(
+          EntryFormScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+          ),
+        ),
+      );
       await settle(tester);
 
       expect(find.bySemanticsLabel('Humeur 4 sur 5 : Bien'), findsOneWidget);
@@ -200,7 +300,14 @@ void main() {
 
     dbTestWidgets('CA26 : la pastille choisie s\'annonce comme choisie, les '
         'autres non', (tester, env) async {
-      await tester.pumpWidget(testApp(EntryFormScreen(repository: env.repo)));
+      await tester.pumpWidget(
+        testApp(
+          EntryFormScreen(
+            repository: env.repo,
+            settings: FakeSettingsRepository(),
+          ),
+        ),
+      );
       await settle(tester);
       for (var mood = 1; mood <= 5; mood++) {
         expect(isChosen(tester, mood), isFalse, reason: 'avant le choix');
@@ -417,7 +524,11 @@ void main() {
       final repo = FakeEntryRepository(
         beforeAdd: () async => throw StateError('stockage plein'),
       );
-      await tester.pumpWidget(testApp(EntryFormScreen(repository: repo)));
+      await tester.pumpWidget(
+        testApp(
+          EntryFormScreen(repository: repo, settings: FakeSettingsRepository()),
+        ),
+      );
       await tester.pump();
       await pickMood(tester, 4);
       await enter(tester, 'Un texte à ne pas perdre.');
@@ -444,7 +555,11 @@ void main() {
         beforeAdd: () async => throw StateError('stockage plein'),
       );
       await tester.pumpWidget(
-        TidemarkApp(repository: repo, clock: () => fixedNow),
+        TidemarkApp(
+          repository: repo,
+          settings: FakeSettingsRepository(),
+          clock: () => fixedNow,
+        ),
       );
       await tester.pump();
       await tester.tap(find.text('Nouvelle entrée'));
@@ -476,7 +591,11 @@ void main() {
       final gate = Completer<void>();
       final repo = FakeEntryRepository(beforeAdd: () => gate.future);
       await tester.pumpWidget(
-        TidemarkApp(repository: repo, clock: () => fixedNow),
+        TidemarkApp(
+          repository: repo,
+          settings: FakeSettingsRepository(),
+          clock: () => fixedNow,
+        ),
       );
       await tester.pump();
       await tester.tap(find.text('Nouvelle entrée'));

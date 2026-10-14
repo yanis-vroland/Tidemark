@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../distress/guarded_save.dart';
 import '../../entries/day_grouping.dart';
 import '../../entries/entry.dart';
 import '../../entries/entry_repository.dart';
+import '../../settings/settings_repository.dart';
+import '../phone_dialer.dart';
 import '../theme/tidemark_colors.dart';
 import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
+import '../widgets/error_banner.dart';
 import '../widgets/mood_dot.dart';
+import 'help_screen.dart';
 
 /// Seuil d'affichage du compteur de caractères (CA12).
 const _counterThreshold = 1800;
@@ -25,9 +30,21 @@ String _thousands(int value) {
 
 /// Saisie d'une entrée (spec 001). Se ferme après l'enregistrement ou l'abandon.
 class EntryFormScreen extends StatefulWidget {
-  const EntryFormScreen({super.key, required this.repository, this.clock});
+  const EntryFormScreen({
+    super.key,
+    required this.repository,
+    required this.settings,
+    this.dialer = const UrlLauncherDialer(),
+    this.clock,
+  });
 
   final EntryRepository repository;
+
+  /// Degré de sensibilité aux humeurs basses (spec 002).
+  final SettingsRepository settings;
+
+  /// Composeur, pour l'écran d'aide (spec 002).
+  final PhoneDialer dialer;
 
   /// Date et heure locales affichées en tête ; [DateTime.now] par défaut.
   final DateTime Function()? clock;
@@ -64,8 +81,25 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _failed = false;
     });
     try {
-      await widget.repository.addEntry(mood: mood, text: _text.text);
-      if (mounted) Navigator.of(context).pop();
+      final outcome = await saveEntryWithGuard(
+        repository: widget.repository,
+        settings: widget.settings,
+        mood: mood,
+        text: _text.text,
+        clock: widget.clock ?? DateTime.now,
+      );
+      if (!mounted) return;
+      if (outcome.showHelp) {
+        // L'écran d'aide prend la place de la saisie : le retour mène à la liste
+        // (spec 002, CA13).
+        await Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(
+            builder: (_) => HelpScreen(dialer: widget.dialer),
+          ),
+        );
+      } else {
+        Navigator.of(context).pop();
+      }
     } catch (_) {
       if (mounted) {
         setState(() {
@@ -148,7 +182,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                       ),
                       if (_failed) ...[
                         const SizedBox(height: TidemarkSpacing.space4),
-                        const _ErrorBanner(),
+                        const ErrorBanner(
+                          title: "L'entrée n'a pas été enregistrée",
+                          message:
+                              'Le stockage du téléphone est peut-être plein ou '
+                              'indisponible. Libère de la place, puis réessaie : '
+                              'ton texte est conservé.',
+                        ),
                       ],
                       const SizedBox(height: TidemarkSpacing.space6),
                       Text(
@@ -292,48 +332,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Bandeau d'erreur (charte : `ErrorBanner`).
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Semantics(
-      liveRegion: true,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colors.surfaceRaised,
-          border: Border.all(color: colors.danger),
-          borderRadius: BorderRadius.circular(TidemarkRadius.radiusSm),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: TidemarkSpacing.space4,
-            vertical: TidemarkSpacing.space3,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "L'entrée n'a pas été enregistrée",
-                style: TidemarkTypography.headline.copyWith(
-                  color: colors.danger,
-                ),
-              ),
-              const SizedBox(height: TidemarkSpacing.space1),
-              const Text(
-                "Le stockage du téléphone est peut-être plein ou indisponible. "
-                'Libère de la place, puis réessaie : ton texte est conservé.',
               ),
             ],
           ),

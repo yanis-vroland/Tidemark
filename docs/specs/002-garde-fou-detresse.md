@@ -157,7 +157,7 @@ La personne choisit un degré de sensibilité dans les Réglages. Il en existe t
 - CA7 : Étant donné chacun des trois degrés, quand les N dernières entrées sont toutes à 1 et tiennent en D jours, alors l'écran d'aide s'affiche ; avec N − 1 entrées à 1, une entrée d'une autre humeur parmi les N, ou un écart de plus de D jours, il ne s'affiche pas.
 - CA8 : Étant donné une entrée en détresse dans son texte qui complète aussi une série, quand elle est enregistrée, alors l'écran d'aide s'affiche une seule fois.
 - CA27 : Étant donné une série atteinte au degré « Normale » (trois entrées à 1), quand la personne enregistre une quatrième entrée à 1 dans les 7 × 24 heures, alors l'écran d'aide s'affiche de nouveau.
-- CA28 : Étant donné deux entrées à 1 puis une entrée à 1 supprimée, quand la personne enregistre une entrée à 1 au degré « Normale », alors l'écran d'aide ne s'affiche pas : l'entrée supprimée ne compte pas.
+- CA28 : Étant donné deux entrées à 1, dont l'une est ensuite supprimée, quand la personne enregistre une entrée à 1 au degré « Normale », alors l'écran d'aide ne s'affiche pas : il ne reste que deux entrées à 1, l'entrée supprimée ne compte pas.
 - CA29 : Étant donné une entrée à 1 enregistrée au degré « Normale », sans écran d'aide, quand la personne passe au degré « Haute » puis enregistre une entrée à 1 au plus 3 × 24 heures après, alors l'écran d'aide s'affiche : l'entrée enregistrée avant le changement de degré compte dans la série.
 - CA9 : Étant donné un enregistrement qui échoue (spec 001, CA14), quand l'erreur survient, alors aucune détection n'a lieu et l'écran d'aide ne s'affiche pas.
 
@@ -207,7 +207,7 @@ La personne choisit un degré de sensibilité dans les Réglages. Il en existe t
   - `addEntry` reçoit le statut décidé par l'appelant (`pending` ou `skipped`) au lieu de le déduire du texte seul ;
   - nouvelles opérations `latestEntries(int count)` et `pendingEntriesWithText()` ;
   - nouvelle opération `markSkipped(Iterable<int> ids)`, pour la vérification au démarrage.
-- **Appel** : le paquet `url_launcher` ouvre `tel:3114` et `tel:112` par `launchUrl`, dont le résultat (`false` ou une exception) déclenche CA12 ; `canLaunchUrl` n'est pas utilisé. Configuration native : `<queries>` avec l'intent `android.intent.action.DIAL` et le schéma `tel` dans le manifeste Android (Android 11 et plus) ; `LSApplicationQueriesSchemes` avec `tel` dans l'`Info.plist` iOS. Le paquet n'envoie aucune donnée et n'ouvre aucune connexion réseau (RM1). Dépendance justifiée dans la PR.
+- **Appel** : le paquet `url_launcher` ouvre `tel:3114` et `tel:112` par `launchUrl`, dont le résultat (`false` ou une exception) déclenche CA12 ; `canLaunchUrl` n'est pas utilisé. Aucune déclaration native : `launchUrl` n'en demande pas, et `canLaunchUrl`, qui exigerait `<queries>` sur Android et `LSApplicationQueriesSchemes` sur iOS, n'est pas utilisé. Ces déclarations rendraient d'autres apps visibles à Tidemark sans besoin (revue de sécurité, 2026-10-14). Le paquet n'envoie aucune donnée et n'ouvre aucune connexion réseau (RM1). Dépendance justifiée dans la PR.
 
 ## Maquette
 
@@ -231,6 +231,8 @@ Il n'y a ni état vide ni chargement pour l'écran d'aide : son contenu est fixe
 - Deux entrées enregistrées à la même seconde : l'ordre suit l'identifiant, comme dans la liste (spec 001).
 - Composeur absent (iPad sans téléphonie, simulateur) : CA12.
 - Retour à l'app après un appel : l'écran d'aide est toujours affiché, et rien n'a changé.
+- Lecture des dernières entrées impossible au moment d'évaluer la série : l'entrée est enregistrée quand même, sans série ; un texte en détresse la fait passer en « non analysée » et ouvre l'écran d'aide (décision de l'agent par délégation, 2026-10-14, après la revue de code).
+- Lecture du degré impossible dans l'écran Réglages : « Normale » s'affiche coché, comme le degré appliqué par le garde-fou (CA21) ; un choix reste possible (décision de l'agent par délégation, 2026-10-14).
 
 ## Hors périmètre
 

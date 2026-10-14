@@ -3,9 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'distress/startup_screening.dart';
 import 'entries/entry_repository.dart';
+import 'settings/settings_repository.dart';
 import 'storage/app_database.dart';
 import 'storage/database_key.dart';
+import 'ui/phone_dialer.dart';
 import 'ui/screens/entry_list_screen.dart';
 import 'ui/theme/tidemark_colors.dart';
 import 'ui/theme/tidemark_theme.dart';
@@ -16,13 +19,22 @@ Future<void> main() async {
   runApp(await startApp());
 }
 
+/// Journal ouvert : ses entrées et les réglages, sur la même base chiffrée.
+class Journal {
+  const Journal({required this.entries, required this.settings});
+
+  final EntryRepository entries;
+  final SettingsRepository settings;
+}
+
 /// Application de démarrage : le journal ouvert, ou l'écran d'erreur qui
 /// correspond à la cause (CA35). [open] est injectable pour les tests.
-Future<Widget> startApp({
-  Future<EntryRepository> Function() open = openJournal,
-}) async {
+Future<Widget> startApp({Future<Journal> Function() open = openJournal}) async {
   try {
-    return TidemarkApp(repository: await open());
+    final journal = await open();
+    // Avant tout affichage ; n'échoue jamais (CA16).
+    await screenPendingEntries(journal.entries);
+    return TidemarkApp(repository: journal.entries, settings: journal.settings);
   } on DatabaseKeyMissingError {
     // Aucune perte silencieuse : ni nouvelle clé, ni base recréée (spec 001).
     return const StartupErrorApp(keyMissing: true);
@@ -35,10 +47,7 @@ Future<Widget> startApp({
 /// Application Support/tidemark, exclu des sauvegardes : AppDelegate sur iOS,
 /// règles d'extraction sur Android), avec la clé de [keyStore] (par défaut le
 /// trousseau ou le Keystore), créée au premier lancement seulement (ADR-002).
-Future<EntryRepository> openJournal({
-  Directory? folder,
-  KeyStore? keyStore,
-}) async {
+Future<Journal> openJournal({Directory? folder, KeyStore? keyStore}) async {
   final dir =
       folder ??
       Directory('${(await getApplicationSupportDirectory()).path}/tidemark');
@@ -51,13 +60,24 @@ Future<EntryRepository> openJournal({
   final db = await AppDatabase.openEncrypted(file, key);
   // Vérifie la clé dès le démarrage, plutôt qu'à la première lecture.
   await db.countEntries();
-  return DriftEntryRepository(db);
+  return Journal(
+    entries: DriftEntryRepository(db),
+    settings: DriftSettingsRepository(db),
+  );
 }
 
 class TidemarkApp extends StatelessWidget {
-  const TidemarkApp({super.key, required this.repository, this.clock});
+  const TidemarkApp({
+    super.key,
+    required this.repository,
+    required this.settings,
+    this.dialer = const UrlLauncherDialer(),
+    this.clock,
+  });
 
   final EntryRepository repository;
+  final SettingsRepository settings;
+  final PhoneDialer dialer;
 
   /// Date et heure locales ; [DateTime.now] par défaut.
   final DateTime Function()? clock;
@@ -70,6 +90,8 @@ class TidemarkApp extends StatelessWidget {
       darkTheme: buildTidemarkTheme(Brightness.dark),
       home: EntryListScreen(
         repository: repository,
+        settings: settings,
+        dialer: dialer,
         clock: clock ?? DateTime.now,
       ),
     );
