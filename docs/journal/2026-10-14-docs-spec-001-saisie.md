@@ -24,3 +24,22 @@ Branche `docs/spec-001-saisie`.
 ### Prochaine étape
 
 Yanis valide la spec et la maquette (et tranche la question ouverte). Ensuite : tests par le subagent `test-writer`, committés seuls, puis implémentation.
+
+## 2026-10-14 15:48
+
+### Fait
+
+- Spec 001 passée en « validée » ; CA13 précisé et CA30 ajouté (confirmation « Abandonner cette entrée ? » seulement si un texte est écrit) ; cahier des charges : « spec validée ».
+
+### Décisions
+
+- Spec et maquette validées par Yanis (« je valide », 2026-10-14), avec la recommandation de l'agent sur la question ouverte et ses choix techniques (`AnalysisStatus`, `skipped`, date en UTC avec décalage).
+- Tests et implémentation regroupés dans cette PR, plutôt qu'attendre le merge de la spec (CLAUDE.md, méthode de travail, point 6) (agent).
+
+### Corrections et limites
+
+- Captures PNG de la maquette toujours absentes : l'extension Chrome n'est pas connectée. À faire par export depuis l'artefact, ou plus tard.
+
+### Prochaine étape
+
+Tests des 30 critères par le subagent `test-writer`, vérifiés en échec pour la bonne raison, committés seuls.
