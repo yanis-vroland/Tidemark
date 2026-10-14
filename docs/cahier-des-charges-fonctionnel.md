@@ -50,7 +50,11 @@ Les termes du métier et leur nom dans le code. Les specs, le code et les PR uti
 | Écran d'aide | `HelpScreen` | Écran fixe affiché en cas de détresse, avec le 3114 ; jamais généré par le modèle (RM7). |
 | Sensibilité aux humeurs basses | `LowMoodSensitivity` : `high`, `normal`, `low` | Degré choisi par la personne qui fixe la série d'humeurs très basses déclenchant l'écran d'aide (RM25, RM29). |
 | Réglages | `SettingsRepository` (données), `SettingsScreen` (écran) | Choix de la personne, et l'écran où elle les fait. `SettingsRepository` est l'interface par laquelle l'app les lit et les enregistre, dont la sensibilité aux humeurs basses ([spec 002](specs/002-garde-fou-detresse.md)). |
-| Bilan de la semaine | `WeeklyReview` | Synthèse des entrées d'une semaine : chiffres calculés par l'app, mis en mots par le modèle local (RM10). |
+| Bilan de la semaine | `WeeklyReview` | Synthèse des entrées d'une semaine, du lundi au dimanche : chiffres calculés par l'app, mis en mots par le modèle local (RM10, RM50, [spec 006](specs/006-bilan-de-la-semaine.md)). |
+| Faits du bilan | `ReviewFacts` | Ce que le modèle reçoit pour écrire le bilan : libellé de l'humeur moyenne, régularité, étiquettes fréquentes, tendance ; aucun chiffre, aucune entrée (RM51). |
+| Rédacteur du bilan | `ReviewWriter` | Interface qui isole le modèle pour la mise en mots du bilan, comme `MoodAnalyzer` pour l'analyse ; une implémentation factice sert aux tests et à la CI ([spec 006](specs/006-bilan-de-la-semaine.md)). |
+| Validateur du bilan | `ReviewTextValidator` | Règles déterministes qui acceptent ou rejettent le texte rendu par le modèle (RM53). |
+| Semaine sensible | `isSensitive` | Semaine dont une entrée est à « Très bas » ou en détresse : son bilan n'a pas de texte généré (RM52). |
 | Export | `export` | Copie de toutes les données de la personne dans un fichier JSON (RM20). |
 | Suppression totale | `wipe` | Effacement de toutes les données de l'app sur le téléphone (RM12). |
 
@@ -103,6 +107,13 @@ Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a intr
 - RM28 : la suppression d'une entrée est définitive et demande une confirmation (spec : [`docs/specs/001-saisie-et-liste-des-entrees.md`](specs/001-saisie-et-liste-des-entrees.md)).
 - RM29 : aucun degré de sensibilité ne désactive le garde-fou ; la détection par le texte ne dépend pas de ce réglage, et une erreur de lecture du réglage applique le degré par défaut (spec : [`docs/specs/002-garde-fou-detresse.md`](specs/002-garde-fou-detresse.md)).
 
+- RM50 : le bilan compte toutes les entrées de la semaine, quel que soit leur statut d'analyse, chacune dans la semaine de son jour local de saisie. Ses chiffres : nombre d'entrées, humeur moyenne au dixième, répartition des humeurs, jours notés, au plus 3 étiquettes fréquentes, et l'évolution par rapport à la semaine précédente si celle-ci a un bilan (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
+- RM51 : pour le bilan, le modèle ne reçoit que des faits sans chiffre calculés par l'app, jamais le texte, la date ni l'humeur d'une entrée (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
+- RM52 : une semaine dont une entrée est à « Très bas » ou en détresse n'a pas de texte généré : son bilan s'en tient aux chiffres, sans mention de l'écran d'aide (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
+- RM53 : le texte du bilan n'est montré que s'il passe des règles déterministes : aucun chiffre ni mot de nombre, aucune expression de conseil, de soin ou de jugement de la liste de la spec, aucune détresse détectée, 300 caractères visibles au plus. Sinon, le bilan s'affiche avec ses seuls chiffres, sans plantage (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
+- RM54 : le texte du bilan n'est jamais enregistré ; il reste en mémoire tant que l'app est ouverte (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
+- RM55 : le bilan s'ouvre depuis la liste, sur la semaine en cours ; la personne peut remonter semaine par semaine jusqu'à celle de sa première entrée (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
+
 ## Parcours utilisateur
 
 ### Personne qui tient son journal
@@ -113,7 +124,7 @@ Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a intr
 4. Si son texte contient des signes de détresse, ou si ses dernières humeurs sont toutes « Très bas », l'écran d'aide s'affiche à la place de la liste, et l'entrée n'est jamais analysée (détection de détresse). Elle choisit dans les Réglages la sensibilité aux humeurs basses.
 5. Sinon, l'app propose des étiquettes, analysées sur le téléphone (étiquetage automatique).
 6. Elle parcourt ses entrées passées et leurs étiquettes, et peut en supprimer une (saisie d'une entrée, liste).
-7. En fin de semaine, elle lit son bilan (bilan de la semaine).
+7. Depuis la liste, elle ouvre le bilan de sa semaine, ou d'une semaine passée : ses chiffres et, quand c'est possible, un court texte écrit sur le téléphone (bilan de la semaine).
 8. Elle peut à tout moment exporter ses données, ou tout supprimer (export et suppression totale).
 
 ## Fonctionnalités
@@ -127,7 +138,7 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 | MVP (lot G) | Téléchargement du modèle local | — | à spécifier |
 | MVP (lot G) | Étiquetage automatique | — | à spécifier |
 | MVP (lot H) | Export et suppression totale | — | à spécifier |
-| Si le temps le permet (lot I) | Bilan de la semaine | — | à spécifier |
+| Si le temps le permet (lot I) | Bilan de la semaine | [006](specs/006-bilan-de-la-semaine.md) | spec validée (maquette à valider) |
 
 ## Questions ouvertes
 
