@@ -1,6 +1,6 @@
 # Spec 005 : export et suppression totale
 
-Statut : validée (décisions métier déléguées à l'agent par Yanis, 2026-10-14) ; maquette à valider par Yanis ; l'export dépend de l'[ADR-003](../adr/003-export-par-la-feuille-de-partage.md), au statut « proposé »
+Statut : proposée, en attente de validation par Yanis (spec, maquette et [ADR-003](../adr/003-export-par-la-feuille-de-partage.md), au statut « proposé »). Décisions métier déléguées à l'agent par Yanis le 2026-10-14 : voir « Questions ouvertes ».
 Date : 2026-10-14
 
 ## Besoin
@@ -25,7 +25,7 @@ Lot H du [plan](../plan.md). Règles du [cahier des charges](../cahier-des-charg
 2. Étapes, dans cet ordre :
    1. purger les dossiers temporaires d'export (voir « Données ») ;
    2. lire toutes les entrées, leurs étiquettes et le réglage de sensibilité ; toute erreur de lecture fait échouer l'export, sans fichier partiel ;
-   3. écrire le fichier `tidemark-export-AAAA-MM-JJ.json` (date locale de l'export) dans le dossier temporaire d'export ;
+   3. écrire le fichier `tidemark-export-AAAA-MM-JJ-HHMM.json` (date et heure locales du début de l'export) dans le dossier temporaire d'export ;
    4. ouvrir la feuille de partage avec ce seul fichier, de type `application/json` ;
    5. quand la feuille de partage se ferme, que la personne ait partagé ou annulé, ou si son ouverture échoue : effacer le fichier.
 3. Le fichier n'est pas chiffré. La mention sous le bouton le dit, en permanence : « Il n'est pas chiffré : choisis bien où tu l'envoies. » Il n'y a pas de dialogue de confirmation en plus : la feuille de partage s'annule d'un geste.
@@ -34,7 +34,7 @@ Lot H du [plan](../plan.md). Règles du [cahier des charges](../cahier-des-charg
 
 ### Format du fichier d'export (version 1)
 
-Fichier JSON en UTF-8 sans BOM, indenté de 2 espaces, terminé par un saut de ligne. Champs, dans cet ordre :
+Fichier JSON en UTF-8 sans BOM, indenté de 2 espaces, terminé par un saut de ligne. Les caractères non ASCII sont écrits tels quels ; seuls `"`, `\` et les caractères de contrôle (U+0000 à U+001F) sont échappés, `/` ne l'est pas : c'est le comportement de `JsonEncoder.withIndent('  ')` de Dart. Champs, dans cet ordre :
 
 | Champ | Type | Contenu |
 | --- | --- | --- |
@@ -48,7 +48,7 @@ Fichier JSON en UTF-8 sans BOM, indenté de 2 espaces, terminé par un saut de l
 | `entries[].moodLabel` | texte | Libellé fixe de l'humeur (RM3), pour une lecture sans l'app. |
 | `entries[].text` | texte ou `null` | Le texte tel qu'enregistré, ou `null` sans texte (RM13). |
 | `entries[].analysisStatus` | texte | `pending`, `tagged`, `untagged` ou `skipped` (glossaire). |
-| `entries[].tags` | liste | Les étiquettes de l'entrée : `{"kind": "emotion" ou "theme", "label": "<libellé de la liste fermée>"}`, triées par type puis par libellé. Liste vide sans étiquette, et pour toutes les entrées tant que le lot G n'est pas livré. |
+| `entries[].tags` | liste | Les étiquettes de l'entrée : `{"kind": "emotion" ou "theme", "label": "<libellé de la liste fermée>"}`, triées par type (`emotion` avant `theme`), puis par libellé comparé unité de code UTF-16 par unité de code UTF-16 (`String.compareTo` de Dart, sans règle propre à la langue). Liste vide sans étiquette, et pour toutes les entrées tant que le lot G n'est pas livré. |
 
 L'identifiant interne d'une entrée n'est pas exporté. Exemple, avec des données fictives :
 
@@ -129,11 +129,11 @@ Un échec d'effacement de la clé ou d'écriture du marqueur n'empêche pas l'ap
 
 ### Export
 
-- CA3 : Étant donné un journal avec au moins une entrée, quand la personne touche « Exporter mes données », alors le bouton devient « Préparation de l'export… », désactivé, « Tout supprimer » est désactivé, un geste de retour ne fait rien, puis la feuille de partage s'ouvre avec un seul fichier, nommé `tidemark-export-AAAA-MM-JJ.json` (date locale du jour), de type `application/json`.
-- CA4 : Étant donné des entrées fictives connues et le degré « Haute », quand l'export est produit, alors le fichier est identique, octet pour octet, au JSON attendu au format de la version 1 : champs et ordre de la section « Format », `formatVersion` à 1, `settings.lowMoodSensitivity` à `high`, entrées de la plus ancienne à la plus récente.
+- CA3 : Étant donné un journal avec au moins une entrée, quand la personne touche « Exporter mes données », alors le bouton devient « Préparation de l'export… », désactivé, « Tout supprimer » est désactivé, un geste de retour ne fait rien, puis la feuille de partage s'ouvre avec un seul fichier, nommé `tidemark-export-AAAA-MM-JJ-HHMM.json` (date et heure locales du début de l'export, par exemple `tidemark-export-2026-10-14-2152.json`), de type `application/json`.
+- CA4 : Étant donné des entrées fictives connues et le degré « Haute », quand l'export est produit, alors le fichier est identique, octet pour octet, au JSON attendu au format de la version 1 : champs et ordre de la section « Format », échappement et tri des étiquettes tels que décrits, `formatVersion` à 1, `settings.lowMoodSensitivity` à `high`, entrées de la plus ancienne à la plus récente.
 - CA5 : Étant donné une entrée saisie le 2026-10-14 à 21:40 avec un décalage de +02:00, quand l'export est produit alors que le téléphone est dans un autre fuseau, alors son `createdAt` vaut `2026-10-14T21:40:00+02:00`.
 - CA6 : Étant donné une entrée sans texte et une entrée en détresse, quand l'export est produit, alors les deux y figurent : `text` à `null` pour la première, `analysisStatus` à `skipped` et `tags` vide pour les deux.
-- CA7 : Étant donné une entrée avec des étiquettes, quand l'export est produit, alors chaque étiquette figure sous la forme `{"kind", "label"}`, triées par type puis par libellé ; avant le lot G, `tags` est vide pour toutes les entrées.
+- CA7 : Étant donné une entrée avec des étiquettes, quand l'export est produit, alors chaque étiquette figure sous la forme `{"kind", "label"}`, `emotion` avant `theme`, puis par libellé en unités de code UTF-16 (« écoute » après « zen ») ; avant le lot G, `tags` est vide pour toutes les entrées.
 - CA8 : Étant donné un texte avec des accents, un émoji composé, des guillemets, une barre oblique inverse et des retours à la ligne, quand le fichier exporté est relu par un lecteur JSON standard, alors le texte relu est identique au texte enregistré.
 - CA9 : Étant donné la feuille de partage ouverte, quand elle se ferme, que la personne ait partagé ou annulé, alors le fichier temporaire est effacé, aucun message ne s'affiche et les deux boutons reviennent à leur état normal.
 - CA10 : Étant donné un fichier d'export resté dans un dossier temporaire d'export (app arrêtée pendant le partage, copie gardée par la feuille de partage sur Android), quand l'app démarre ou qu'un nouvel export commence, alors les dossiers temporaires d'export sont vidés.
@@ -144,7 +144,7 @@ Un échec d'effacement de la clé ou d'écriture du marqueur n'empêche pas l'ap
 ### Suppression totale
 
 - CA14 : Étant donné l'écran Réglages, quand la personne touche « Tout supprimer », alors l'écran de confirmation s'affiche avec le titre « Tout supprimer ? », la liste de ce qui sera effacé (entrées et étiquettes, réglages, clé, modèle d'IA téléchargé), l'avertissement « Rien ne pourra être récupéré. Pour garder une copie, exporte d'abord tes données depuis les Réglages. », le champ « Pour confirmer, écris SUPPRIMER », le bouton « Tout supprimer définitivement » désactivé et « Annuler ».
-- CA15 : Étant donné l'écran de confirmation, quand la personne écrit « SUPPRIMER », « supprimer » ou « Supprimer », avec ou sans espaces au début et à la fin, alors le bouton s'active ; avec tout autre texte (« SUPPRIME », « SUPPRIMER. », « SUP PRIMER »), il reste désactivé. Le champ n'a ni correction automatique ni apprentissage du clavier.
+- CA15 : Étant donné l'écran de confirmation, quand la personne écrit « SUPPRIMER », « supprimer » ou « Supprimer », avec ou sans espaces au début et à la fin, alors le bouton s'active ; avec tout autre texte (« SUPPRIME », « SUPPRIMER. », « SUP PRIMER »), il reste désactivé. Le champ propose le clavier en majuscules (`TextCapitalization.characters`), sans correction automatique ni apprentissage du clavier.
 - CA16 : Étant donné l'écran de confirmation, quand la personne touche « Annuler » ou fait un geste de retour, alors l'écran Réglages réapparaît et rien n'est effacé.
 - CA17 : Étant donné « SUPPRIMER » écrit, quand la personne touche « Tout supprimer définitivement », alors le bouton devient « Suppression… », désactivé, le champ est désactivé, « Annuler » et le retour disparaissent, la mention « Si l'app se ferme, la suppression reprendra au prochain lancement. » s'affiche, et les étapes ont lieu dans l'ordre de la section « Suppression totale ».
 - CA18 : Étant donné une suppression réussie, quand elle se termine, alors la liste vide s'affiche avec le message « Toutes tes données ont été supprimées » et « Ton journal repart de zéro, sur ce téléphone. » ; la base, ses fichiers `-wal`, `-shm` et `-journal`, la clé, le dossier du modèle et les dossiers temporaires d'export n'existent plus ; une nouvelle base a une nouvelle clé, différente de l'ancienne ; le degré de sensibilité est revenu à « Normale ».
@@ -196,11 +196,11 @@ Artefact Claude de type « Design » ([lien privé](https://claude.ai/artifact/F
 Écrans, chacun en clair et en sombre :
 
 - **Réglages**, page entière (l'écran défile) : nominal, export en cours, export en erreur, journal vide.
-- **Confirmation** : champ vide, « SUPPRIMER » écrit, suppression en cours, suppression interrompue ; et la variante ouverte depuis l'écran « clé introuvable ».
+- **Confirmation** : champ vide, « SUPPRIMER » écrit, suppression en cours, suppression non commencée (CA20), suppression interrompue (CA21) ; et la variante ouverte depuis l'écran « clé introuvable ».
 - **Liste après la suppression**.
 - **Démarrage** : clé introuvable avec le nouveau bouton ; suppression à reprendre en échec.
 
-Non dessinés : la feuille de partage (écran du système) et le bandeau de CA20, qui suit le modèle du bandeau de CA21 avec ses propres textes. Jetons : voir le README de la maquette.
+Non dessinée : la feuille de partage (écran du système). Captures PNG absentes : voir le README de la maquette. Jetons : voir le README de la maquette.
 
 ## Cas limites et erreurs
 
@@ -208,7 +208,9 @@ Non dessinés : la feuille de partage (écran du système) et le bandeau de CA20
 - **App tuée pendant le partage** : le fichier temporaire reste dans le cache de l'app (privé, non sauvegardé) jusqu'au démarrage suivant (CA10).
 - **Fichier exporté, puis suppression totale** : la suppression n'efface pas les copies envoyées ailleurs (mail, Fichiers, autre téléphone). La confirmation ne le dit pas : elle parle de « ce téléphone ».
 - **Gros journal** : aucune limite de taille ; le JSON est construit en mémoire (quelques mégaoctets pour plusieurs milliers d'entrées de 2 000 caractères au plus).
-- **Changement de jour pendant l'export** : la date du nom de fichier est celle du début de l'export.
+- **Changement de jour pendant l'export** : la date et l'heure du nom de fichier sont celles du début de l'export.
+- **Deux exports dans la même minute** : même nom de fichier. Dans l'app, sans effet (purge avant chaque export) ; dans la destination, le système renomme ou remplace selon l'app choisie.
+- **Suppression qui échoue à chaque essai** (trousseau ou Keystore inaccessible, stockage en lecture seule) : l'app reste sur « La suppression n'est pas terminée », sans retour au journal. C'est voulu : une base à moitié effacée ne doit pas être rouverte, et la personne a demandé de tout effacer. Issue de secours : désinstaller l'app, ce qui efface la base, le modèle et les marqueurs (la clé orpheline sur iOS est effacée à la réinstallation, RM45). Le README le dira (lot J).
 - **Suppression pendant un téléchargement du modèle** (lot G) : le téléchargement est annulé avant l'étape 4. À reprendre dans la spec du lot G.
 - **Suppression pendant une analyse** (lot G) : l'analyse en cours est abandonnée et son résultat n'est pas enregistré. À reprendre dans la spec du lot G.
 - **Trousseau iOS jamais nettoyé** : si l'app est désinstallée sans suppression totale et jamais réinstallée, la clé orpheline reste dans le trousseau (ADR-002). Limite à écrire dans le README (lot J).
@@ -235,3 +237,6 @@ Aucune. Décisions prises par l'agent, à la demande de Yanis (2026-10-14) :
 8. **Clé introuvable** : la suppression totale est proposée sur l'écran d'erreur, jamais lancée d'elle-même ; rien n'est proposé pour les autres causes.
 9. **Marqueur d'installation** : la clé restante n'est effacée que si aucune base n'existe, pour ne pas rendre illisible le journal d'une installation antérieure à cette spec.
 10. **Couleur `danger`** : en texte et en bordure, jamais en fond plein (aucun jeton `on-danger` dans la charte).
+11. **Nom du fichier** : avec l'heure (`AAAA-MM-JJ-HHMM`), pour que deux exports du même jour ne se remplacent pas chez le destinataire (revue IA de la PR #16).
+12. **Octets du format** : échappement de `jsonEncode`, tri des étiquettes `emotion` puis `theme` et par unités de code UTF-16 (revue IA de la PR #16).
+13. **Échec répété de la suppression** : pas de retour au journal ; la désinstallation est l'issue de secours (revue IA de la PR #16).

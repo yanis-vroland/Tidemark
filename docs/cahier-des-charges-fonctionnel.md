@@ -78,6 +78,8 @@ Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a intr
 
 ### Autres règles
 
+Les numéros ne se suivent pas toujours : des plages sont réservées aux specs rédigées en parallèle, et seront renumérotées au rebase.
+
 - RM1 : aucune donnée de la personne ne quitte le téléphone par l'app. Le seul accès réseau de l'app est le téléchargement du modèle local, qui ne transmet aucune donnée de la personne. Seule exception : l'export que la personne déclenche elle-même (RM23, [ADR-003](adr/003-export-par-la-feuille-de-partage.md), proposé). Toute exception passe par un ADR (source : `CLAUDE.md`).
 - RM2 : les entrées sont chiffrées au repos sur le téléphone (source : plan, lot E).
 - RM3 : l'humeur est un entier de 1 à 5. Libellés fixes : 1 « Très bas », 2 « Bas », 3 « Neutre », 4 « Bien », 5 « Très bien » (source : décision de Yanis du 2026-10-14, libellés d'humeur).
@@ -137,7 +139,7 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 | MVP (lot F) | Détection de détresse et écran d'aide, réglage de la sensibilité | [002](specs/002-garde-fou-detresse.md) | spec validée |
 | MVP (lot G) | Téléchargement du modèle local | — | à spécifier |
 | MVP (lot G) | Étiquetage automatique | — | à spécifier |
-| MVP (lot H) | Export et suppression totale | [005](specs/005-export-et-suppression-totale.md) | spec validée (ADR-003 proposé, maquette à valider) |
+| MVP (lot H) | Export et suppression totale | [005](specs/005-export-et-suppression-totale.md) | spec brouillon (à valider par Yanis, avec la maquette et l'ADR-003) |
 | Si le temps le permet (lot I) | Bilan de la semaine | — | à spécifier |
 
 ## Questions ouvertes
