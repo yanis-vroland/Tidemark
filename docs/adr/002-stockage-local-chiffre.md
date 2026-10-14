@@ -76,6 +76,10 @@ Décision de Yanis (2026-10-14), sur proposition de l'agent, exclusion des sauve
 - **Effacement à la désinstallation sur iOS** : la parade du marqueur est à tester sur l'iPhone 15 Pro (désinstaller, réinstaller, vérifier que l'ancienne clé a disparu).
 - **Chiffrement de `isar_community`, `isar_plus` et d'`objectbox`** : seulement cherché dans leur documentation, pas dans leur code.
 
+## Mise à jour
+
+- 2026-10-14, [spec 005](../specs/005-export-et-suppression-totale.md) (proposée, à valider par Yanis) : la parade du marqueur d'installation est précisée. Sans marqueur, la clé restée dans le trousseau n'est effacée que si aucune base n'existe ; une base présente sans marqueur (installation des lots E et F, antérieure au marqueur) garde sa clé, et le marqueur est créé (RM45). La suppression totale ajoute un marqueur `wipe-pending` avant la première étape, pour reprendre au démarrage une suppression interrompue (RM43).
+
 ## Sources
 
 - pub.dev (versions, dates, licences, points), relevés le 2026-10-14 : [drift](https://pub.dev/packages/drift), [sqlite3](https://pub.dev/packages/sqlite3), [sqlcipher_flutter_libs](https://pub.dev/packages/sqlcipher_flutter_libs), [sqflite_sqlcipher](https://pub.dev/packages/sqflite_sqlcipher), [sqflite](https://pub.dev/packages/sqflite), [cryptography](https://pub.dev/packages/cryptography), [hive_ce](https://pub.dev/packages/hive_ce), [isar](https://pub.dev/packages/isar), [isar_community](https://pub.dev/packages/isar_community), [objectbox](https://pub.dev/packages/objectbox), [flutter_secure_storage](https://pub.dev/packages/flutter_secure_storage).
