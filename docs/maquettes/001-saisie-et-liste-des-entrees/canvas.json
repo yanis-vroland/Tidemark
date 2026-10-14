@@ -1,0 +1,163 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-14T08:20:11Z"
+ },
+ "title": "Tidemark : saisie et liste des entrées",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Main.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 393,
+   "h": 852,
+   "title": "Saisie · nominal · clair",
+   "is_interactive": true,
+   "radius": 48
+  },
+  "Vide.dc.html": {
+   "x": 473,
+   "y": 0,
+   "w": 393,
+   "h": 852,
+   "title": "Saisie · vide · clair",
+   "is_interactive": true,
+   "radius": 48
+  },
+  "Chargement.dc.html": {
+   "x": 946,
+   "y": 0,
+   "w": 393,
+   "h": 852,
+   "title": "Saisie · enregistrement · clair",
+   "radius": 48
+  },
+  "Erreur.dc.html": {
+   "x": 1419,
+   "y": 0,
+   "w": 393,
+   "h": 852,
+   "title": "Saisie · erreur · clair",
+   "radius": 48
+  },
+  "Sombre.dc.html": {
+   "x": 1892,
+   "y": 0,
+   "w": 393,
+   "h": 852,
+   "title": "Saisie · nominal · sombre",
+   "is_interactive": true,
+   "radius": 48
+  },
+  "Liste.dc.html": {
+   "x": 0,
+   "y": 1300,
+   "w": 393,
+   "h": 852,
+   "title": "Liste · entrées · clair",
+   "radius": 48,
+   "is_interactive": true
+  },
+  "ListeVide.dc.html": {
+   "x": 473,
+   "y": 1300,
+   "w": 393,
+   "h": 852,
+   "title": "Liste · vide · clair",
+   "radius": 48,
+   "is_interactive": true
+  },
+  "ListeSombre.dc.html": {
+   "x": 946,
+   "y": 1300,
+   "w": 393,
+   "h": 852,
+   "title": "Liste · entrées · sombre",
+   "radius": 48,
+   "is_interactive": true
+  },
+  "Detail.dc.html": {
+   "x": 0,
+   "y": 2600,
+   "w": 393,
+   "h": 852,
+   "title": "Détail · avec texte · clair",
+   "radius": 48,
+   "is_interactive": true
+  },
+  "DetailSansTexte.dc.html": {
+   "x": 473,
+   "y": 2600,
+   "w": 393,
+   "h": 852,
+   "title": "Détail · sans texte · clair",
+   "radius": 48
+  },
+  "DetailConfirmation.dc.html": {
+   "x": 946,
+   "y": 2600,
+   "w": 393,
+   "h": 852,
+   "title": "Détail · confirmation de suppression",
+   "radius": 48
+  },
+  "DetailSombre.dc.html": {
+   "x": 1419,
+   "y": 2600,
+   "w": 393,
+   "h": 852,
+   "title": "Détail · avec texte · sombre",
+   "radius": 48
+  }
+ },
+ "order": [
+  "Main.dc.html",
+  "Vide.dc.html",
+  "Chargement.dc.html",
+  "Erreur.dc.html",
+  "Sombre.dc.html",
+  "Liste.dc.html",
+  "ListeVide.dc.html",
+  "ListeSombre.dc.html",
+  "Detail.dc.html",
+  "DetailSansTexte.dc.html",
+  "DetailConfirmation.dc.html",
+  "DetailSombre.dc.html"
+ ],
+ "notes": {
+  "titre": {
+   "x": 0,
+   "y": -300,
+   "text": "Saisie d'une entrée (spec 001)",
+   "kind": "title1",
+   "maxW": 2285
+  },
+  "liste": {
+   "x": 0,
+   "y": 1000,
+   "text": "Liste des entrées (spec 001)",
+   "kind": "title1",
+   "maxW": 1339
+  },
+  "detail": {
+   "x": 0,
+   "y": 2300,
+   "text": "Détail et suppression (spec 001)",
+   "kind": "title1",
+   "maxW": 1812
+  }
+ },
+ "designSystems": [
+  {
+   "title": "Tidemark",
+   "namespace": "tidemark",
+   "artifact": "https://claude.ai/artifact/LxwwPXPaLTB1ciS6m7NVeu",
+   "version": "1791982924-0200",
+   "copiedAt": "2026-10-14T13:45:00Z"
+  }
+ ]
+}

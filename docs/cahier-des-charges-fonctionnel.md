@@ -35,12 +35,13 @@ Les termes du métier et leur nom dans le code. Les specs, le code et les PR uti
 | --- | --- | --- |
 | Entrée | `Entry` | Ce que la personne note à un moment donné : une humeur, un texte éventuel, une date et heure. |
 | Humeur | `mood` | Valeur entière de 1 à 5, avec un libellé fixe (RM3). |
-| Texte | `text` | Les mots que la personne ajoute à son entrée, facultatifs (RM13). |
+| Texte | `text` | Les mots que la personne ajoute à son entrée, facultatifs (RM13), 2 000 caractères au plus (RM27). |
 | Étiquette | `Tag` | Émotion ou thème que le modèle local associe à une entrée. |
 | Type d'étiquette | `TagKind` | `emotion` ou `theme`. |
 | Analyse | `analysis` | Traitement d'une entrée par le modèle local, qui produit ses étiquettes. |
 | Analyseur | `MoodAnalyzer` | Interface qui isole le modèle local ; une implémentation factice sert aux tests et à la CI. |
-| Résultat d'analyse | `AnalysisResult` : `Tagged`, `Untagged` | Ce que rend l'analyseur : « étiquetée » (`Tagged`, avec ses étiquettes) ou « sans étiquette » (`Untagged`, RM9). Le statut « non analysée » (RM8, RM17, RM24) n'est pas un résultat de l'analyseur, qui n'est pas appelé : il relève de l'entrée, et sera nommé par la spec du lot E. |
+| Statut d'analyse | `AnalysisStatus` : `pending`, `tagged`, `untagged`, `skipped` | Où en est l'analyse d'une entrée : en attente, étiquetée, sans étiquette (RM9), non analysée (sans texte, RM24, ou détresse, RM17). Propre à l'entrée ([spec 001](specs/001-saisie-et-liste-des-entrees.md)). |
+| Résultat d'analyse | `AnalysisResult` : `Tagged`, `Untagged` | Ce que rend l'analyseur : « étiquetée » (`Tagged`, avec ses étiquettes) ou « sans étiquette » (`Untagged`, RM9). Le statut « non analysée » n'est pas un résultat de l'analyseur, qui n'est pas appelé : il relève de l'entrée (`AnalysisStatus.skipped`). |
 | Modèle local | `LocalModel` | Fichier du modèle d'IA, téléchargé une fois puis exécuté sur le téléphone. |
 | Détresse | `distress` | Signe qu'une personne est peut-être en danger, repéré dans le texte d'une entrée ou dans une série d'humeurs très basses (RM25). |
 | Détecteur de détresse | `DistressDetector` | Règles déterministes qui repèrent la détresse dans le texte et dans la suite des humeurs (RM6, RM25). |
@@ -94,6 +95,8 @@ Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a intr
 - RM24 : une entrée sans texte n'est pas analysée : l'humeur seule ne donne pas d'étiquette, et aucune analyse n'est enregistrée pour elle (source : décision de Yanis du 2026-10-14).
 - RM25 : une série d'humeurs très basses déclenche l'écran d'aide, même sans texte. Le seuil (quelles humeurs, combien d'entrées, sur quelle durée) est fixé dans la spec du lot F et validé par Yanis (source : décision de Yanis du 2026-10-14).
 - RM26 : un téléchargement du modèle interrompu repart de zéro (source : décision de Yanis du 2026-10-14).
+- RM27 : le texte d'une entrée compte 2 000 caractères au plus (spec : [`docs/specs/001-saisie-et-liste-des-entrees.md`](specs/001-saisie-et-liste-des-entrees.md)).
+- RM28 : la suppression d'une entrée est définitive et demande une confirmation (spec : [`docs/specs/001-saisie-et-liste-des-entrees.md`](specs/001-saisie-et-liste-des-entrees.md)).
 
 ## Parcours utilisateur
 
@@ -114,7 +117,7 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 
 | Phase | Fonctionnalité | Spec | Statut |
 | --- | --- | --- | --- |
-| MVP (lot E) | Saisie d'une entrée et liste des entrées, stockage local chiffré | — | à spécifier |
+| MVP (lot E) | Saisie d'une entrée et liste des entrées, stockage local chiffré | [001](specs/001-saisie-et-liste-des-entrees.md) | spec validée |
 | MVP (lot F) | Détection de détresse et écran d'aide | — | à spécifier |
 | MVP (lot G) | Téléchargement du modèle local | — | à spécifier |
 | MVP (lot G) | Étiquetage automatique | — | à spécifier |

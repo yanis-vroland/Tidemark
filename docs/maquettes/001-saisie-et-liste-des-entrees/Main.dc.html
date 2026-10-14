@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Saisie d'une entrée</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&amp;family=Figtree:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f6b}a:hover{color:#13272c}
+textarea::placeholder{color:currentColor;opacity:.72}
+button:focus-visible,textarea:focus-visible{outline:3px solid #1d5f6b;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 393px; height: 852px; box-sizing: border-box; padding: 72px 16px 40px; display: flex; flex-direction: column; gap: 24px; background: {{t.surface}}; color: {{t.ink}}; font-family: Figtree, system-ui, sans-serif;">
+  <div style="display: flex; align-items: center; justify-content: space-between;">
+    <a href="Liste.dc.html" style="min-height: 44px; padding: 0 4px; display: flex; align-items: center; font: 500 14px/20px Figtree, system-ui, sans-serif; color: {{t.tide}}; text-decoration: none;">Annuler</a>
+    <span style="font-size: 13px; line-height: 18px; color: {{t.muted}};">Mercredi 14 octobre · 21:40</span>
+  </div>
+
+  <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 34px; line-height: 38px; letter-spacing: -0.5px;">Comment ça va ?</h1>
+
+  <sc-if value="{{showError}}" hint-placeholder-val="{{false}}">
+    <div role="alert" style="display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border: 1px solid {{t.danger}}; border-radius: 8px; background: {{t.raised}};">
+      <strong style="font-size: 15px; line-height: 22px; color: {{t.danger}};">L'entrée n'a pas été enregistrée</strong>
+      <span style="font-size: 14px; line-height: 20px;">Le stockage du téléphone est plein. Libère de la place, puis réessaie : ton texte est conservé.</span>
+    </div>
+  </sc-if>
+
+  <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 12px;">
+    <legend style="padding: 0; margin-bottom: 12px; font-size: 14px; line-height: 20px; font-weight: 500; color: {{t.muted}};">Ton humeur, de 1 à 5</legend>
+    <div style="display: flex; justify-content: space-between;">
+      <sc-for list="{{moods}}" as="m" hint-placeholder-count="5">
+        <button type="button" aria-label="{{m.aria}}" aria-pressed="{{m.selected}}" onClick="{{m.pick}}" style="{{m.style}}">{{m.n}}</button>
+      </sc-for>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 13px; line-height: 18px; color: {{t.muted}};">
+      <span>Très bas</span><span>Très bien</span>
+    </div>
+    <p style="margin: 0; min-height: 24px; font-size: 17px; line-height: 24px; font-weight: 600;">{{moodLabel}}</p>
+  </fieldset>
+
+  <div style="display: flex; flex-direction: column; gap: 8px;">
+    <label for="entry-text" style="font-size: 14px; line-height: 20px; font-weight: 500; color: {{t.muted}};">Ce que tu veux en dire (facultatif)</label>
+    <textarea id="entry-text" value="{{text}}" onChange="{{onText}}" placeholder="Une phrase suffit, ou rien du tout." style="height: 152px; box-sizing: border-box; padding: 12px; resize: none; border: 1px solid {{t.line}}; border-radius: 8px; background: {{t.raised}}; color: {{t.ink}}; font: 400 16px/24px Figtree, system-ui, sans-serif;"></textarea>
+    <span style="display: flex; gap: 4px; align-items: center; font-size: 13px; line-height: 18px; color: {{t.muted}};">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+      Chiffré et gardé sur ton téléphone. Rien n'est envoyé.
+    </span>
+  </div>
+
+  <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
+    <sc-if value="{{showHint}}" hint-placeholder-val="{{false}}">
+      <span style="text-align: center; font-size: 13px; line-height: 18px; color: {{t.muted}};">Choisis une humeur pour enregistrer.</span>
+    </sc-if>
+    <button type="button" disabled="{{buttonDisabled}}" aria-busy="{{loading}}" style="{{buttonStyle}}">
+      <sc-if value="{{loading}}" hint-placeholder-val="{{false}}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9"></path></svg>
+      </sc-if>
+      {{buttonLabel}}
+    </button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"state":{"editor":"enum","options":["nominal","vide","chargement","erreur"],"default":"nominal"},"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const empty = (props.state ?? 'nominal') === 'vide';
+    this.state = {
+      picked: empty ? null : 4,
+      text: empty ? '' : "Longue journée au travail, mais la balade du soir au bord de l'eau m'a fait du bien."
+    };
+  }
+  renderVals() {
+    const LIGHT = { surface: '#f3f6f5', raised: '#ffffff', ink: '#13272c', muted: '#4b5e64', line: '#76898d', tide: '#1d5f6b', onTide: '#ffffff', soft: '#dbeae9', danger: '#a3392a', moods: ['#3c4f7c', '#6684b0', '#86b2ab', '#e2b55a', '#ef8c59'], onMood1: '#ffffff', onMood: '#13272c' };
+    const DARK = { surface: '#0e191c', raised: '#172529', ink: '#e4eeec', muted: '#9db0b1', line: '#5d7579', tide: '#7cc5c9', onTide: '#0a2226', soft: '#1e383c', danger: '#f39582', moods: ['#8fa3d6', '#7f9cc8', '#86b9b1', '#e6be6a', '#f29a6a'], onMood1: '#0e191c', onMood: '#0e191c' };
+    const t = this.props.dark ? DARK : LIGHT;
+    const mode = this.props.state ?? 'nominal';
+    const labels = ['Très bas', 'Bas', 'Neutre', 'Bien', 'Très bien'];
+    const picked = this.state.picked;
+    const moods = labels.map((label, i) => {
+      const n = i + 1;
+      const selected = picked === n;
+      const size = selected ? 60 : 52;
+      return {
+        n,
+        selected,
+        aria: 'Humeur ' + n + ' sur 5 : ' + label,
+        pick: () => this.setState({ picked: n }),
+        style: 'width: ' + size + 'px; height: ' + size + 'px; margin: ' + (selected ? 0 : 4) + 'px; border-radius: 999px; border: 0; padding: 0; cursor: pointer; display: grid; place-items: center; ' +
+          'background: ' + t.moods[i] + '; color: ' + (n === 1 ? t.onMood1 : t.onMood) + '; ' +
+          "font: 700 " + (selected ? 26 : 22) + "px/1 'Bricolage Grotesque', system-ui, sans-serif; " +
+          'box-shadow: ' + (selected ? '0 0 0 3px ' + t.surface + ', 0 0 0 6px ' + t.tide : 'none') + '; ' +
+          'opacity: ' + (picked && !selected ? 0.55 : 1) + ';'
+      };
+    });
+    const loading = mode === 'chargement';
+    const disabled = picked === null || loading;
+    const base = 'height: 52px; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; font: 600 16px/20px Figtree, system-ui, sans-serif; ';
+    const buttonStyle = disabled
+      ? base + 'border: 1px solid ' + t.line + '; background: ' + t.raised + '; color: ' + t.muted + ';'
+      : base + 'border: 0; background: ' + t.tide + '; color: ' + t.onTide + '; cursor: pointer;';
+    return {
+      t,
+      moods,
+      moodLabel: picked ? labels[picked - 1] : '',
+      text: this.state.text,
+      onText: (e) => this.setState({ text: e.target.value }),
+      showError: mode === 'erreur',
+      showHint: picked === null,
+      loading,
+      buttonDisabled: disabled,
+      buttonStyle,
+      buttonLabel: loading ? 'Enregistrement…' : (mode === 'erreur' ? 'Réessayer' : 'Enregistrer'),
+      true: true,
+      false: false
+    };
+  }
+}
+</script>
+</body>
+</html>
