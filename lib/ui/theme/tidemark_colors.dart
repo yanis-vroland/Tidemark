@@ -114,6 +114,7 @@ class TidemarkColors extends ThemeExtension<TidemarkColors> {
     'on-mood': onMood,
   };
 
+  /// Jetons figés : aucune surcharge prévue.
   @override
   TidemarkColors copyWith() => this;
 

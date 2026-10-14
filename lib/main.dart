@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'ui/theme/tidemark_colors.dart';
 import 'ui/theme/tidemark_theme.dart';
 import 'ui/theme/tidemark_tokens.dart';
 
@@ -39,11 +38,6 @@ class HomeScreen extends StatelessWidget {
             children: [
               const SizedBox(height: TidemarkSpacing.space8),
               Text('Tidemark', style: text.displaySmall),
-              const SizedBox(height: TidemarkSpacing.space2),
-              Text(
-                'Rien ne quitte ton téléphone.',
-                style: text.bodySmall?.copyWith(color: context.colors.inkMuted),
-              ),
             ],
           ),
         ),

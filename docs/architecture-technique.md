@@ -39,7 +39,7 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 
 | Contrat | Producteur | Consommateurs | Format | Fichier |
 | --- | --- | --- | --- | --- |
-| À ADAPTER | | | OpenAPI, MCP… | |
+| `MoodAnalyzer` | Implémentation `llamadart` (lot G) ; `FakeMoodAnalyzer` dans `test/support/` pour les tests | Écrans de saisie et de détail (lots E, G) | Interface Dart : `analyze(text)` rend `Tagged` ou `Untagged`, jamais d'exception | `lib/analysis/mood_analyzer.dart` |
 
 ## Conventions d'API
 
