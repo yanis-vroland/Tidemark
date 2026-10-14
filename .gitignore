@@ -44,3 +44,6 @@ xcuserdata/
 .env.*
 !.env.example
 .claude/settings.local.json
+
+# Dossiers de travail des subagents de Claude Code (isolation worktree)
+.claude/worktrees/

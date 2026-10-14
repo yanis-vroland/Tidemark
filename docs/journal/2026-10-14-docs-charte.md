@@ -21,6 +21,8 @@ Branche `docs/charte`.
 - Jeu d'icônes non choisi : reporté au lot D.
 - Le `lastChange` de l'index de l'artefact a d'abord été publié avec une heure inventée (13:15 UTC), corrigée en 13:01 UTC dans la minute.
 
+- Le premier commit (e7ad27f) incluait par erreur le dossier de travail d'un subagent (`.claude/worktrees/`, dépôt Git imbriqué), ajouté par un `git add -A` de l'agent. Retiré de l'index, et dossier ajouté au `.gitignore`. Friction à remonter à la chaîne P1 : le `.gitignore` du template ne l'exclut pas.
+
 ### Prochaine étape
 
 Yanis valide la charte (dans l'artefact ou dans cette PR). Ensuite : lot D, transcription des jetons en Dart.
