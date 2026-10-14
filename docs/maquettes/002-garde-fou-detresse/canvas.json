@@ -1,0 +1,52 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-14T16:30:00Z"
+ },
+ "title": "Tidemark : garde-fou de détresse",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Main.dc.html": {"x": 0, "y": 0, "w": 393, "h": 852, "title": "Aide · nominal · clair", "is_interactive": true, "radius": 48},
+  "AideSombre.dc.html": {"x": 473, "y": 0, "w": 393, "h": 852, "title": "Aide · nominal · sombre", "radius": 48},
+  "AideAppelImpossible.dc.html": {"x": 946, "y": 0, "w": 393, "h": 852, "title": "Aide · appel impossible · clair", "radius": 48},
+  "AideAppelImpossibleSombre.dc.html": {"x": 1419, "y": 0, "w": 393, "h": 852, "title": "Aide · appel impossible · sombre", "radius": 48},
+  "Reglages.dc.html": {"x": 0, "y": 1300, "w": 393, "h": 852, "title": "Réglages · nominal · clair", "is_interactive": true, "radius": 48},
+  "ReglagesSombre.dc.html": {"x": 473, "y": 1300, "w": 393, "h": 852, "title": "Réglages · nominal · sombre", "is_interactive": true, "radius": 48},
+  "ReglagesChargement.dc.html": {"x": 946, "y": 1300, "w": 393, "h": 852, "title": "Réglages · chargement · clair", "radius": 48},
+  "ReglagesErreur.dc.html": {"x": 1419, "y": 1300, "w": 393, "h": 852, "title": "Réglages · erreur · clair", "radius": 48},
+  "ReglagesErreurSombre.dc.html": {"x": 1892, "y": 1300, "w": 393, "h": 852, "title": "Réglages · erreur · sombre", "radius": 48},
+  "ListeAcces.dc.html": {"x": 0, "y": 2600, "w": 393, "h": 852, "title": "Liste · accès aux réglages · clair", "radius": 48},
+  "ListeAccesSombre.dc.html": {"x": 473, "y": 2600, "w": 393, "h": 852, "title": "Liste · accès aux réglages · sombre", "radius": 48}
+ },
+ "order": [
+  "Main.dc.html",
+  "AideSombre.dc.html",
+  "AideAppelImpossible.dc.html",
+  "AideAppelImpossibleSombre.dc.html",
+  "Reglages.dc.html",
+  "ReglagesSombre.dc.html",
+  "ReglagesChargement.dc.html",
+  "ReglagesErreur.dc.html",
+  "ReglagesErreurSombre.dc.html",
+  "ListeAcces.dc.html",
+  "ListeAccesSombre.dc.html"
+ ],
+ "notes": {
+  "aide": {"x": 0, "y": -300, "text": "Écran d'aide (spec 002)", "kind": "title1", "maxW": 1812},
+  "reglages": {"x": 0, "y": 1000, "text": "Réglages : sensibilité aux humeurs basses (spec 002)", "kind": "title1", "maxW": 2285},
+  "liste": {"x": 0, "y": 2300, "text": "Accès aux réglages depuis la liste (spec 002)", "kind": "title1", "maxW": 866}
+ },
+ "designSystems": [
+  {
+   "title": "Tidemark",
+   "namespace": "tidemark",
+   "artifact": "https://claude.ai/artifact/LxwwPXPaLTB1ciS6m7NVeu",
+   "version": null,
+   "copiedAt": "2026-10-14T16:30:00Z"
+  }
+ ]
+}

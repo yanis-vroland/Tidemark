@@ -23,7 +23,7 @@ Composants : sélecteur d'humeur (`MoodSelector`), carte d'entrée (`EntryCard`)
 | Détail d'une entrée et ses étiquettes | E, G | `TagChip`, `LoadingNote`, `Button` |
 | Écran d'aide (3114) | F | `Button` ; sans `danger` |
 | Téléchargement du modèle | G | `Button`, `LoadingNote`, `ErrorBanner` |
-| Réglages : export, suppression totale | H | `Button` (secondaire, destructif) |
+| Réglages : sensibilité aux humeurs basses, export, suppression totale | F, H | `Button` (secondaire, destructif) |
 | Bilan de la semaine | I | à définir avec sa spec |
 
 Une maquette d'exploration de la saisie existe ([artefact privé](https://claude.ai/artifact/Nokoan8KiMNxU6n2UBwipG)) : elle sera reprise avec la spec du lot E, puis copiée dans `docs/maquettes/`.
