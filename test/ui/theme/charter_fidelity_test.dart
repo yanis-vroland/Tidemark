@@ -69,6 +69,13 @@ void main() {
     );
   });
 
+  test('opacités', () {
+    expect(
+      TidemarkOpacity.tokens,
+      _lengths(tokens['opacity'] as Map<String, dynamic>),
+    );
+  });
+
   test('styles de texte : taille, interligne, graisse, approche, famille', () {
     final type = tokens['type'] as Map<String, dynamic>;
     final families = {

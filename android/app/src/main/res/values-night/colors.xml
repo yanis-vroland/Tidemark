@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Couleurs de la charte utilisées hors de Flutter, thème sombre (spec 001). -->
+<resources>
+    <color name="tidemark_surface">#0E191C</color>
+</resources>

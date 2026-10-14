@@ -79,4 +79,12 @@ void main() {
       expect(header.startsWith('SQLite format 3'), isFalse);
     },
   );
+
+  test('RM2 : un moteur SQLite sans chiffrement est refusé', () {
+    expect(
+      () => ensureCipherAvailable((sql) => 0),
+      throwsA(isA<CipherUnavailableError>()),
+    );
+    expect(() => ensureCipherAvailable((sql) => 1), returnsNormally);
+  });
 }

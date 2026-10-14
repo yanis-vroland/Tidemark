@@ -37,8 +37,35 @@ abstract final class TidemarkSize {
   /// Diamètre d'une pastille du sélecteur d'humeur.
   static const double moodDot = 56;
 
+  /// Pastille d'humeur d'une carte d'entrée.
+  static const double moodDotSm = 40;
+
+  /// Pastille d'humeur du détail.
+  static const double moodDotLg = 72;
+
+  /// Hauteur des boutons pleine largeur.
+  static const double buttonHeight = 52;
+
+  /// Petite icône devant une mention.
+  static const double iconSm = 16;
+
+  /// Anneau autour de la pastille choisie, et écart qui l'en sépare.
+  static const double ringWidth = 3;
+
   static const Map<String, double> tokens = {
     'tap-min': tapMin,
     'mood-dot': moodDot,
+    'mood-dot-sm': moodDotSm,
+    'mood-dot-lg': moodDotLg,
+    'button-height': buttonHeight,
+    'icon-sm': iconSm,
+    'ring-width': ringWidth,
   };
+}
+
+abstract final class TidemarkOpacity {
+  /// Pastilles non choisies quand une humeur est choisie.
+  static const double moodDimmed = 0.55;
+
+  static const Map<String, double> tokens = {'mood-dimmed': moodDimmed};
 }
