@@ -2,7 +2,7 @@
 
 Copie versionnée de l'artefact Claude de type « Design » ([lien privé](https://claude.ai/artifact/HpKb64hQ1aWeLVZzyXH9wj)), construit sur la [charte](../000-charte/) (artefact « Design System » Tidemark installé dans le canevas, `designSystems` de `canvas.json`). **Cette copie fait foi.** Spec : [`docs/specs/006-bilan-de-la-semaine.md`](../../specs/006-bilan-de-la-semaine.md).
 
-Statut : **brouillon**, à valider par Yanis avec la spec, avant les tests.
+Statut : **validée par Yanis** (merge de la PR #17, 2026-10-14).
 
 | Écran | Fichiers (artboards) | Critères |
 | --- | --- | --- |

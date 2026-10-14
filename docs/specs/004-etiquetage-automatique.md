@@ -1,6 +1,6 @@
 # Spec 004 : étiquetage automatique
 
-Statut : validée (validation déléguée par Yanis à l'agent, 2026-10-14, par la consigne de session qui a lancé le lot G ; Yanis confirme dans la PR #18, RM34 compris, avant le lancement de `test-writer`)
+Statut : validée (Yanis, merge de la PR #18, 2026-10-14 ; décisions métier déléguées à l'agent)
 Date : 2026-10-14
 
 ## Besoin
