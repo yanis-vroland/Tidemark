@@ -35,6 +35,7 @@ abstract final class TidemarkTypography {
   static final title = _style(displayFamily, 22, 28, 600);
   static final headline = _style(bodyFamily, 17, 24, 600);
   static final body = _style(bodyFamily, 16, 24, 400);
+  static final button = _style(bodyFamily, 16, 20, 600);
   static final label = _style(bodyFamily, 14, 20, 500, letterSpacing: 0.1);
   static final caption = _style(bodyFamily, 13, 18, 400);
 
@@ -45,6 +46,7 @@ abstract final class TidemarkTypography {
     'title': title,
     'headline': headline,
     'body': body,
+    'button': button,
     'label': label,
     'caption': caption,
   };

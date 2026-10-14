@@ -32,14 +32,12 @@ class _EntryListScreenState extends State<EntryListScreen> {
 
   /// Au retour au premier plan, « Aujourd'hui » et « Hier » sont recalculés : l'app
   /// a pu rester ouverte après minuit.
-  late final AppLifecycleListener _lifecycle = AppLifecycleListener(
-    onResume: () => setState(() {}),
-  );
+  late final AppLifecycleListener _lifecycle;
 
   @override
   void initState() {
     super.initState();
-    _lifecycle;
+    _lifecycle = AppLifecycleListener(onResume: () => setState(() {}));
   }
 
   @override
@@ -160,7 +158,7 @@ class _EmptyState extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: TidemarkSpacing.space4),
       children: [
         const _Title(),
-        const SizedBox(height: TidemarkSpacing.space8 * 3),
+        const SizedBox(height: TidemarkSpacing.space8),
         Text('Ta première entrée apparaîtra ici', style: text.titleLarge),
         const SizedBox(height: TidemarkSpacing.space2),
         Text(
@@ -221,6 +219,16 @@ class _EntryList extends StatelessWidget {
   }
 }
 
+/// Début d'un texte pour l'annonce d'une carte : l'écran n'en montre que deux
+/// lignes, le lecteur d'écran n'en lit que le début (CA36).
+String _excerpt(String text) {
+  const max = 120;
+  final chars = text.characters;
+  return chars.length <= max
+      ? text
+      : '${chars.take(max).toString().trimRight()}…';
+}
+
 /// Carte d'entrée (charte : `EntryCard`).
 class _EntryCard extends StatelessWidget {
   const _EntryCard({
@@ -243,7 +251,7 @@ class _EntryCard extends StatelessWidget {
       button: true,
       label:
           '${moodLabel(entry.mood)}, humeur ${entry.mood} sur 5, $time'
-          '${text == null ? '' : ', $text'}',
+          '${text == null ? '' : ', ${_excerpt(text)}'}',
       excludeSemantics: true,
       onTap: () => _open(context),
       child: _cardBody(context, colors, text),
@@ -271,7 +279,7 @@ class _EntryCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  MoodDot(mood: entry.mood, size: 40),
+                  MoodDot(mood: entry.mood, size: TidemarkSize.moodDotSm),
                   const SizedBox(width: TidemarkSpacing.space3),
                   Expanded(
                     child: Column(

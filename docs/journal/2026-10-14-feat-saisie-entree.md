@@ -71,3 +71,27 @@ Yanis valide CA31 à CA35 et tranche les questions de confidentialité ; test hu
 ### Prochaine étape
 
 Yanis merge cette PR pour remettre `main` au vert, valide CA31 à CA35 et tranche les questions de confidentialité ; puis test humain sur l'iPhone 15 Pro.
+
+## 2026-10-14 16:32
+
+### Fait
+
+- Suites de la revue IA de la PR #13 :
+  - bloquant : démarrage rendu injectable (`startApp`, `openJournal(folder:, keyStore:)`) et testé de bout en bout sur une base fichier (`test/storage/open_journal_test.dart`) : base existante et clé absente, aucune clé écrite et fichier intact ; correspondance cause → écran testée ; mutation (`databaseExists: false`) détectée ;
+  - identifiants de CA corrigés dans `test/ui/robustness_test.dart` (CA31 à CA34, CA36) ; CA34 testé aussi sans texte ;
+  - jetons ajoutés à la charte (`mood-dot-sm`, `mood-dot-lg`, `button-height`, `icon-sm`, `ring-width`, opacité `mood-dimmed`, style `button`), utilisés par le code et couverts par le test de fidélité ; artefact de la charte mis à jour ;
+  - annonce d'une carte limitée au début du texte (120 caractères), nouveau critère CA36 ; `AppLifecycleListener` créé dans `initState` ; ordre des imports ; RM27 précisé (« caractères visibles ») ; statut de la spec 001 dans le cahier : CA31 à CA36 en attente ; exclusion iOS : échec journalisé (`NSLog`).
+- 164 tests verts ; `dart analyze --fatal-infos` propre.
+
+### Décisions
+
+- Corrections : agent. CA31 à CA36, test humain, issues pour la maquette : à Yanis.
+
+### Corrections et limites
+
+- **Test trop faible repéré par mutation** : le nouveau test CA34 sans texte passait même sans la protection, car il vérifiait l'écran avant la fin de l'animation de retour (plus de 500 ms). Corrigé (`pumpAndSettle`), mutation détectée.
+- Précision sur l'entrée de 16:09 : la sémantique n'y est plus « libérée à la fin du corps » ; l'entrée de 16:20 a retiré `ensureSemantics` de ces trois tests.
+
+### Prochaine étape
+
+Yanis valide CA31 à CA36 et fait le test humain sur l'iPhone 15 Pro (ou décide de merger d'abord pour remettre `main` au vert).

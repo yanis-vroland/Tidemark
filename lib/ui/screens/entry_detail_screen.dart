@@ -130,7 +130,7 @@ class EntryDetailScreen extends StatelessWidget {
                     const SizedBox(height: TidemarkSpacing.space6),
                     Row(
                       children: [
-                        MoodDot(mood: entry.mood, size: 72),
+                        MoodDot(mood: entry.mood, size: TidemarkSize.moodDotLg),
                         const SizedBox(width: TidemarkSpacing.space4),
                         Expanded(
                           child: Column(

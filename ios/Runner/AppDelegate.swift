@@ -18,10 +18,15 @@ import UIKit
       for: .applicationSupportDirectory, in: .userDomainMask
     ).first else { return }
     var folder = support.appendingPathComponent("tidemark", isDirectory: true)
-    try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-    var values = URLResourceValues()
-    values.isExcludedFromBackup = true
-    try? folder.setResourceValues(values)
+    do {
+      try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+      var values = URLResourceValues()
+      values.isExcludedFromBackup = true
+      try folder.setResourceValues(values)
+    } catch {
+      // Sans donnée personnelle : visible dans la console au test humain.
+      NSLog("Tidemark : exclusion de sauvegarde impossible (%@)", error.localizedDescription)
+    }
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {

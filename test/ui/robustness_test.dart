@@ -22,7 +22,7 @@ Entry _entry() => Entry(
 
 void main() {
   testWidgets(
-    'CA15 : pendant l\'enregistrement, un retour système n\'ouvre pas '
+    'CA34 : pendant l\'enregistrement, un retour système n\'ouvre pas '
     'la confirmation et l\'écran se ferme une fois l\'entrée enregistrée',
     (tester) async {
       usePhoneScreen(tester);
@@ -51,7 +51,51 @@ void main() {
     },
   );
 
-  testWidgets('CA19 : une suppression qui échoue garde l\'entrée et le détail, '
+  testWidgets('CA34 : sans texte, un retour système pendant l\'enregistrement '
+      'ne ferme pas non plus l\'écran', (tester) async {
+    usePhoneScreen(tester);
+    final gate = Completer<void>();
+    final repo = FakeEntryRepository(beforeAdd: () => gate.future);
+    await tester.pumpWidget(
+      TidemarkApp(repository: repo, clock: () => fixedNow),
+    );
+    await tester.pump();
+    await tester.tap(find.text('Nouvelle entrée'));
+    await tester.pumpAndSettle();
+    await pickMood(tester, 3);
+    await tester.tap(find.text('Enregistrer'));
+    await tester.pump();
+
+    await tester.binding.handlePopRoute();
+    // Laisse finir une éventuelle animation de retour (plus de 500 ms).
+    await tester.pumpAndSettle();
+    expect(find.text('Comment ça va ?'), findsOneWidget);
+
+    gate.complete();
+    await tester.pumpAndSettle();
+    expect(find.text('Comment ça va ?'), findsNothing);
+    expect(repo.entries, hasLength(1));
+  });
+
+  testWidgets('CA36 : l\'annonce d\'une carte ne lit que le début d\'un long '
+      'texte', (tester) async {
+    usePhoneScreen(tester);
+    final repo = FakeEntryRepository();
+    await repo.addEntry(mood: 2, text: 'Très long texte. ' * 100);
+    await tester.pumpWidget(
+      TidemarkApp(repository: repo, clock: () => fixedNow),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    final label = tester
+        .getSemantics(find.bySemanticsLabel(RegExp(r'^Bas, humeur 2 sur 5')))
+        .label;
+    expect(label.length, lessThan(200));
+    expect(label, endsWith('…'));
+  });
+
+  testWidgets('CA33 : une suppression qui échoue garde l\'entrée et le détail, '
       'et le dit', (tester) async {
     usePhoneScreen(tester);
     final repo = FakeEntryRepository(
@@ -74,7 +118,7 @@ void main() {
     expect(find.text('Supprimer cette entrée'), findsOneWidget);
   });
 
-  testWidgets('Liste : pendant le chargement, le titre est affiché', (
+  testWidgets('CA31 : pendant le chargement, le titre est affiché', (
     tester,
   ) async {
     usePhoneScreen(tester);
@@ -88,7 +132,7 @@ void main() {
     expect(find.text('Ta première entrée apparaîtra ici'), findsNothing);
   });
 
-  testWidgets('Liste : une erreur de lecture est annoncée, sans état vide', (
+  testWidgets('CA32 : une erreur de lecture est annoncée, sans état vide', (
     tester,
   ) async {
     usePhoneScreen(tester);
@@ -103,7 +147,7 @@ void main() {
     expect(find.text('Ta première entrée apparaîtra ici'), findsNothing);
   });
 
-  testWidgets('CA26 : une carte s\'annonce avec son humeur, son chiffre et '
+  testWidgets('CA36 : une carte s\'annonce avec son humeur, son chiffre et '
       'son heure', (tester) async {
     usePhoneScreen(tester);
     final repo = FakeEntryRepository();
