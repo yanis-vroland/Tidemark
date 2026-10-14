@@ -2,7 +2,7 @@
 
 Copie versionnée de l'artefact Claude de type « Design » ([lien privé](https://claude.ai/artifact/QVMphoCa1umzrZcGkJ3VJX)), construit sur la [charte](../000-charte/) (artefact « Design System » Tidemark, installé dans le canevas). **Cette copie fait foi.** Spec : [`docs/specs/004-etiquetage-automatique.md`](../../specs/004-etiquetage-automatique.md).
 
-Statut : **validée par l'agent le 2026-10-14**, par délégation de Yanis.
+Statut : **validée par Yanis** (merge de la PR #18, 2026-10-14).
 
 | Écran | Fichiers (artboards) | Critères |
 | --- | --- | --- |

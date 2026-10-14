@@ -130,7 +130,7 @@ Les numéros ne se suivent pas toujours : des plages sont réservées aux specs 
 - RM44 : quand la clé de la base est introuvable, l'app propose la suppression totale pour repartir de zéro, sans jamais la lancer d'elle-même (spec : [`docs/specs/005-export-et-suppression-totale.md`](specs/005-export-et-suppression-totale.md)).
 - RM45 : au démarrage, une nouvelle installation (ni marqueur d'installation ni base) efface toute clé restée dans le trousseau ; une base présente sans marqueur n'est jamais privée de sa clé (spec : [`docs/specs/005-export-et-suppression-totale.md`](specs/005-export-et-suppression-totale.md)).
 
-- RM30 à RM49 : numéros réservés aux specs rédigées en parallèle (lots G et H) ; un numéro absent n'est pas une règle supprimée.
+- Les numéros RM37 à RM39 et RM46 à RM49 ne sont pas attribués : les specs des lots G, H et I ont été rédigées en parallèle, avec des plages séparées.
 - RM50 : le bilan compte toutes les entrées de la semaine, quel que soit leur statut d'analyse, chacune dans la semaine de son jour local de saisie. Ses chiffres : nombre d'entrées, humeur moyenne au dixième, répartition des humeurs, jours notés, au plus 3 étiquettes fréquentes, et l'évolution par rapport à la semaine précédente si celle-ci a un bilan (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
 - RM51 : pour le bilan, le modèle ne reçoit que des faits sans chiffre calculés par l'app, jamais le texte, la date ni l'humeur d'une entrée (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
 - RM52 : une semaine dont une entrée est à « Très bas » ou en détresse n'a pas de texte généré : son bilan s'en tient aux chiffres, sans mention de l'écran d'aide (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
@@ -158,11 +158,11 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 | Phase | Fonctionnalité | Spec | Statut |
 | --- | --- | --- | --- |
 | MVP (lot E) | Saisie d'une entrée et liste des entrées, stockage local chiffré | [001](specs/001-saisie-et-liste-des-entrees.md) | spec validée (CA31 à CA36 en attente de validation) |
-| MVP (lot F) | Détection de détresse et écran d'aide, réglage de la sensibilité | [002](specs/002-garde-fou-detresse.md) | spec validée |
-| MVP (lot G) | Téléchargement du modèle local | — | à spécifier |
-| MVP (lot G) | Étiquetage automatique | — | à spécifier |
-| MVP (lot H) | Export et suppression totale | [005](specs/005-export-et-suppression-totale.md) | spec brouillon (à valider par Yanis, avec la maquette et l'ADR-003) |
-| Si le temps le permet (lot I) | Bilan de la semaine | — | à spécifier |
+| MVP (lot F) | Détection de détresse et écran d'aide, réglage de la sensibilité | [002](specs/002-garde-fou-detresse.md) | livrée (PR #19) ; test humain sur l'iPhone par Yanis |
+| MVP (lot G) | Téléchargement du modèle local | [003](specs/003-telechargement-du-modele.md) | spec validée |
+| MVP (lot G) | Étiquetage automatique | [004](specs/004-etiquetage-automatique.md) | spec validée |
+| MVP (lot H) | Export et suppression totale | [005](specs/005-export-et-suppression-totale.md) | spec validée |
+| Si le temps le permet (lot I) | Bilan de la semaine | [006](specs/006-bilan-de-la-semaine.md) | spec validée |
 
 ## Questions ouvertes
 
