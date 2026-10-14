@@ -1,4 +1,4 @@
 {
-  "lint": "",
-  "test": ""
+  "lint": "scripts/lint-dart.sh",
+  "test": "flutter test"
 }

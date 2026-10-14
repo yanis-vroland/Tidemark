@@ -1,0 +1,38 @@
+name: Flutter
+
+# Format, analyse statique et tests de l'app. Les tests n'exécutent jamais de vrai
+# modèle d'IA : seule l'implémentation factice de MoodAnalyzer est utilisée (CLAUDE.md).
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  flutter:
+    name: Format, analyse et tests Flutter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Épinglée par SHA, comme claude-code-action dans ai-review.yml : une étiquette
+      # peut être déplacée par son auteur. Version de Flutter identique au poste.
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: 3.47.7
+          cache: true
+
+      - name: Dépendances
+        run: flutter pub get
+
+      - name: Format
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyse statique
+        run: dart analyze --fatal-infos
+
+      - name: Tests
+        run: flutter test

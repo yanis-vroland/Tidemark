@@ -16,14 +16,15 @@ Règles propres au projet :
 
 ## Stack et commandes
 
-Flutter (Dart). Le projet Flutter n'est pas encore créé : ces commandes sont prévues, et `.claude/quality.json` restera vide tant qu'elles ne fonctionnent pas.
+Flutter 3.47.7 (Dart 3.13.5), iOS 16.4+ et Android.
 
 - Installer : `flutter pub get`
 - Lancer : `flutter run`
-- Tests : `flutter test`
-- Lint : `dart analyze` et `dart format`
+- Tests : `flutter test` (jamais de vrai modèle d'IA : seulement `FakeMoodAnalyzer`)
+- Lint : `dart analyze --fatal-infos` ; format : `dart format lib test`
+- Garde-fous : `test/guards/` (aucune couleur en dur hors de `lib/ui/theme/`) et `test/ui/theme/charter_fidelity_test.dart` (le thème reprend exactement les jetons de `docs/maquettes/000-charte/tokens.json`)
 
-Les hooks de Claude Code lisent les commandes de lint (sur un fichier) et de tests dans `.claude/quality.json`, à tenir à jour avec cette section ([spec 006](https://github.com/yanis-vroland/agentic-dev-workflow/blob/main/docs/specs/006-revue-securite-et-hooks-qualite.md)) : clés `lint` et `test`, vides tant qu'elles ne sont pas déclarées.
+Les hooks de Claude Code lisent les commandes de lint (sur un fichier) et de tests dans `.claude/quality.json`, à tenir à jour avec cette section ([spec 006](https://github.com/yanis-vroland/agentic-dev-workflow/blob/main/docs/specs/006-revue-securite-et-hooks-qualite.md)) : clés `lint` (`scripts/lint-dart.sh`, qui n'analyse que les fichiers Dart) et `test`.
 
 ## Langue
 
@@ -102,4 +103,8 @@ Une règle métier non tranchée va dans les questions ouvertes du cahier des ch
 
 ## Architecture
 
-iOS + Android (décision de Yanis, 2026-10-13). Moteur d'IA local : `llamadart` avec Qwen2.5-1.5B-Instruct, sortie contrainte par schéma JSON ([ADR-001](docs/adr/001-moteur-ia-local.md)). Vue d'ensemble : `docs/architecture-technique.md`. Cette section sera complétée quand le projet Flutter sera créé (lot D).
+iOS + Android (décision de Yanis, 2026-10-13). Moteur d'IA local : `llamadart` avec Qwen2.5-1.5B-Instruct, sortie contrainte par schéma JSON ([ADR-001](docs/adr/001-moteur-ia-local.md)). Stockage : `drift` chiffré, clé dans le trousseau ou le Keystore ([ADR-002](docs/adr/002-stockage-local-chiffre.md)). Vue d'ensemble : `docs/architecture-technique.md`.
+
+- `lib/ui/theme/` : jetons de la charte (`TidemarkColors`, `TidemarkSpacing`, `TidemarkRadius`, `TidemarkSize`, `TidemarkTypography`) et `buildTidemarkTheme`. Seul endroit où une couleur s'écrit en dur ; ailleurs, `context.colors` ou le `ThemeData`.
+- `lib/analysis/` : `MoodAnalyzer`, `Tag`, `TagKind`, `AnalysisResult` (`Tagged`, `Untagged`) et `FakeMoodAnalyzer`.
+- Polices embarquées dans `assets/fonts/` (licence OFL) : aucune police chargée depuis le réseau.
