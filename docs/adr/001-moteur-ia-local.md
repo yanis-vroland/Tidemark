@@ -60,7 +60,7 @@ iPhone 15 Pro (8 Go, iOS 26.6.2), app en mode profile, signée avec un compte Ap
 
 Proposée par l'agent, à trancher par Yanis après les mesures sur iPhone : **`llamadart`, avec Qwen2.5-1.5B-Instruct Q4_K_M et une sortie contrainte par schéma JSON.**
 
-- C'est la seule configuration sans aucune réponse invalide sur toutes les mesures (60 sur 60, simulateur, émulateur et iPhone) : RM9 devient un filet de sécurité, pas un cas courant.
+- C'est la seule configuration sans aucune réponse invalide dans les tableaux ci-dessus (80 sur 80 : simulateur, émulateur, iPhone avec et sans GPU) : RM9 devient un filet de sécurité, pas un cas courant.
 - C'est la plus rapide à modèle égal : 0,8 s par entrée sur iPhone, 2,5 fois moins que `flutter_edge_ai` sans contrainte.
 - Le schéma JSON porte la liste fermée des étiquettes (RM19) : le modèle ne peut pas en inventer.
 - Un seul paquet, qui lit aussi le format `.litertlm` si un meilleur modèle n'existe que sous ce format.
