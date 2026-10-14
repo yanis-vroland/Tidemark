@@ -117,7 +117,7 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 
 | Phase | Fonctionnalité | Spec | Statut |
 | --- | --- | --- | --- |
-| MVP (lot E) | Saisie d'une entrée et liste des entrées, stockage local chiffré | [001](specs/001-saisie-et-liste-des-entrees.md) | spec brouillon |
+| MVP (lot E) | Saisie d'une entrée et liste des entrées, stockage local chiffré | [001](specs/001-saisie-et-liste-des-entrees.md) | spec validée |
 | MVP (lot F) | Détection de détresse et écran d'aide | — | à spécifier |
 | MVP (lot G) | Téléchargement du modèle local | — | à spécifier |
 | MVP (lot G) | Étiquetage automatique | — | à spécifier |

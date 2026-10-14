@@ -1,6 +1,6 @@
 # Spec 001 : saisie et liste des entrées
 
-Statut : brouillon
+Statut : validée (Yanis, 2026-10-14)
 Date : 2026-10-14
 
 ## Besoin
@@ -34,7 +34,8 @@ Lot E du [plan](../plan.md). Règles du [cahier des charges](../cahier-des-charg
 - CA10 : Étant donné une humeur choisie et un texte, quand la personne touche « Enregistrer », alors l'entrée est enregistrée avec ce texte, la liste réapparaît et la carte montre le début du texte.
 - CA11 : Étant donné un texte fait seulement d'espaces ou de retours à la ligne, quand la personne enregistre, alors l'entrée est enregistrée sans texte.
 - CA12 : Étant donné un texte de 2 000 caractères, quand la personne tape un caractère de plus ou colle un texte plus long, alors le champ garde les 2 000 premiers caractères (RM27). À partir de 1 800 caractères, un compteur « 1 850 / 2 000 » s'affiche sous le champ.
-- CA13 : Étant donné l'écran de saisie, quand la personne touche « Annuler », alors la liste réapparaît et rien n'est enregistré.
+- CA13 : Étant donné l'écran de saisie sans texte écrit (humeur choisie ou non), quand la personne touche « Annuler », alors la liste réapparaît et rien n'est enregistré.
+- CA30 : Étant donné un texte écrit dans l'écran de saisie, quand la personne touche « Annuler », alors une confirmation demande « Abandonner cette entrée ? » avec « Abandonner » et « Continuer » ; « Abandonner » ramène à la liste sans rien enregistrer, « Continuer » laisse la saisie intacte.
 - CA14 : Étant donné une erreur à l'enregistrement (base indisponible, stockage plein), quand la personne touche « Enregistrer », alors le bandeau « L'entrée n'a pas été enregistrée » s'affiche avec la cause et la marche à suivre, l'humeur et le texte saisis sont conservés, et le bouton devient « Réessayer ».
 - CA15 : Étant donné l'enregistrement en cours, quand il dure, alors le bouton affiche « Enregistrement… », désactivé, et un second appui n'enregistre pas l'entrée deux fois.
 
@@ -90,4 +91,4 @@ Artefact Claude de type « Design », construit sur la charte (copie versionnée
 
 ## Questions ouvertes
 
-- « Annuler » avec une humeur ou un texte déjà saisis : demander une confirmation « Abandonner cette entrée ? » pour ne pas perdre un texte écrit, ou quitter directement (CA13) ? Recommandation de l'agent : confirmer seulement si un texte a été écrit.
+Aucune. Confirmation sur « Annuler » seulement quand un texte est écrit (CA13, CA30) : décision de Yanis du 2026-10-14.
