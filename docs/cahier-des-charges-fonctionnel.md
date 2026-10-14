@@ -11,7 +11,7 @@ Tidemark est un journal d'humeur mobile (iOS et Android) pour une personne qui v
 Hors périmètre :
 
 - Compte, connexion, synchronisation entre appareils, sauvegarde dans le cloud.
-- Analytics, publicité, partage vers un réseau social.
+- Analytics, publicité.
 - Toute IA distante : l'analyse se fait sur le téléphone ou pas du tout.
 - Conseil médical, diagnostic, accompagnement thérapeutique.
 - Dictée et classifieur de détresse (décisions de Yanis du 2026-10-14, motifs dans le [plan](plan.md#décisions)).
@@ -23,7 +23,7 @@ Qui utilise le produit et ce que chacun peut faire. La mise en œuvre technique 
 
 | Acteur | Rôle | Peut | Ne peut pas |
 | --- | --- | --- | --- |
-| Personne qui tient son journal | Seule utilisatrice de l'app, sur son téléphone, sans compte | Créer des entrées, consulter ses entrées, leurs étiquettes et le bilan, télécharger le modèle, exporter ses données, tout supprimer | Envoyer ses données hors du téléphone par l'app (sauf l'export, qu'elle déclenche elle-même), obtenir un conseil médical ou une réponse générée en cas de détresse |
+| Personne qui tient son journal | Seule utilisatrice de l'app, sur son téléphone, sans compte | Créer des entrées, consulter ses entrées, leurs étiquettes et le bilan, supprimer une entrée, télécharger le modèle, exporter ses données, tout supprimer | Modifier une entrée (RM15), envoyer ses données hors du téléphone par l'app, sauf par un export qu'elle déclenche elle-même (destination : question ouverte 1), obtenir un conseil médical ou une réponse générée en cas de détresse |
 
 Le modèle local n'est pas un acteur : c'est un composant, derrière l'interface `MoodAnalyzer`.
 
@@ -34,8 +34,8 @@ Les termes du métier et leur nom dans le code. Les specs, le code et les PR uti
 | Terme | Nom dans le code | Définition |
 | --- | --- | --- |
 | Entrée | `Entry` | Ce que la personne note à un moment donné : une humeur, un texte éventuel, une date et heure. |
-| Humeur | `mood` | Note entière de 1 à 5, avec un libellé fixe (RM3). |
-| Texte | `note` | Les mots que la personne ajoute à son entrée. |
+| Humeur | `mood` | Valeur entière de 1 à 5, avec un libellé fixe (RM3). |
+| Texte | `text` | Les mots que la personne ajoute à son entrée, facultatifs (RM13). |
 | Étiquette | `Tag` | Émotion ou thème que le modèle local associe à une entrée. |
 | Type d'étiquette | `TagKind` | `emotion` ou `theme`. |
 | Analyse | `analysis` | Traitement d'une entrée par le modèle local, qui produit ses étiquettes. |
@@ -45,30 +45,30 @@ Les termes du métier et leur nom dans le code. Les specs, le code et les PR uti
 | Détecteur de détresse | `DistressDetector` | Règles déterministes qui repèrent la détresse dans le texte (RM6). |
 | Écran d'aide | `HelpScreen` | Écran fixe affiché en cas de détresse, avec le 3114 ; jamais généré par le modèle (RM7). |
 | Bilan de la semaine | `WeeklyReview` | Synthèse des entrées d'une semaine : chiffres calculés par l'app, mis en mots par le modèle local (RM10). |
-| Export | `export` | Copie de toutes les données de la personne dans un fichier qu'elle garde. |
+| Export | `export` | Copie de toutes les données de la personne dans un fichier JSON (RM20). |
 | Suppression totale | `wipe` | Effacement de toutes les données de l'app sur le téléphone (RM12). |
 
 ## Règles métier
 
-Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a introduite ou précisée. Une règle non tranchée va dans « Questions ouvertes », jamais ici. Tant que les specs n'existent pas, la règle renvoie vers sa source : `CLAUDE.md`, le [plan](plan.md) ou la [charte](https://claude.ai/artifact/LxwwPXPaLTB1ciS6m7NVeu).
+Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a introduite ou précisée. Une règle non tranchée va dans « Questions ouvertes », jamais ici. Tant que les specs n'existent pas, la règle renvoie vers sa source : `CLAUDE.md`, le [plan](plan.md) ou une décision datée de Yanis.
 
 ### Statuts et transitions
 
 | Objet | De | Vers | Condition | Qui |
 | --- | --- | --- | --- | --- |
-| Modèle local | absent | en téléchargement | La personne accepte le téléchargement (taille annoncée) | Personne |
+| Modèle local | absent | en téléchargement | La personne accepte le téléchargement (taille annoncée, RM18) | La personne |
 | Modèle local | en téléchargement | prêt | Fichier complet et empreinte vérifiée | App |
-| Modèle local | en téléchargement | absent | Échec réseau, empreinte fausse ou annulation ; reprise possible | App, personne |
-| Modèle local | prêt | absent | Suppression totale | Personne |
+| Modèle local | en téléchargement | absent | Échec réseau, empreinte fausse ou annulation (reprise : question ouverte 5) | App, la personne |
+| Modèle local | prêt | absent | Suppression totale | La personne |
 | Analyse d'une entrée | en attente | étiquetée | Le modèle rend une sortie conforme au schéma | App |
 | Analyse d'une entrée | en attente | sans étiquette | Sortie non conforme ou erreur du modèle (RM9) | App |
-| Analyse d'une entrée | en attente | non analysée | Détresse détectée dans le texte (RM8) | App |
+| Analyse d'une entrée | en attente | non analysée | Détresse détectée dans le texte : l'entrée est enregistrée, jamais analysée (RM8, RM17) | App |
 
 ### Autres règles
 
-- RM1 : aucune donnée de la personne ne quitte le téléphone. Le seul accès réseau de l'app est le téléchargement du modèle local, qui ne transmet aucune donnée de la personne. Toute exception passe par un ADR (source : `CLAUDE.md`).
+- RM1 : aucune donnée de la personne ne quitte le téléphone par l'app. Le seul accès réseau de l'app est le téléchargement du modèle local, qui ne transmet aucune donnée de la personne. Seule exception envisagée : un export que la personne déclenche elle-même, dont la destination reste à trancher (question ouverte 1). Toute exception passe par un ADR (source : `CLAUDE.md`).
 - RM2 : les entrées sont chiffrées au repos sur le téléphone (source : plan, lot E).
-- RM3 : l'humeur est un entier de 1 à 5. Libellés fixes : 1 « Très bas », 2 « Bas », 3 « Neutre », 4 « Bien », 5 « Très bien » (source : charte, validée par Yanis le 2026-10-14).
+- RM3 : l'humeur est un entier de 1 à 5. Libellés fixes : 1 « Très bas », 2 « Bas », 3 « Neutre », 4 « Bien », 5 « Très bien » (source : décision de Yanis du 2026-10-14, libellés d'humeur).
 - RM4 : l'app ne donne aucun conseil médical, aucun diagnostic, aucun jugement sur l'humeur (source : `CLAUDE.md`).
 - RM5 : toute entrée avec un texte passe par le détecteur de détresse avant toute analyse (source : plan, lot F).
 - RM6 : la détection de détresse repose sur des règles déterministes, sans modèle. La liste des termes est rédigée pour le projet et validée par Yanis (source : décision de Yanis du 2026-10-14).
@@ -78,17 +78,27 @@ Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a intr
 - RM10 : dans le bilan de la semaine, tous les chiffres sont calculés par l'app ; le modèle ne fait que les mettre en mots et n'en produit aucun (source : plan, lot I).
 - RM11 : le téléchargement du modèle n'a lieu qu'avec l'accord de la personne, après l'annonce de sa taille ; l'empreinte du fichier est vérifiée avant usage (source : plan, lot G).
 - RM12 : la suppression totale efface les entrées, la clé de chiffrement et le modèle local téléchargé (source : plan, lot H).
+- RM13 : le texte d'une entrée est facultatif : une entrée peut n'avoir qu'une humeur (source : décision de Yanis du 2026-10-14).
+- RM14 : le nombre d'entrées par jour n'est pas limité (source : décision de Yanis du 2026-10-14).
+- RM15 : une entrée peut être supprimée, pas modifiée (source : décision de Yanis du 2026-10-14).
+- RM16 : la date et l'heure d'une entrée sont celles de sa saisie ; pas d'entrée pour un jour passé (source : décision de Yanis du 2026-10-14).
+- RM17 : une entrée où la détresse est détectée est enregistrée, sans analyse (source : décision de Yanis du 2026-10-14).
+- RM18 : le modèle local est proposé au téléchargement à la première entrée à analyser, quel que soit le réseau (Wi-Fi ou données mobiles), toujours après l'annonce de sa taille (source : décision de Yanis du 2026-10-14).
+- RM19 : les étiquettes viennent d'une liste fermée d'émotions et de thèmes, définie dans la spec de l'étiquetage ; la personne ne peut pas les corriger dans le MVP (source : décision de Yanis du 2026-10-14).
+- RM20 : l'export produit un fichier JSON qui contient toutes les entrées et leurs étiquettes (source : décision de Yanis du 2026-10-14).
+- RM21 : le bilan porte sur une semaine du lundi au dimanche, et n'est produit qu'à partir de 3 entrées dans la semaine (source : décision de Yanis du 2026-10-14).
+- RM22 : l'app est en français seulement ; l'étiquetage et le bilan sont évalués en français (source : décision de Yanis du 2026-10-14).
 
 ## Parcours utilisateur
 
 ### Personne qui tient son journal
 
-1. Elle ouvre l'app pour la première fois et découvre qu'elle fonctionne sans compte (moment du téléchargement du modèle : question ouverte 6).
-2. Elle accepte de télécharger le modèle local, après avoir vu sa taille (téléchargement du modèle).
-3. Le soir, elle note son humeur et quelques mots (saisie d'une entrée).
+1. Elle ouvre l'app pour la première fois et découvre qu'elle fonctionne sans compte.
+2. Le soir, elle note son humeur et, si elle veut, quelques mots (saisie d'une entrée).
+3. À sa première entrée à analyser, elle accepte de télécharger le modèle local, après avoir vu sa taille (téléchargement du modèle).
 4. Si son texte contient des signes de détresse, l'écran d'aide s'affiche à la place de toute analyse (détection de détresse).
 5. Sinon, l'app propose des étiquettes, analysées sur le téléphone (étiquetage automatique).
-6. Elle parcourt ses entrées passées et leurs étiquettes (saisie d'une entrée, liste).
+6. Elle parcourt ses entrées passées et leurs étiquettes, et peut en supprimer une (saisie d'une entrée, liste).
 7. En fin de semaine, elle lit son bilan (bilan de la semaine).
 8. Elle peut à tout moment exporter ses données, ou tout supprimer (export et suppression totale).
 
@@ -107,15 +117,10 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 
 ## Questions ouvertes
 
-Questions métier non tranchées. Une fois la réponse donnée, elle rejoint la section concernée, et la question est retirée. Toutes sont posées le 2026-10-14 à Yanis, qui doit y répondre avant la spec du lot concerné.
+Questions métier non tranchées. Une fois la réponse donnée, elle rejoint la section concernée, et la question est retirée. Les questions posées le 2026-10-14 ont été tranchées le jour même (RM13 à RM22) ; celles-ci viennent de la revue IA de la PR #6.
 
-1. **Texte obligatoire ?** Une entrée peut-elle n'avoir qu'une humeur, sans texte ? La maquette d'exploration le propose (« facultatif »). Lot E.
-2. **Entrées par jour** : une seule par jour, ou autant que la personne veut ? Lot E.
-3. **Modifier ou supprimer une entrée** isolée, après coup ? Lot E.
-4. **Date d'une entrée** : toujours le moment de la saisie, ou une entrée pour un jour passé ? Lot E.
-5. **Après l'écran d'aide** : l'entrée en détresse est-elle enregistrée quand même (sans analyse), ou abandonnée ? Lot F.
-6. **Moment du téléchargement du modèle** : à la première ouverture, ou à la première entrée à analyser ? Wi-Fi seulement ? Lot G.
-7. **Vocabulaire des étiquettes** : une liste fermée d'émotions et de thèmes (testable, schéma strict), ou des étiquettes libres ? La personne peut-elle corriger une étiquette ? Lot G.
-8. **Format d'export** : JSON, CSV, PDF lisible ? Lot H.
-9. **Semaine du bilan** : du lundi au dimanche, ou les 7 derniers jours ? Nombre minimal d'entrées pour produire un bilan ? Lot I.
-10. **Langue** : l'app est-elle en français seulement ? Le choix du modèle (lot B) en dépend.
+1. **Destination de l'export** : fichier enregistré sur le téléphone seulement, ou feuille de partage du système (Fichiers, AirDrop, mail…), par laquelle les données quittent le téléphone ? Dans le second cas, un ADR documente l'exception à RM1. Lot H.
+2. **Entrée sans texte** : est-elle analysée (étiquettes à partir de l'humeur seule), ou jamais ? Lot G.
+3. **Entrée sans analyse** : une entrée saisie quand le modèle est absent, ou restée sans étiquette après une erreur, est-elle analysée plus tard ? Automatiquement ou à la demande ? Lot G.
+4. **Détresse sans texte** : une série d'humeurs très basses, sans texte, doit-elle déclencher l'écran d'aide ? Lot F.
+5. **Téléchargement interrompu** : la reprise continue-t-elle là où elle s'est arrêtée, ou repart-elle de zéro ? Lot G.
