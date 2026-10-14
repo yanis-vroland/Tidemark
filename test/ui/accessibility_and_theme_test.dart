@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/entries/entry.dart';
 import 'package:tidemark/ui/screens/entry_detail_screen.dart';
@@ -133,21 +134,27 @@ void main() {
       addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
     }
 
-    void expectDarkCharter(WidgetTester tester, String where) {
-      final context = tester.element(find.byType(Scaffold).first);
-      final theme = Theme.of(context);
-      final scaffold = tester.widget<Scaffold>(find.byType(Scaffold).first);
-      expect(
-        scaffold.backgroundColor ?? theme.scaffoldBackgroundColor,
-        TidemarkColors.dark.surface,
-        reason: '$where : fond',
+    /// Couleurs réellement peintes par l'écran affiché, celui qui contient
+    /// [anchor] : la Scaffold de la liste reste montée sous un écran poussé.
+    void expectDarkCharter(WidgetTester tester, String where, String anchor) {
+      final scaffold = find.ancestor(
+        of: find.text(anchor),
+        matching: find.byType(Scaffold),
       );
-      expect(
-        theme.extension<TidemarkColors>()?.surface,
-        TidemarkColors.dark.surface,
-        reason: '$where : couleurs de la charte sombre',
-      );
+      expect(scaffold, findsOneWidget, reason: '$where : écran affiché');
+      final background = tester
+          .widget<Material>(
+            find
+                .descendant(of: scaffold, matching: find.byType(Material))
+                .first,
+          )
+          .color;
+      expect(background, TidemarkColors.dark.surface, reason: '$where : fond');
     }
+
+    /// Couleur du texte [text] telle qu'elle est peinte.
+    Color? paintedTextColor(WidgetTester tester, String text) =>
+        tester.renderObject<RenderParagraph>(find.text(text)).text.style?.color;
 
     dbTestWidgets('CA28 : la liste utilise les couleurs sombres de la '
         'charte', (tester, env) async {
@@ -157,7 +164,13 @@ void main() {
       await settle(tester);
 
       expect(find.text('Ton journal'), findsOneWidget);
-      expectDarkCharter(tester, 'liste');
+      expectDarkCharter(tester, 'liste', 'Ton journal');
+      final card = tester.widget<Material>(
+        find
+            .ancestor(of: find.text('Neutre'), matching: find.byType(Material))
+            .first,
+      );
+      expect(card.color, TidemarkColors.dark.surfaceRaised, reason: 'carte');
     });
 
     dbTestWidgets('CA28 : la saisie utilise les couleurs sombres de la '
@@ -168,7 +181,12 @@ void main() {
       await openForm(tester);
 
       expect(find.text('Comment ça va ?'), findsOneWidget);
-      expectDarkCharter(tester, 'saisie');
+      expectDarkCharter(tester, 'saisie', 'Comment ça va ?');
+      expect(
+        paintedTextColor(tester, 'Comment ça va ?'),
+        TidemarkColors.dark.ink,
+        reason: 'titre',
+      );
     });
 
     dbTestWidgets('CA28 : le détail utilise les couleurs sombres de la '
@@ -181,7 +199,12 @@ void main() {
       await settle(tester);
 
       expect(find.text('Supprimer cette entrée'), findsOneWidget);
-      expectDarkCharter(tester, 'détail');
+      expectDarkCharter(tester, 'détail', 'Supprimer cette entrée');
+      expect(
+        paintedTextColor(tester, 'Supprimer cette entrée'),
+        TidemarkColors.dark.danger,
+        reason: 'bouton destructif',
+      );
     });
   });
 }

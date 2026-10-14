@@ -182,4 +182,25 @@ void main() {
       );
     });
   });
+
+  group('CA29 : écran de démarrage Android 12 et plus', () {
+    for (final (folder, dark) in [
+      ('values-v31', false),
+      ('values-night-v31', true),
+    ]) {
+      test('CA29 : $folder, windowSplashScreenBackground en surface', () {
+        final styles = read('$androidRes/$folder/styles.xml');
+        expect(styles, isNotNull, reason: folder);
+        final reference = RegExp(
+          r'name="android:windowSplashScreenBackground">@color/([a-z_]+)<',
+        ).firstMatch(styles!)?.group(1);
+        expect(reference, isNotNull, reason: folder);
+        expectSurface(
+          androidNamedColor(reference!, dark: dark),
+          dark ? TidemarkColors.dark : TidemarkColors.light,
+          folder,
+        );
+      });
+    }
+  });
 }

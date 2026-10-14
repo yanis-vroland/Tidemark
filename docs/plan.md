@@ -129,7 +129,7 @@ Branche : `chore/socle-flutter`. Après acceptation de l'ADR-001 et validation d
 - [x] Stockage local chiffré : choix de la base et de la gestion de la clé (trousseau iOS, Keystore Android). Choix structurant : ADR-002, accepté par Yanis le 2026-10-14. La numérotation des ADR est propre à Tidemark : les ADR de la chaîne sont toujours cités avec leur lien vers `agentic-dev-workflow`.
 - [x] Workflow CI Flutter : `dart format --set-exit-if-changed`, `dart analyze`, `flutter test`.
 - [x] `.claude/quality.json` renseigné, section « Stack et commandes » et « Architecture » du `CLAUDE.md` complétées.
-- [ ] Architecture technique : vue d'ensemble, modèle de données, sécurité. Vue d'ensemble et sécurité faites ; modèle de données avec la spec du lot E (ADR-002).
+- [x] Architecture technique : vue d'ensemble, modèle de données, sécurité. Modèle de données fait avec la spec 001 (lot E).
 
 ## Lots E à I : fonctionnalités
 

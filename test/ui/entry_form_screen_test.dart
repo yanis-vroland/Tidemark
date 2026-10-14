@@ -1,3 +1,5 @@
+import 'package:characters/characters.dart';
+
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -129,6 +131,17 @@ void main() {
       await enter(tester, '😀' * (maxTextLength + 5));
 
       expect(inputText(tester).runes.length, maxTextLength);
+    });
+
+    dbTestWidgets('CA12 : un drapeau compte pour un caractère, dans le champ '
+        'comme dans le compteur', (tester, env) async {
+      await tester.pumpWidget(testApp(EntryFormScreen(repository: env.repo)));
+      await settle(tester);
+
+      await enter(tester, '🇫🇷' * (maxTextLength + 100));
+
+      expect(inputText(tester).characters.length, maxTextLength);
+      expect(find.text('2 000 / 2 000'), findsOneWidget);
     });
 
     dbTestWidgets('CA12 : à 1 850 caractères, le compteur « 1 850 / 2 000 » '
@@ -399,8 +412,8 @@ void main() {
     testWidgets('CA14 : l\'échec affiche le bandeau, garde la saisie et '
         'propose « Réessayer »', (tester) async {
       usePhoneScreen(tester);
-      final semantics = tester.ensureSemantics();
-      addTearDown(semantics.dispose);
+      // Pas d'ensureSemantics ici : testWidgets active déjà la sémantique, et un
+      // addTearDown passerait après la vérification de fin de test de Flutter.
       final repo = FakeEntryRepository(
         beforeAdd: () async => throw StateError('stockage plein'),
       );
@@ -425,8 +438,8 @@ void main() {
       tester,
     ) async {
       usePhoneScreen(tester);
-      final semantics = tester.ensureSemantics();
-      addTearDown(semantics.dispose);
+      // Pas d'ensureSemantics ici : testWidgets active déjà la sémantique, et un
+      // addTearDown passerait après la vérification de fin de test de Flutter.
       final repo = FakeEntryRepository(
         beforeAdd: () async => throw StateError('stockage plein'),
       );
@@ -458,8 +471,8 @@ void main() {
         '« Enregistrement… », désactivé, et un second appui n\'enregistre '
         'pas deux fois', (tester) async {
       usePhoneScreen(tester);
-      final semantics = tester.ensureSemantics();
-      addTearDown(semantics.dispose);
+      // Pas d'ensureSemantics ici : testWidgets active déjà la sémantique, et un
+      // addTearDown passerait après la vérification de fin de test de Flutter.
       final gate = Completer<void>();
       final repo = FakeEntryRepository(beforeAdd: () => gate.future);
       await tester.pumpWidget(
