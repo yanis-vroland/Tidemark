@@ -122,14 +122,14 @@ Une première version existe : l'artefact « Design System » Tidemark, créé l
 
 Branche : `chore/socle-flutter`. Après acceptation de l'ADR-001 et validation de la charte.
 
-- [ ] Mise à jour de Flutter (3.35.3 installé, daté de septembre 2025) et création du projet, iOS + Android.
-- [ ] Thème transcrit depuis la charte : jetons dans `lib/ui/theme/`, `ThemeData` clair et sombre, polices embarquées.
-- [ ] Vérification en CI : aucune couleur codée en dur hors de `lib/ui/theme/`. Garde-fou contrôlé par mutation.
-- [ ] Interface `MoodAnalyzer` (nom à confirmer par le glossaire) et son implémentation factice, seule utilisée par les tests et la CI.
-- [ ] Stockage local chiffré : choix de la base et de la gestion de la clé (trousseau iOS, Keystore Android). Choix structurant : ADR-002, au statut « proposé ». La numérotation des ADR est propre à Tidemark : les ADR de la chaîne sont toujours cités avec leur lien vers `agentic-dev-workflow`.
-- [ ] Workflow CI Flutter : `dart format --set-exit-if-changed`, `dart analyze`, `flutter test`.
-- [ ] `.claude/quality.json` renseigné, section « Stack et commandes » et « Architecture » du `CLAUDE.md` complétées.
-- [ ] Architecture technique : vue d'ensemble, modèle de données, sécurité.
+- [x] Mise à jour de Flutter (3.35.3 → 3.47.7) et création du projet, iOS + Android.
+- [x] Thème transcrit depuis la charte : jetons dans `lib/ui/theme/`, `ThemeData` clair et sombre, polices embarquées.
+- [x] Vérification en CI : aucune couleur codée en dur hors de `lib/ui/theme/`. Garde-fou contrôlé par mutation.
+- [x] Interface `MoodAnalyzer` (nom à confirmer par le glossaire) et son implémentation factice, seule utilisée par les tests et la CI.
+- [x] Stockage local chiffré : choix de la base et de la gestion de la clé (trousseau iOS, Keystore Android). Choix structurant : ADR-002, accepté par Yanis le 2026-10-14. La numérotation des ADR est propre à Tidemark : les ADR de la chaîne sont toujours cités avec leur lien vers `agentic-dev-workflow`.
+- [x] Workflow CI Flutter : `dart format --set-exit-if-changed`, `dart analyze`, `flutter test`.
+- [x] `.claude/quality.json` renseigné, section « Stack et commandes » et « Architecture » du `CLAUDE.md` complétées.
+- [ ] Architecture technique : vue d'ensemble, modèle de données, sécurité. Vue d'ensemble et sécurité faites ; modèle de données avec la spec du lot E (ADR-002).
 
 ## Lots E à I : fonctionnalités
 
@@ -142,7 +142,7 @@ Chaque lot suit la même séquence, en PR séparées si la spec est longue à va
 
 | Lot | Branche | Points de vigilance |
 | --- | --- | --- |
-| E | `feat/saisie-entree` | Données chiffrées au repos ; aucune permission réseau utilisée par le code de l'app. |
+| E | `feat/saisie-entree` | Données chiffrées au repos ; aucune permission réseau utilisée par le code de l'app. Écran de lancement natif aux couleurs de la charte (aujourd'hui blanc ou noir sur Android, hors de portée du garde-fou des couleurs). |
 | F | `feat/garde-fou-detresse` | Avant le lot G : aucune entrée en détresse n'atteint le modèle. Écran d'aide fixe, jamais généré, et soigné comme les autres : sobre, lisible, numéro appelable d'un geste. Contrôle par mutation sur chaque règle. Liste de termes rédigée pour le projet et validée par Yanis. |
 | G | `feat/modele-local` puis `feat/etiquetage` | Deux specs. Téléchargement : consentement, taille annoncée, progression, échec réseau et reprise, empreinte du fichier vérifiée, état « modèle absent » ; un seul hôte contacté, aucune donnée de l'utilisateur dans la requête. Étiquetage : sortie JSON validée contre un schéma ; sortie invalide → entrée sans étiquette, jamais de plantage. Tests sur l'implémentation factice uniquement. |
 | H | `feat/export-suppression` | Suppression totale : base, clé, modèle téléchargé. Format d'export à trancher dans la spec. |

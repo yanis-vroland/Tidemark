@@ -1,6 +1,6 @@
 # ADR-002 : Stockage local chiffré
 
-Statut : proposé
+Statut : accepté (Yanis, 2026-10-14)
 Date : 2026-10-14
 
 Contexte : Tidemark garde sur le téléphone les entrées (humeur de 1 à 5, texte facultatif, date et heure de saisie : RM3, RM13, RM16), leurs étiquettes (liste fermée, RM19) et le statut de leur analyse (étiquetée, sans étiquette, non analysée). Exigences :
@@ -51,7 +51,7 @@ Options envisagées :
 
 ## Décision
 
-Décision **proposée par l'agent**, à trancher par Yanis : **`drift` 2.35.2 sur `sqlite3` 3.7.1 avec SQLite3MultipleCiphers (`source: sqlite3mc`), clé aléatoire de 256 bits gardée par `flutter_secure_storage` 11.2.0**, base exclue des sauvegardes du système, et marqueur d'installation pour effacer une clé restée dans le trousseau iOS.
+Décision de Yanis (2026-10-14), sur proposition de l'agent, exclusion des sauvegardes comprise : **`drift` 2.35.2 sur `sqlite3` 3.7.1 avec SQLite3MultipleCiphers (`source: sqlite3mc`), clé aléatoire de 256 bits gardée par `flutter_secure_storage` 11.2.0**, base exclue des sauvegardes du système, et marqueur d'installation pour effacer une clé restée dans le trousseau iOS.
 
 - **Chiffrement de toute la base** (RM2), métadonnées comprises, sans code de cryptographie maison.
 - **Requêtes SQL** : bilan de la semaine (`WHERE` sur la période, `COUNT`, `AVG`), suppression d'une entrée et de ses étiquettes par clé étrangère `ON DELETE CASCADE` (RM15), export par une simple lecture (RM20).
