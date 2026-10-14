@@ -11,9 +11,9 @@ class FakeEntryRepository implements EntryRepository {
     this.beforeDelete,
     this.watchError,
     DateTime Function()? clock,
-  }) : clock = clock ?? (() => DateTime.utc(2026, 10, 14, 19, 40));
+  }) : clock = clock ?? (() => DateTime(2026, 10, 14, 21, 40));
 
-  /// Instant de saisie donné aux entrées ajoutées (UTC).
+  /// Instant de saisie donné aux entrées ajoutées (heure locale : 21:40 par défaut).
   DateTime Function() clock;
 
   /// Si non nul, [markSkipped] lève cette erreur (vérification au démarrage).
@@ -64,12 +64,15 @@ class FakeEntryRepository implements EntryRepository {
     // Même contrat que EntryRepository.addEntry : texte gardé tel quel, absent s'il
     // est vide ou fait seulement d'espaces.
     final blank = text == null || text.trim().isEmpty;
+    final now = clock();
     final entry = Entry(
       id: _nextId(),
       mood: mood,
       text: blank ? null : text,
-      createdAt: clock().toUtc(),
-      utcOffset: const Duration(hours: 2),
+      createdAt: now.toUtc(),
+      // Décalage de l'horloge, comme le vrai dépôt : l'heure affichée ne dépend pas
+      // du fuseau de la machine qui lance les tests.
+      utcOffset: now.timeZoneOffset,
       analysisStatus: blank ? AnalysisStatus.skipped : status,
     );
     _entries.insert(0, entry);
@@ -98,7 +101,7 @@ class FakeEntryRepository implements EntryRepository {
       mood: mood,
       text: text,
       createdAt: createdAt.toUtc(),
-      utcOffset: const Duration(hours: 2),
+      utcOffset: createdAt.timeZoneOffset,
       analysisStatus:
           status ??
           (text == null ? AnalysisStatus.skipped : AnalysisStatus.pending),

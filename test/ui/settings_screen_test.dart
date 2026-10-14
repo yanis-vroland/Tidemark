@@ -351,6 +351,10 @@ void main() {
     await tester.tap(find.text(highLabel));
     await settle(tester);
     expect(settings.setCalls, [LowMoodSensitivity.high]);
+    // Ajouté après la revue IA : l'écran montre le degré enregistré, pas
+    // « Normale », même si la lecture reste en échec.
+    expect(radioChecked(tester, highLabel), isTrue);
+    expect(radioChecked(tester, normalLabel), isFalse);
   });
 
   group('accessibilité (CA24)', () {

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../distress/guarded_save.dart';
 import '../../entries/day_grouping.dart';
 import '../../entries/entry.dart';
-import '../../distress/guarded_save.dart';
 import '../../entries/entry_repository.dart';
 import '../../settings/settings_repository.dart';
 import '../phone_dialer.dart';
