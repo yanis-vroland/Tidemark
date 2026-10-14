@@ -23,15 +23,24 @@ void main() {
 
   test('refuse une étiquette hors vocabulaire', () {
     expect(
-      parseLabels('{"emotions": ["mélancolie"], "themes": ["travail"]}', vocabulary),
+      parseLabels(
+        '{"emotions": ["mélancolie"], "themes": ["travail"]}',
+        vocabulary,
+      ),
       isNull,
     );
   });
 
   test('refuse une liste vide ou trop longue', () {
-    expect(parseLabels('{"emotions": [], "themes": ["travail"]}', vocabulary), isNull);
     expect(
-      parseLabels('{"emotions": ["joie"], "themes": ["travail", "nature", "travail"]}', vocabulary),
+      parseLabels('{"emotions": [], "themes": ["travail"]}', vocabulary),
+      isNull,
+    );
+    expect(
+      parseLabels(
+        '{"emotions": ["joie"], "themes": ["travail", "nature", "travail"]}',
+        vocabulary,
+      ),
       isNull,
     );
   });

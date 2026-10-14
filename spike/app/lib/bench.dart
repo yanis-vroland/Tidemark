@@ -40,19 +40,19 @@ class BenchResult {
       recalls.isEmpty ? 0 : recalls.reduce((a, b) => a + b) / recalls.length;
 
   Map<String, Object> toJson() => {
-        'engine': engine,
-        'modelFile': modelFile,
-        'modelMb': (modelBytes / 1024 / 1024).round(),
-        'loadMs': loadMs,
-        'rssAfterLoadMb': rssAfterLoadMb,
-        'maxRssMb': maxRssMb,
-        'entries': count,
-        'medianMs': _percentile(0.5),
-        'p90Ms': _percentile(0.9),
-        'validJson': '$valid/$count',
-        'meanRecallOnValid': double.parse(meanRecall.toStringAsFixed(2)),
-        'rawOutputs': rawOutputs,
-      };
+    'engine': engine,
+    'modelFile': modelFile,
+    'modelMb': (modelBytes / 1024 / 1024).round(),
+    'loadMs': loadMs,
+    'rssAfterLoadMb': rssAfterLoadMb,
+    'maxRssMb': maxRssMb,
+    'entries': count,
+    'medianMs': _percentile(0.5),
+    'p90Ms': _percentile(0.9),
+    'validJson': '$valid/$count',
+    'meanRecallOnValid': double.parse(meanRecall.toStringAsFixed(2)),
+    'rawOutputs': rawOutputs,
+  };
 }
 
 int _mb(int bytes) => (bytes / 1024 / 1024).round();

@@ -5,9 +5,9 @@ class Vocabulary {
   const Vocabulary({required this.emotions, required this.themes});
 
   factory Vocabulary.fromJson(Map<String, dynamic> json) => Vocabulary(
-        emotions: List<String>.from(json['emotions'] as List),
-        themes: List<String>.from(json['themes'] as List),
-      );
+    emotions: List<String>.from(json['emotions'] as List),
+    themes: List<String>.from(json['themes'] as List),
+  );
 
   final List<String> emotions;
   final List<String> themes;
@@ -49,7 +49,8 @@ class Labels {
 }
 
 /// Prompt commun aux deux moteurs : seul le moteur change d'une mesure à l'autre.
-String buildPrompt(Vocabulary vocabulary, String text) => '''
+String buildPrompt(Vocabulary vocabulary, String text) =>
+    '''
 Tu étiquettes une entrée de journal d'humeur écrite en français.
 Choisis de 1 à 3 émotions dans cette liste : ${vocabulary.emotions.join(', ')}.
 Choisis de 1 à 2 thèmes dans cette liste : ${vocabulary.themes.join(', ')}.
