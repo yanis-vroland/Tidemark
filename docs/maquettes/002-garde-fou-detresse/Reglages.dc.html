@@ -14,9 +14,9 @@ body{margin:0}
 a{color:#1d5f6b}a:hover{color:#13272c}
 </style>
 </helmet>
-<div style="width: 393px; height: 852px; box-sizing: border-box; padding: 56px 16px 40px; display: flex; flex-direction: column; gap: 16px; background: {{t.surface}}; color: {{t.ink}}; font-family: Figtree, system-ui, sans-serif;">
+<div style="width: 393px; height: 852px; box-sizing: border-box; padding: 64px 16px 40px; display: flex; flex-direction: column; gap: 16px; background: {{t.surface}}; color: {{t.ink}}; font-family: Figtree, system-ui, sans-serif;">
   <a href="ListeAcces.dc.html" style="align-self: flex-start; height: 44px; display: flex; align-items: center; gap: 4px; color: {{t.tide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
     Journal
   </a>
   <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 34px; line-height: 38px; letter-spacing: -0.5px;">Réglages</h1>
@@ -36,15 +36,15 @@ a{color:#1d5f6b}a:hover{color:#13272c}
         <legend style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Sensibilité aux humeurs basses</legend>
         <sc-for list="{{options}}" as="o" hint-placeholder-count="3">
           <label style="{{o.box}}">
-            <input type="radio" name="sensibilite" value="{{o.id}}" checked="{{o.checked}}" onChange="{{o.pick}}" style="width: 22px; height: 22px; margin: 2px 0 0; flex-shrink: 0; accent-color: {{t.tide}};">
-            <span style="display: flex; flex-direction: column; gap: 2px;">
+            <input type="radio" name="sensibilite" value="{{o.id}}" checked="{{o.checked}}" onChange="{{o.pick}}" style="margin: 4px 0 0; flex-shrink: 0; accent-color: {{t.tide}};">
+            <span style="display: flex; flex-direction: column; gap: 4px;">
               <span style="font-size: 17px; line-height: 24px; font-weight: 600;">{{o.label}}</span>
               <span style="font-size: 16px; line-height: 24px; color: {{t.muted}};">{{o.detail}}</span>
             </span>
           </label>
         </sc-for>
       </fieldset>
-      <p style="margin: 0; font-size: 13px; line-height: 18px; color: {{t.muted}};">Ce réglage ne peut pas être désactivé. Les mots qui signalent un danger ouvrent toujours l'écran d'aide, quel que soit ce choix.</p>
+      <p style="margin: 0; font-size: 13px; line-height: 18px; color: {{t.muted}};">L'écran d'aide ne peut pas être désactivé. Les mots qui signalent un danger ouvrent toujours l'écran d'aide, quel que soit ce choix.</p>
     </section>
   </sc-if>
 </div>
