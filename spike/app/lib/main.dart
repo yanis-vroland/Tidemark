@@ -19,6 +19,7 @@ const _model = String.fromEnvironment('MODEL');
 const _constrained = bool.fromEnvironment('CONSTRAINED');
 const _limit = int.fromEnvironment('LIMIT', defaultValue: 20);
 const _gpuLayers = int.fromEnvironment('GPU_LAYERS', defaultValue: 99);
+const _modelType = String.fromEnvironment('MODEL_TYPE', defaultValue: 'qwen3');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,7 +74,7 @@ class _SpikeAppState extends State<SpikeApp> {
       final SpikeEngine engine = switch (_engine) {
         'edge' => EdgeAiEngine(
           vocabulary,
-          ModelType.qwen3,
+          ModelType.values.byName(_modelType),
           useTools: _constrained,
         ),
         _ => LlamadartEngine(

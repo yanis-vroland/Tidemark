@@ -74,3 +74,28 @@ Yanis libère de l'espace disque (au moins 15 Go conseillés). Ensuite : relance
 ### Prochaine étape
 
 Accord de Yanis sur le téléchargement de Qwen2.5-1.5B en `.litertlm`, puis comparaison à modèle égal, une plateforme à la fois. Ensuite : mesures sur l'iPhone 15 Pro (temps, mémoire, GPU), puis ADR-001.
+
+## 2026-10-14 13:02
+
+### Fait
+
+- Qwen2.5-1.5B-Instruct en `.litertlm` q8 téléchargé (1,6 Go, Apache-2.0, révision épinglée) avec l'accord de Yanis, qui demande de supprimer à la fin du spike tout ce qui n'est pas utile à garder.
+- Comparaison à modèle égal, iOS puis Android, mesurés l'un après l'autre : `spike/mesures/2026-10-14-modele-egal.md`.
+- Résultats (simulateur iOS / émulateur Android) :
+  - `llamadart` + schéma : 20/20 valides, rappel 0,52 / 0,49, médiane 0,8 s / 0,9 s, environ 2 Go de RSS.
+  - `flutter_edge_ai` + appel de fonction : 19/20, rappel 0,49, médiane 2,0 s / 4,7 s, chargement de 10 à 11 s.
+  - `flutter_edge_ai` sans contrainte : 18/20, meilleur rappel (0,64 / 0,66), médiane 1,8 s / 2,8 s.
+
+### Décisions
+
+- Recommandation provisoire de l'agent : `llamadart` avec sortie contrainte par schéma, pour sa sortie toujours valide (RM9 jamais déclenchée sur 40 essais) et sa rapidité. À confirmer sur l'iPhone 15 Pro avant l'ADR-001 ; décision finale à Yanis.
+
+### Corrections et limites
+
+- Le `.litertlm` n'existe qu'en q8, le GGUF est en Q4_K_M : la qualité de `flutter_edge_ai` est un peu avantagée.
+- La RSS de `flutter_edge_ai` (0,5 à 1,2 Go) ne compte peut-être pas toute la mémoire de LiteRT-LM : comparaison de mémoire à confirmer sur l'iPhone (Instruments).
+- Rappel autour de 0,5 quel que soit le moteur : limite du modèle de 1,5 milliard de paramètres, à écrire dans l'ADR et le README.
+
+### Prochaine étape
+
+Mesures sur l'iPhone 15 Pro (temps réels, mémoire, GPU), une configuration à la fois. Puis ADR-001, puis nettoyage : émulateur `Tidemark_Spike`, modèles, copie du projet pour iOS, app du spike sur le simulateur.
