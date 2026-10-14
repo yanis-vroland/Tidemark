@@ -12,7 +12,7 @@ Règles propres au projet :
 - **Sujet sensible.** L'app ne donne aucun conseil médical. En cas de détresse détectée, elle affiche un écran d'aide fixe (3114, numéro national de prévention du suicide), jamais une réponse générée par le modèle. Chaque garde-fou est couvert par des tests.
 - **L'IA derrière une interface.** Le modèle local reste isolé derrière une abstraction, avec une implémentation factice pour les tests et la CI, qui n'exécutent jamais de vrai modèle.
 - **Données de test fictives**, rédigées pour le projet.
-- **Maquettes dans la spec.** Toute spec qui touche un écran contient sa maquette, générée avec Claude et validée par l'humain avant les tests. Elle couvre aussi les états vide, chargement et erreur.
+- **Maquettes dans la spec.** Toute spec qui touche un écran contient sa maquette : un artefact Claude de type « Design », construit sur la charte Tidemark (artefact « Design System »), et validé par l'humain avant les tests. Elle couvre aussi les états vide, chargement et erreur, en thème clair et sombre. La source HTML et les captures sont versionnées dans `docs/maquettes/` et font foi ; la spec affiche les captures et donne le lien de l'artefact. Le code n'utilise que les jetons de la charte. Méthode détaillée : `docs/plan.md`, « Maquettes en artefacts Claude ».
 
 ## Stack et commandes
 
