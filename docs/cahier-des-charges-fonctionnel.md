@@ -40,6 +40,7 @@ Les termes du métier et leur nom dans le code. Les specs, le code et les PR uti
 | Type d'étiquette | `TagKind` | `emotion` ou `theme`. |
 | Analyse | `analysis` | Traitement d'une entrée par le modèle local, qui produit ses étiquettes. |
 | Analyseur | `MoodAnalyzer` | Interface qui isole le modèle local ; une implémentation factice sert aux tests et à la CI. |
+| Résultat d'analyse | `AnalysisResult` : `Tagged`, `Untagged` | Ce que rend l'analyseur : « étiquetée » (`Tagged`, avec ses étiquettes) ou « sans étiquette » (`Untagged`, RM9). Le statut « non analysée » (RM8, RM17, RM24) n'est pas un résultat de l'analyseur, qui n'est pas appelé : il relève de l'entrée, et sera nommé par la spec du lot E. |
 | Modèle local | `LocalModel` | Fichier du modèle d'IA, téléchargé une fois puis exécuté sur le téléphone. |
 | Détresse | `distress` | Signe qu'une personne est peut-être en danger, repéré dans le texte d'une entrée ou dans une série d'humeurs très basses (RM25). |
 | Détecteur de détresse | `DistressDetector` | Règles déterministes qui repèrent la détresse dans le texte et dans la suite des humeurs (RM6, RM25). |

@@ -1,5 +1,6 @@
 /// Analyse d'une entrée par le modèle local, derrière une interface : l'app ne connaît
-/// jamais le moteur (ADR-001). Les tests et la CI n'utilisent que [FakeMoodAnalyzer].
+/// jamais le moteur (ADR-001). Les tests et la CI utilisent `FakeMoodAnalyzer`
+/// (test/support/), jamais un vrai modèle.
 library;
 
 /// Type d'étiquette (glossaire : `TagKind`).
@@ -44,23 +45,4 @@ abstract interface class MoodAnalyzer {
   /// Analyse le texte d'une entrée. Ne lève jamais d'exception : toute erreur du
   /// modèle devient [Untagged].
   Future<AnalysisResult> analyze(String text);
-}
-
-/// Implémentation factice, déterministe, pour les tests et la CI : elle n'exécute
-/// aucun modèle. Elle rend le résultat prévu pour un texte, ou [fallback].
-class FakeMoodAnalyzer implements MoodAnalyzer {
-  FakeMoodAnalyzer({this.results = const {}, this.fallback = const Untagged()});
-
-  /// Résultat prévu pour chaque texte.
-  final Map<String, AnalysisResult> results;
-  final AnalysisResult fallback;
-
-  /// Textes reçus, dans l'ordre, pour vérifier ce qui a été transmis au modèle.
-  final List<String> received = [];
-
-  @override
-  Future<AnalysisResult> analyze(String text) async {
-    received.add(text);
-    return results[text] ?? fallback;
-  }
 }

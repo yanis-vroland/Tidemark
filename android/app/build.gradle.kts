@@ -15,7 +15,6 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "dev.tidemark.tidemark"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
@@ -31,8 +30,8 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Signature de release avec les clés de debug : pas de publication sur le
+            // Play Store dans ce projet (plan, lot J). À remplacer avant toute publication.
             signingConfig = signingConfigs.getByName("debug")
         }
     }

@@ -142,7 +142,7 @@ Chaque lot suit la même séquence, en PR séparées si la spec est longue à va
 
 | Lot | Branche | Points de vigilance |
 | --- | --- | --- |
-| E | `feat/saisie-entree` | Données chiffrées au repos ; aucune permission réseau utilisée par le code de l'app. |
+| E | `feat/saisie-entree` | Données chiffrées au repos ; aucune permission réseau utilisée par le code de l'app. Écran de lancement natif aux couleurs de la charte (aujourd'hui blanc ou noir sur Android, hors de portée du garde-fou des couleurs). |
 | F | `feat/garde-fou-detresse` | Avant le lot G : aucune entrée en détresse n'atteint le modèle. Écran d'aide fixe, jamais généré, et soigné comme les autres : sobre, lisible, numéro appelable d'un geste. Contrôle par mutation sur chaque règle. Liste de termes rédigée pour le projet et validée par Yanis. |
 | G | `feat/modele-local` puis `feat/etiquetage` | Deux specs. Téléchargement : consentement, taille annoncée, progression, échec réseau et reprise, empreinte du fichier vérifiée, état « modèle absent » ; un seul hôte contacté, aucune donnée de l'utilisateur dans la requête. Étiquetage : sortie JSON validée contre un schéma ; sortie invalide → entrée sans étiquette, jamais de plantage. Tests sur l'implémentation factice uniquement. |
 | H | `feat/export-suppression` | Suppression totale : base, clé, modèle téléchargé. Format d'export à trancher dans la spec. |

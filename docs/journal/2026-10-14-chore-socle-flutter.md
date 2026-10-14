@@ -32,3 +32,22 @@ Branche `chore/socle-flutter`.
 ### Prochaine étape
 
 Yanis relit et merge cette PR. Ensuite : spec du lot E (saisie d'une entrée et liste), avec la maquette reprise de l'exploration.
+
+## 2026-10-14 15:20
+
+### Fait
+
+- Suites de la revue IA de la PR #11 : texte de l'accueil retiré (promesse et tutoiement sans spec) ; garde-fou des couleurs élargi (entier décimal, `Color.from`, appel sur plusieurs lignes, fichier analysé en entier sans les commentaires) ; TODO Android retirés ou remplacés ; glossaire (`AnalysisResult`, `Tagged`, `Untagged`) et contrat `MoodAnalyzer` documentés ; `bodyMedium` sur le style `body` ; `moodColor` et `onMoodColor` testés ; `FakeMoodAnalyzer` déplacé dans `test/support/` ; `actions/checkout` épinglée par SHA ; écran de lancement Android noté au lot E du plan.
+- 21 tests ; mutation sur les nouvelles protections (couleur en entier décimal sur deux lignes, `bodyMedium` retiré) : chaque mutation est détectée.
+
+### Décisions
+
+- Statut « non analysée » : propre à l'entrée, pas un résultat de `MoodAnalyzer` (l'analyseur n'est pas appelé) ; nom fixé par la spec du lot E (agent).
+
+### Corrections et limites
+
+- Job « Revue IA » rouge : 10 actions refusées, le relecteur a tenté des commandes hors de sa liste (sans doute `flutter test`). Rapport publié malgré tout. Friction à remonter à la chaîne P1.
+
+### Prochaine étape
+
+Yanis relit et merge cette PR. Ensuite : spec du lot E (saisie et liste des entrées).

@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/analysis/mood_analyzer.dart';
 
+import '../support/fake_mood_analyzer.dart';
+
 void main() {
   test(
     'rend le résultat prévu pour un texte et note ce qu\'il a reçu',

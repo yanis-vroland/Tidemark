@@ -15,6 +15,8 @@ ThemeData buildTidemarkTheme(Brightness brightness) {
     secondary: colors.tide,
     onSecondary: colors.onTide,
     error: colors.danger,
+    // Pas de jeton « on-danger » : surface-raised sur danger tient 6,6:1 en clair et
+    // 7,1:1 en sombre (docs/maquettes/000-charte/README.md).
     onError: colors.surfaceRaised,
     surface: colors.surface,
     onSurface: colors.ink,
@@ -29,6 +31,8 @@ ThemeData buildTidemarkTheme(Brightness brightness) {
     titleLarge: TidemarkTypography.title,
     titleMedium: TidemarkTypography.headline,
     bodyLarge: TidemarkTypography.body,
+    // Style par défaut de Text : sans lui, un texte sans style sortirait de la charte.
+    bodyMedium: TidemarkTypography.body,
     labelLarge: TidemarkTypography.label,
     bodySmall: TidemarkTypography.caption,
   ).apply(bodyColor: colors.ink, displayColor: colors.ink);
