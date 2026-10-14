@@ -22,7 +22,7 @@ Le 2026-11-03, le projet s'arrête où il en est : README à jour, limites écri
 
 ## Périmètre
 
-Le MVP proposé au lancement du projet est trié en trois niveaux. « Si le temps le permet » n'est commencé que si tout l'indispensable est mergé avant le 2026-10-30 ; « Reporté » attend une décision de Yanis.
+Le MVP proposé au lancement du projet est trié en trois niveaux. « Si le temps le permet » n'est commencé que si tout l'indispensable est mergé avant le 2026-10-30 ; « Hors MVP » est écarté par Yanis (2026-10-14).
 
 | Niveau | Fonctionnalité | IA | Lot |
 | --- | --- | --- | --- |
@@ -32,8 +32,8 @@ Le MVP proposé au lancement du projet est trié en trois niveaux. « Si le temp
 | Indispensable | Étiquetage automatique (émotions, thèmes) | LLM local, JSON validé | F |
 | Indispensable | Export et suppression totale | — | G |
 | Si le temps le permet | Bilan de la semaine | LLM local + calculs en Dart | H |
-| Reporté | Dictée | — | voir « Questions pour Yanis » |
-| Reporté | Classifieur de détresse | Modèle | voir « Questions pour Yanis » |
+| Hors MVP | Dictée | — | voir « Décisions » |
+| Hors MVP | Classifieur de détresse | Modèle | voir « Décisions » |
 
 Hors périmètre : comptes, synchronisation, cloud, notifications, thèmes personnalisés.
 
@@ -45,15 +45,15 @@ Hors périmètre : comptes, synchronisation, cloud, notifications, thèmes perso
 | 2 | 20 → 26 oct. | D, E, F | Saisie, garde-fou et étiquetage livrés |
 | 3 | 27 oct. → 3 nov. | G, H, I | Export et suppression livrés, README final, dépôt public |
 
-Point d'arrêt le **2026-10-24** : si le lot C n'est pas mergé, Yanis décide entre réduire à Android seul ou couper le lot G (export et suppression). Le lot F n'est pas une option de coupe : sans lui, la preuve n° 2 tombe.
+Point d'arrêt le **2026-10-24** : si le lot C n'est pas mergé, Yanis décide entre réduire à iOS seul ou couper le lot G (export et suppression). Le lot F n'est pas une option de coupe : sans lui, la preuve n° 2 tombe.
 
 ## Tâches de Yanis
 
 - [ ] **[Yanis]** Merger la PR #3 (nettoyage des workflows).
 - [ ] **[Yanis]** Accord pour créer le label `agent-corrigé`.
-- [ ] **[Yanis]** Répondre aux « Questions pour Yanis » avant le lot B.
+- [x] **[Yanis]** Répondre aux questions de cadrage avant le lot B (2026-10-14).
 - [ ] **[Yanis]** Valider l'ADR-001, puis chaque spec et sa maquette.
-- [ ] **[Yanis]** Test humain de chaque fonctionnalité sur un appareil iOS et un appareil Android.
+- [ ] **[Yanis]** Test humain de chaque fonctionnalité sur l'iPhone 15 Pro et sur l'émulateur Android.
 - [ ] **[Yanis]** Passer le dépôt en public (lot I).
 
 ## Lot A : cadrage
@@ -61,17 +61,18 @@ Point d'arrêt le **2026-10-24** : si le lot C n'est pas mergé, Yanis décide e
 Branche : `docs/plan-projet` (cette PR), puis `docs/cahier-des-charges`.
 
 - [x] Plan du projet (`docs/plan.md`).
-- [ ] Cahier des charges : objectif et périmètre, acteur unique (la personne qui tient son journal), glossaire (entrée, humeur, étiquette, bilan, détresse), règles métier tranchées, fonctionnalités du tableau ci-dessus au statut « à spécifier ». Les règles non tranchées vont dans les questions ouvertes, et les questions 1 et 2 de ce plan y migrent, avec un simple renvoi ici.
+- [ ] Cahier des charges : objectif et périmètre, acteur unique (la personne qui tient son journal), glossaire (entrée, humeur, étiquette, bilan, détresse), règles métier tranchées, fonctionnalités du tableau ci-dessus au statut « à spécifier ». Les règles non tranchées vont dans les questions ouvertes. Les décisions sur la dictée et le classifieur y sont reportées (hors périmètre), avec un simple renvoi ici.
 - [x] README : renvoi vers le plan.
 
 ## Lot B : spike du moteur d'IA local (2 jours)
 
 Branche : `spike/moteur-ia`. Le code du spike n'est pas mergé : seuls l'ADR et ses mesures le sont.
 
-Candidats : `flutter_gemma` et `llama_cpp_dart`. Foundation Models d'Apple est écarté d'office, puisqu'il n'existe pas sur Android (décision iOS + Android du 2026-10-13) ; l'ADR le mentionne comme option rejetée. À réexaminer seulement si la question 3 ramène la cible à iOS seul.
+Candidats : `flutter_gemma` et `llama_cpp_dart`. Foundation Models d'Apple est écarté d'office, puisqu'il n'existe pas sur Android (décision iOS + Android du 2026-10-13) ; l'ADR le mentionne comme option rejetée. À réexaminer seulement si la cible est ramenée à iOS seul.
 
-- [ ] Pour chaque candidat, sur un iPhone et un Android physiques (pas de simulateur pour les mesures) : étiquetage d'une entrée fictive en JSON.
-- [ ] Mesures consignées dans l'ADR, avec l'appareil et le modèle utilisés : taille du modèle téléchargé, mémoire, temps de chargement, temps d'étiquetage, taux de JSON valide sur 20 entrées fictives.
+- [ ] Pour chaque candidat, étiquetage d'une entrée fictive en JSON sur l'iPhone 15 Pro (mesures) et sur l'émulateur Android (fonctionnement seulement : un émulateur utilise le processeur du Mac, ses temps ne valent pas ceux d'un téléphone, et l'accélération GPU peut y manquer).
+- [ ] Un candidat qui ne tourne pas sur l'émulateur Android est éliminé, ou l'ADR explique pourquoi l'émulateur n'est pas représentatif.
+- [ ] Mesures sur l'iPhone 15 Pro consignées dans l'ADR, avec le modèle utilisé : taille du modèle téléchargé, mémoire, temps de chargement, temps d'étiquetage, taux de JSON valide sur 20 entrées fictives.
 - [ ] Vérification qu'aucun appel réseau n'a lieu après le téléchargement du modèle (mode avion).
 - [ ] Licence du modèle compatible avec un dépôt public.
 - [ ] ADR-001 « Moteur d'IA local » rédigé au statut « proposé ».
@@ -113,11 +114,13 @@ Branche : `docs/readme-final`.
 - [ ] Frictions de la chaîne remontées en issues dans `agentic-dev-workflow`.
 - [ ] `docs/projets/tidemark.md` de l'espace de travail mis à jour : bilan et retour à P2.
 
-## Questions pour Yanis
+## Décisions
 
-1. **Dictée** : la reconnaissance vocale du système peut envoyer l'audio à un serveur sur les deux plateformes, ce qui contredit « rien ne quitte l'appareil ». Sur iOS, elle passe par les serveurs d'Apple par défaut, et la reconnaissance locale (`requiresOnDeviceRecognition`) n'existe que pour certaines langues et certains appareils ; sur Android, elle peut passer par les serveurs de Google. Proposition : la sortir du MVP. Sinon, il faut un modèle de transcription local (un second modèle à embarquer) et un ADR.
-2. **Classifieur de détresse** : un modèle ajoute des faux négatifs difficiles à tester et du temps de spike. Proposition : règles déterministes seules dans le MVP, classifieur en piste d'amélioration documentée.
-3. **Appareils de test** : quels iPhone et Android physiques sont disponibles pour le spike ? Sans iPhone physique, les mesures iOS sont impossibles et la décision iOS + Android est à revoir.
+Décisions de cadrage de Yanis (2026-10-14), à reporter dans le cahier des charges au lot A :
+
+1. **Pas de dictée.** La reconnaissance vocale du système peut envoyer l'audio à un serveur : serveurs d'Apple par défaut sur iOS (la reconnaissance locale, `requiresOnDeviceRecognition`, n'existe que pour certaines langues et certains appareils), serveurs de Google possibles sur Android. La garder exigerait un modèle de transcription local et un ADR.
+2. **Détection de détresse par règles seules.** Pas de classifieur : un modèle ajoute des faux négatifs difficiles à tester. Le classifieur est une piste d'amélioration, documentée dans le README.
+3. **Appareils : iPhone 15 Pro physique, émulateur Android et simulateurs iOS sur le Mac.** Aucun Android physique : les mesures de performance ne valent que pour l'iPhone, Android n'est vérifié qu'en fonctionnement. Cette limite figure dans l'ADR-001 et dans le README.
 
 ## Frictions de la chaîne
 

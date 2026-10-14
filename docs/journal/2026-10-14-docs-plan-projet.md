@@ -2,7 +2,7 @@
 
 Branche `docs/plan-projet`.
 
-## 2026-10-14 09:05
+## 2026-10-14 08:46
 
 ### Fait
 
@@ -18,13 +18,13 @@ Branche `docs/plan-projet`.
 ### Corrections et limites
 
 - Cahier des charges non rempli dans cette PR : il demande des règles métier que seul Yanis tranche (glossaire, termes de détresse). Il fait l'objet de la PR suivante du lot A.
-- La dictée Android via la reconnaissance du système n'a pas été vérifiée en détail : le risque d'envoi aux serveurs de Google est à confirmer si Yanis veut garder la dictée. (Complété le même jour : le risque existe aussi sur iOS, voir l'entrée de 09:20.)
+- La dictée Android via la reconnaissance du système n'a pas été vérifiée en détail : le risque d'envoi aux serveurs de Google est à confirmer si Yanis veut garder la dictée. (Complété le même jour : le risque existe aussi sur iOS, voir l'entrée de 08:50.)
 
 ### Prochaine étape
 
 Yanis relit le plan et répond aux trois questions. Ensuite : cahier des charges (fin du lot A), puis spike du moteur d'IA (lot B).
 
-## 2026-10-14 09:20
+## 2026-10-14 08:50
 
 ### Fait
 
@@ -43,3 +43,23 @@ Yanis relit le plan et répond aux trois questions. Ensuite : cahier des charges
 ### Prochaine étape
 
 Yanis relit le plan et répond aux trois questions. Ensuite : cahier des charges (fin du lot A), puis spike du moteur d'IA (lot B).
+
+## 2026-10-14 08:57
+
+### Fait
+
+- Réponses de Yanis reportées dans le plan : section « Questions pour Yanis » remplacée par « Décisions », périmètre et lot B mis à jour.
+- Heures des deux entrées précédentes corrigées (09:05 → 08:46, 09:20 → 08:50) : l'agent les avait écrites sans lire l'horloge. Elles suivent maintenant l'heure des commits.
+
+### Décisions
+
+- Pas de dictée ; détection de détresse par règles seules ; appareils : iPhone 15 Pro physique, émulateur Android et simulateurs iOS (Yanis).
+- Conséquences proposées par l'agent, à valider dans la PR : mesures de performance sur l'iPhone seul, Android vérifié en fonctionnement sur émulateur ; point d'arrêt du 2026-10-24 : repli sur iOS seul (et non plus Android seul) ; test humain sur l'iPhone et l'émulateur.
+
+### Corrections et limites
+
+- Sans Android physique, les chiffres du spike ne disent rien des performances sur un téléphone Android : limite à écrire dans l'ADR-001 et le README.
+
+### Prochaine étape
+
+Yanis relit et merge les PR #3 et #4. Ensuite : cahier des charges (fin du lot A), puis spike du moteur d'IA (lot B).
