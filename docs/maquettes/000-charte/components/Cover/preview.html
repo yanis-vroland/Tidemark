@@ -1,0 +1,36 @@
+<!-- @dsCard height=288 -->
+<div class="cover">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600&family=Figtree:wght@400&display=swap">
+  <style>
+    .cover { position: relative; width: 960px; height: 288px; background: var(--surface); overflow: hidden; }
+    .cover svg { position: absolute; left: 480px; top: 0; }
+    .m1 { fill: var(--mood-1); } .m2 { fill: var(--mood-2); } .m3 { fill: var(--mood-3); }
+    .m4 { fill: var(--mood-4); } .m5 { fill: var(--mood-5); }
+    .tide { fill: var(--tide); } .soft { fill: var(--tide-soft); } .ground { fill: var(--surface); }
+    .name { position: absolute; left: 40px; bottom: 64px; margin: 0; font-family: var(--font-display, "Bricolage Grotesque", system-ui, sans-serif); font-weight: 600; font-size: 88px; line-height: .92; letter-spacing: -1.5px; color: var(--ink); }
+    .tag { position: absolute; left: 40px; bottom: 32px; margin: 0; max-width: 440px; font-family: var(--font-body, "Figtree", system-ui, sans-serif); font-size: 14px; color: var(--ink-muted); }
+  </style>
+  <!--
+    Blocs : tide (bloc haut, 480 × 96), soft (bande de relief 480 × 32), mood-1 à mood-5 (bandes de marée inégales, hauteurs 24 à 64 = space-6 à 2 × space-8).
+    Disposition : bandes horizontales empilées depuis le haut, comme les lignes successives laissées par la marée, qui saignent sur le bord droit.
+    Motif : demi-disques (vaguelettes) découpés dans la teinte du fond le long de la ligne de marée ; choisi car la charte est douce, en rayons pill, et son image est la marée.
+    Échelles : pas de 32 (space-8), rayons 16 (radius-md) et demi-disques de rayon 16.
+  -->
+  <svg width="480" height="288" viewBox="0 0 480 288" aria-hidden="true">
+    <rect class="tide" x="0" y="0" width="480" height="96"></rect>
+    <rect class="soft" x="0" y="96" width="480" height="32"></rect>
+    <rect class="m5" x="32" y="128" width="448" height="24"></rect>
+    <rect class="m4" x="64" y="152" width="416" height="32"></rect>
+    <rect class="m3" x="128" y="184" width="352" height="40"></rect>
+    <rect class="m2" x="192" y="224" width="288" height="32"></rect>
+    <rect class="m1" x="256" y="256" width="224" height="32"></rect>
+    <g class="ground">
+      <circle cx="48" cy="96" r="16"></circle><circle cx="112" cy="96" r="16"></circle>
+      <circle cx="176" cy="96" r="16"></circle><circle cx="240" cy="96" r="16"></circle>
+      <circle cx="304" cy="96" r="16"></circle><circle cx="368" cy="96" r="16"></circle>
+      <circle cx="432" cy="96" r="16"></circle>
+    </g>
+  </svg>
+  <p class="name">Tidemark</p>
+  <p class="tag">Note ton humeur. L'IA reste sur ton téléphone.</p>
+</div>

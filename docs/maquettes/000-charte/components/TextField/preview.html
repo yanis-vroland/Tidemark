@@ -1,0 +1,16 @@
+<!-- @dsCard group="Saisie" height=250 subtitle="Champ multiligne avec libellé et mention de confidentialité" -->
+<div class="wrap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&amp;family=Figtree:wght@400;500;600&amp;display=swap">
+<style>body{margin:0;background:var(--surface);color:var(--ink);font-family:"Figtree",system-ui,sans-serif}.wrap{padding:16px;display:flex;flex-direction:column;gap:16px}:focus-visible{outline:3px solid var(--tide);outline-offset:2px}
+.f{display:flex;flex-direction:column;gap:8px;max-width:361px}
+label{font-size:14px;line-height:20px;font-weight:500;color:var(--ink-muted)}
+textarea{height:120px;box-sizing:border-box;padding:12px;resize:none;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-raised);color:var(--ink);font:400 16px/24px "Figtree",system-ui,sans-serif}
+textarea::placeholder{color:var(--ink-muted)}
+.c{display:flex;gap:4px;align-items:center;font-size:13px;line-height:18px;color:var(--ink-muted)}
+</style>
+<div class="f">
+<label for="t">Ce que tu veux en dire (facultatif)</label>
+<textarea id="t" placeholder="Une phrase suffit, ou rien du tout."></textarea>
+<span class="c"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Chiffré et gardé sur ton téléphone. Rien n'est envoyé.</span>
+</div>
+</div>
