@@ -1,0 +1,57 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-14T18:45:00Z"
+ },
+ "title": "Tidemark : étiquetage automatique",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Main.dc.html": { "x": 0, "y": 0, "w": 393, "h": 852, "title": "Liste · étiquettes et analyse en cours · clair", "is_interactive": true, "radius": 48 },
+  "ListeSombre.dc.html": { "x": 473, "y": 0, "w": 393, "h": 852, "title": "Liste · étiquettes et analyse en cours · sombre", "radius": 48 },
+  "Detail.dc.html": { "x": 0, "y": 1300, "w": 393, "h": 852, "title": "Détail · étiquetée · clair", "is_interactive": true, "radius": 48 },
+  "DetailSombre.dc.html": { "x": 473, "y": 1300, "w": 393, "h": 852, "title": "Détail · étiquetée · sombre", "radius": 48 },
+  "DetailEnCours.dc.html": { "x": 946, "y": 1300, "w": 393, "h": 852, "title": "Détail · analyse en cours · clair", "radius": 48 },
+  "DetailEnCoursSombre.dc.html": { "x": 1419, "y": 1300, "w": 393, "h": 852, "title": "Détail · analyse en cours · sombre", "radius": 48 },
+  "DetailModeleAbsent.dc.html": { "x": 1892, "y": 1300, "w": 393, "h": 852, "title": "Détail · modèle absent · clair", "radius": 48 },
+  "DetailModeleAbsentSombre.dc.html": { "x": 2365, "y": 1300, "w": 393, "h": 852, "title": "Détail · modèle absent · sombre", "radius": 48 },
+  "DetailSansEtiquette.dc.html": { "x": 2838, "y": 1300, "w": 393, "h": 852, "title": "Détail · aucune étiquette · clair", "radius": 48 },
+  "DetailSansEtiquetteSombre.dc.html": { "x": 3311, "y": 1300, "w": 393, "h": 852, "title": "Détail · aucune étiquette · sombre", "radius": 48 },
+  "DetailEnAttente.dc.html": { "x": 3784, "y": 1300, "w": 393, "h": 852, "title": "Détail · en attente d'analyse · clair", "radius": 48 },
+  "DetailEnAttenteSombre.dc.html": { "x": 4257, "y": 1300, "w": 393, "h": 852, "title": "Détail · en attente d'analyse · sombre", "radius": 48 },
+  "DetailIndisponible.dc.html": { "x": 4730, "y": 1300, "w": 393, "h": 852, "title": "Détail · modèle impossible à charger · clair", "radius": 48 },
+  "DetailIndisponibleSombre.dc.html": { "x": 5203, "y": 1300, "w": 393, "h": 852, "title": "Détail · modèle impossible à charger · sombre", "radius": 48 }
+ },
+ "order": [
+  "Main.dc.html",
+  "ListeSombre.dc.html",
+  "Detail.dc.html",
+  "DetailSombre.dc.html",
+  "DetailEnCours.dc.html",
+  "DetailEnCoursSombre.dc.html",
+  "DetailModeleAbsent.dc.html",
+  "DetailModeleAbsentSombre.dc.html",
+  "DetailSansEtiquette.dc.html",
+  "DetailSansEtiquetteSombre.dc.html",
+  "DetailEnAttente.dc.html",
+  "DetailEnAttenteSombre.dc.html",
+  "DetailIndisponible.dc.html",
+  "DetailIndisponibleSombre.dc.html"
+ ],
+ "notes": {
+  "liste": { "x": 0, "y": -300, "text": "Liste : étiquettes sur les cartes (spec 004)", "kind": "title1", "maxW": 866 },
+  "detail": { "x": 0, "y": 1000, "text": "Détail : section « Étiquettes » dans ses six états (spec 004)", "kind": "title1", "maxW": 5596 }
+ },
+ "designSystems": [
+  {
+   "title": "Tidemark",
+   "namespace": "tidemark",
+   "artifact": "https://claude.ai/artifact/LxwwPXPaLTB1ciS6m7NVeu",
+   "version": "1791988325-22e4",
+   "copiedAt": "2026-10-14T18:45:00Z"
+  }
+ ]
+}
