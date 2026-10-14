@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Réglages</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&amp;family=Figtree:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f6b}a:hover{color:#13272c}
+</style>
+</helmet>
+<div style="width: 393px; height: 852px; box-sizing: border-box; padding: 56px 16px 40px; display: flex; flex-direction: column; gap: 16px; background: {{t.surface}}; color: {{t.ink}}; font-family: Figtree, system-ui, sans-serif;">
+  <a href="ListeAcces.dc.html" style="align-self: flex-start; height: 44px; display: flex; align-items: center; gap: 4px; color: {{t.tide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+    Journal
+  </a>
+  <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 34px; line-height: 38px; letter-spacing: -0.5px;">Réglages</h1>
+
+  <sc-if value="{{error}}" hint-placeholder-val="{{false}}">
+    <div role="alert" style="display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: 16px; border: 1px solid {{t.danger}}; background: {{t.raised}};">
+      <span style="font-size: 17px; line-height: 24px; font-weight: 600; color: {{t.danger}};">Le réglage n'a pas été enregistré</span>
+      <span style="font-size: 16px; line-height: 24px;">Le réglage précédent reste en place. Réessaie.</span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ready}}" hint-placeholder-val="{{true}}">
+    <section aria-labelledby="aide-titre" style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
+      <h2 id="aide-titre" style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 22px; line-height: 28px;">Écran d'aide</h2>
+      <p style="margin: 0; font-size: 16px; line-height: 24px; color: {{t.muted}};">L'écran d'aide s'ouvre quand tes dernières humeurs sont toutes « Très bas ». Choisis à partir de quand.</p>
+      <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px;">
+        <legend style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Sensibilité aux humeurs basses</legend>
+        <sc-for list="{{options}}" as="o" hint-placeholder-count="3">
+          <label style="{{o.box}}">
+            <input type="radio" name="sensibilite" value="{{o.id}}" checked="{{o.checked}}" onChange="{{o.pick}}" style="width: 22px; height: 22px; margin: 2px 0 0; flex-shrink: 0; accent-color: {{t.tide}};">
+            <span style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 17px; line-height: 24px; font-weight: 600;">{{o.label}}</span>
+              <span style="font-size: 16px; line-height: 24px; color: {{t.muted}};">{{o.detail}}</span>
+            </span>
+          </label>
+        </sc-for>
+      </fieldset>
+      <p style="margin: 0; font-size: 13px; line-height: 18px; color: {{t.muted}};">Ce réglage ne peut pas être désactivé. Les mots qui signalent un danger ouvrent toujours l'écran d'aide, quel que soit ce choix.</p>
+    </section>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"state":{"editor":"enum","options":["nominal","chargement","erreur"],"default":"nominal"},"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { picked: 'normal' };
+  }
+  renderVals() {
+    const LIGHT = { surface: '#f3f6f5', raised: '#ffffff', ink: '#13272c', muted: '#4b5e64', line: '#76898d', tide: '#1d5f6b', tideSoft: '#dbeae9', danger: '#a3392a' };
+    const DARK = { surface: '#0e191c', raised: '#172529', ink: '#e4eeec', muted: '#9db0b1', line: '#5d7579', tide: '#7cc5c9', tideSoft: '#1e383c', danger: '#f39582' };
+    const t = this.props.dark ? DARK : LIGHT;
+    const state = this.props.state ?? 'nominal';
+    const defs = [
+      { id: 'high', label: 'Haute', detail: '2 entrées « Très bas » d’affilée, en 3 jours au plus' },
+      { id: 'normal', label: 'Normale (recommandée)', detail: '3 entrées « Très bas » d’affilée, en 7 jours au plus' },
+      { id: 'low', label: 'Basse', detail: '5 entrées « Très bas » d’affilée, en 14 jours au plus' }
+    ];
+    const options = defs.map((d) => {
+      const checked = this.state.picked === d.id;
+      return {
+        ...d,
+        checked,
+        pick: () => this.setState({ picked: d.id }),
+        box: 'min-height: 44px; display: flex; align-items: flex-start; gap: 12px; padding: 16px; border-radius: 16px; cursor: pointer; background: ' + (checked ? t.tideSoft : t.raised) + '; border: ' + (checked ? '2px solid ' + t.tide : '1px solid ' + t.line) + ';'
+      };
+    });
+    return { t, options, error: state === 'erreur', ready: state !== 'chargement' };
+  }
+}
+</script>
+</body>
+</html>
