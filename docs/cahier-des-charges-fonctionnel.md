@@ -116,6 +116,14 @@ Les numéros ne se suivent pas toujours : des plages sont réservées aux specs 
 - RM44 : quand la clé de la base est introuvable, l'app propose la suppression totale pour repartir de zéro, sans jamais la lancer d'elle-même (spec : [`docs/specs/005-export-et-suppression-totale.md`](specs/005-export-et-suppression-totale.md)).
 - RM45 : au démarrage, une nouvelle installation (ni marqueur d'installation ni base) efface toute clé restée dans le trousseau ; une base présente sans marqueur n'est jamais privée de sa clé (spec : [`docs/specs/005-export-et-suppression-totale.md`](specs/005-export-et-suppression-totale.md)).
 
+- RM30 à RM49 : numéros réservés aux specs rédigées en parallèle (lots G et H) ; un numéro absent n'est pas une règle supprimée.
+- RM50 : le bilan compte toutes les entrées de la semaine, quel que soit leur statut d'analyse, chacune dans la semaine de son jour local de saisie. Ses chiffres : nombre d'entrées, humeur moyenne au dixième, répartition des humeurs, jours notés, au plus 3 étiquettes fréquentes, et l'évolution par rapport à la semaine précédente si celle-ci a un bilan (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
+- RM51 : pour le bilan, le modèle ne reçoit que des faits sans chiffre calculés par l'app, jamais le texte, la date ni l'humeur d'une entrée (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
+- RM52 : une semaine dont une entrée est à « Très bas » ou en détresse n'a pas de texte généré : son bilan s'en tient aux chiffres, sans mention de l'écran d'aide (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
+- RM53 : le texte du bilan n'est montré que s'il passe des règles déterministes : aucun chiffre ni mot de nombre, aucune expression de conseil, de soin ou de jugement de la liste de la spec, aucune détresse détectée, 300 caractères visibles au plus. Sinon, le bilan s'affiche avec ses seuls chiffres, sans plantage (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
+- RM54 : le texte du bilan n'est jamais enregistré ; il reste en mémoire tant que l'app est ouverte (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
+- RM55 : le bilan s'ouvre depuis la liste, sur la semaine en cours ; la personne peut remonter semaine par semaine jusqu'à celle de sa première entrée (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
+
 ## Parcours utilisateur
 
 ### Personne qui tient son journal
@@ -126,7 +134,7 @@ Les numéros ne se suivent pas toujours : des plages sont réservées aux specs 
 4. Si son texte contient des signes de détresse, ou si ses dernières humeurs sont toutes « Très bas », l'écran d'aide s'affiche à la place de la liste, et l'entrée n'est jamais analysée (détection de détresse). Elle choisit dans les Réglages la sensibilité aux humeurs basses.
 5. Sinon, l'app propose des étiquettes, analysées sur le téléphone (étiquetage automatique).
 6. Elle parcourt ses entrées passées et leurs étiquettes, et peut en supprimer une (saisie d'une entrée, liste).
-7. En fin de semaine, elle lit son bilan (bilan de la semaine).
+7. Depuis la liste, elle ouvre le bilan de sa semaine, ou d'une semaine passée : ses chiffres et, quand c'est possible, un court texte écrit sur le téléphone (bilan de la semaine).
 8. Elle peut à tout moment exporter ses données, ou tout supprimer (export et suppression totale).
 
 ## Fonctionnalités
