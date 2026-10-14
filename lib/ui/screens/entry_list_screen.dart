@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../entries/day_grouping.dart';
 import '../../entries/entry.dart';
 import '../../entries/entry_repository.dart';
+import '../../model/model_downloader.dart';
 import '../../settings/settings_repository.dart';
 import '../phone_dialer.dart';
 import '../theme/tidemark_colors.dart';
@@ -19,6 +20,7 @@ class EntryListScreen extends StatefulWidget {
     super.key,
     required this.repository,
     required this.settings,
+    required this.downloader,
     this.dialer = const UrlLauncherDialer(),
     required this.clock,
   });
@@ -27,6 +29,9 @@ class EntryListScreen extends StatefulWidget {
 
   /// Réglages, ouverts par l'icône « Réglages » (spec 002).
   final SettingsRepository settings;
+
+  /// Modèle local : proposition après la première entrée « en attente » (spec 003).
+  final ModelDownloader downloader;
 
   /// Composeur, pour l'écran d'aide (spec 002).
   final PhoneDialer dialer;
@@ -62,6 +67,7 @@ class _EntryListScreenState extends State<EntryListScreen> {
       builder: (_) => EntryFormScreen(
         repository: widget.repository,
         settings: widget.settings,
+        downloader: widget.downloader,
         dialer: widget.dialer,
         clock: widget.clock,
       ),
@@ -70,7 +76,10 @@ class _EntryListScreenState extends State<EntryListScreen> {
 
   void _openSettings() => Navigator.of(context).push(
     MaterialPageRoute<void>(
-      builder: (_) => SettingsScreen(settings: widget.settings),
+      builder: (_) => SettingsScreen(
+        settings: widget.settings,
+        downloader: widget.downloader,
+      ),
     ),
   );
 

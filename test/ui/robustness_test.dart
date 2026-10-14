@@ -11,6 +11,7 @@ import 'package:tidemark/main.dart';
 import 'package:tidemark/ui/screens/entry_detail_screen.dart';
 
 import '../support/fake_entry_repository.dart';
+import '../support/fake_model_downloader.dart';
 import '../support/ui_harness.dart';
 
 Entry _entry() => Entry(
@@ -35,6 +36,7 @@ void main() {
           repository: repo,
           settings: FakeSettingsRepository(),
           clock: () => fixedNow,
+          downloader: FakeModelDownloader(),
         ),
       );
       await tester.pump();
@@ -67,6 +69,7 @@ void main() {
         repository: repo,
         settings: FakeSettingsRepository(),
         clock: () => fixedNow,
+        downloader: FakeModelDownloader(),
       ),
     );
     await tester.pump();
@@ -97,6 +100,7 @@ void main() {
         repository: repo,
         settings: FakeSettingsRepository(),
         clock: () => fixedNow,
+        downloader: FakeModelDownloader(),
       ),
     );
     await tester.pump();
@@ -142,6 +146,7 @@ void main() {
         repository: repo,
         settings: FakeSettingsRepository(),
         clock: () => fixedNow,
+        downloader: FakeModelDownloader(),
       ),
     );
     await tester.pump();
@@ -160,6 +165,7 @@ void main() {
         repository: repo,
         settings: FakeSettingsRepository(),
         clock: () => fixedNow,
+        downloader: FakeModelDownloader(),
       ),
     );
     await tester.pump();
@@ -179,6 +185,7 @@ void main() {
         repository: repo,
         settings: FakeSettingsRepository(),
         clock: () => fixedNow,
+        downloader: FakeModelDownloader(),
       ),
     );
     await tester.pump();

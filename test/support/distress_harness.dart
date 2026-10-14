@@ -8,6 +8,7 @@ import 'package:tidemark/entries/entry.dart';
 import 'package:tidemark/main.dart';
 
 import 'fake_entry_repository.dart';
+import 'fake_model_downloader.dart';
 import 'fake_phone_dialer.dart';
 import 'fake_settings_repository.dart';
 import 'ui_harness.dart';
@@ -187,6 +188,7 @@ class GuardEnv {
     settings: settings,
     dialer: dialer,
     clock: () => now,
+    downloader: FakeModelDownloader(),
   );
 
   /// Saisit une entrée par l'interface, à l'instant [at] (heure locale) : ouvre la

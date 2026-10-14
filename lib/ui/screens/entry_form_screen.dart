@@ -5,6 +5,7 @@ import '../../distress/guarded_save.dart';
 import '../../entries/day_grouping.dart';
 import '../../entries/entry.dart';
 import '../../entries/entry_repository.dart';
+import '../../model/model_downloader.dart';
 import '../../settings/settings_repository.dart';
 import '../phone_dialer.dart';
 import '../theme/tidemark_colors.dart';
@@ -34,6 +35,7 @@ class EntryFormScreen extends StatefulWidget {
     super.key,
     required this.repository,
     required this.settings,
+    required this.downloader,
     this.dialer = const UrlLauncherDialer(),
     this.clock,
   });
@@ -42,6 +44,9 @@ class EntryFormScreen extends StatefulWidget {
 
   /// Degré de sensibilité aux humeurs basses (spec 002).
   final SettingsRepository settings;
+
+  /// Modèle local : proposition après la première entrée « en attente » (spec 003).
+  final ModelDownloader downloader;
 
   /// Composeur, pour l'écran d'aide (spec 002).
   final PhoneDialer dialer;
