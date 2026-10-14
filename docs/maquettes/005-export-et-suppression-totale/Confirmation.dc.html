@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Confirmation de la suppression totale</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&amp;family=Figtree:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f6b}a:hover{color:#13272c}
+</style>
+</helmet>
+<div style="width: 393px; height: 852px; box-sizing: border-box; padding: 64px 16px 40px; display: flex; flex-direction: column; gap: 16px; background: {{t.surface}}; color: {{t.ink}}; font-family: Figtree, system-ui, sans-serif;">
+  <sc-if value="{{canLeave}}" hint-placeholder-val="{{true}}">
+    <a href="{{backHref}}" style="align-self: flex-start; height: 44px; display: flex; align-items: center; gap: 4px; color: {{t.tide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+      {{backLabel}}
+    </a>
+  </sc-if>
+  <sc-if value="{{locked}}" hint-placeholder-val="{{false}}">
+    <div aria-hidden="true" style="height: 44px;"></div>
+  </sc-if>
+
+  <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 34px; line-height: 38px; letter-spacing: -0.5px;">Tout supprimer ?</h1>
+
+  <sc-if value="{{failed}}" hint-placeholder-val="{{false}}">
+    <div role="alert" style="display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: 16px; border: 1px solid {{t.danger}}; background: {{t.raised}};">
+      <span style="font-size: 17px; line-height: 24px; font-weight: 600; color: {{t.danger}};">La suppression n'est pas terminée</span>
+      <span style="font-size: 16px; line-height: 24px;">Une partie de tes données a peut-être déjà été effacée. Réessaie : la suppression reprend où elle s'est arrêtée.</span>
+    </div>
+  </sc-if>
+
+  <div style="display: flex; flex-direction: column; gap: 8px;">
+    <p style="margin: 0; font-size: 16px; line-height: 24px;">Cette action efface définitivement, sur ce téléphone :</p>
+    <ul style="margin: 0; padding-left: 24px; display: flex; flex-direction: column; gap: 4px; font-size: 16px; line-height: 24px;">
+      <li>{{entriesLine}}</li>
+      <li>tes réglages ;</li>
+      <sc-if value="{{fromSettings}}" hint-placeholder-val="{{true}}">
+        <li>la clé qui protège ton journal ;</li>
+      </sc-if>
+      <li>le modèle d'IA téléchargé.</li>
+    </ul>
+    <p style="margin: 0; font-size: 16px; line-height: 24px; color: {{t.muted}};">{{warning}}</p>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+    <label for="confirmation" style="font-size: 17px; line-height: 24px; font-weight: 600;">Pour confirmer, écris SUPPRIMER</label>
+    <input id="confirmation" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" value="{{text}}" onChange="{{onText}}" disabled="{{locked}}" placeholder="SUPPRIMER" style="height: 52px; box-sizing: border-box; padding: 0 16px; border-radius: 8px; border: 1px solid {{t.line}}; background: {{t.raised}}; color: {{t.ink}}; font: 400 16px/24px Figtree, system-ui, sans-serif;">
+  </div>
+
+  <div style="flex-grow: 1;"></div>
+
+  <sc-if value="{{progressNote}}" hint-placeholder-val="{{false}}">
+    <p role="status" style="margin: 0; font-size: 13px; line-height: 18px; color: {{t.muted}};">Si l'app se ferme, la suppression reprendra au prochain lancement.</p>
+  </sc-if>
+
+  <sc-if value="{{ready}}" hint-placeholder-val="{{false}}">
+    <a href="{{doneHref}}" style="height: 52px; box-sizing: border-box; flex-shrink: 0; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid {{t.danger}}; background: {{t.raised}}; color: {{t.danger}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">{{buttonLabel}}</a>
+  </sc-if>
+  <sc-if value="{{notReady}}" hint-placeholder-val="{{true}}">
+    <button type="button" disabled="{{yes}}" aria-busy="{{busy}}" style="height: 52px; box-sizing: border-box; flex-shrink: 0; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid {{t.line}}; background: {{t.raised}}; color: {{t.muted}}; font: 600 16px/20px Figtree, system-ui, sans-serif;">{{buttonLabel}}</button>
+  </sc-if>
+
+  <sc-if value="{{canLeave}}" hint-placeholder-val="{{true}}">
+    <a href="{{backHref}}" style="height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: {{t.tide}}; font: 600 16px/20px Figtree, system-ui, sans-serif; text-decoration: none;">Annuler</a>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"state":{"editor":"enum","options":["vide","saisie","en-cours","erreur"],"default":"vide"},"origin":{"editor":"enum","options":["reglages","cle-introuvable"],"default":"reglages"},"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { typed: null };
+  }
+  renderVals() {
+    const LIGHT = { surface: '#f3f6f5', raised: '#ffffff', ink: '#13272c', muted: '#4b5e64', line: '#76898d', tide: '#1d5f6b', danger: '#a3392a' };
+    const DARK = { surface: '#0e191c', raised: '#172529', ink: '#e4eeec', muted: '#9db0b1', line: '#5d7579', tide: '#7cc5c9', danger: '#f39582' };
+    const t = this.props.dark ? DARK : LIGHT;
+    const state = this.props.state ?? 'vide';
+    const fromSettings = (this.props.origin ?? 'reglages') === 'reglages';
+    const initial = state === 'vide' ? '' : 'SUPPRIMER';
+    const text = this.state.typed ?? initial;
+    const matches = text.trim().toUpperCase() === 'SUPPRIMER';
+    const busy = state === 'en-cours';
+    const failed = state === 'erreur';
+    const ready = matches && !busy;
+    return {
+      t,
+      text,
+      onText: (e) => this.setState({ typed: e.target.value }),
+      fromSettings,
+      entriesLine: fromSettings ? 'toutes tes entrées et leurs étiquettes ;' : 'tes entrées et leurs étiquettes, illisibles sans leur clé ;',
+      warning: fromSettings ? 'Rien ne pourra être récupéré. Pour garder une copie, exporte d’abord tes données depuis les Réglages.' : 'Rien ne pourra être récupéré. Sans sa clé, ton journal ne peut pas être exporté.',
+      backHref: fromSettings ? 'Main.dc.html' : 'DemarrageCle.dc.html',
+      backLabel: fromSettings ? 'Réglages' : 'Retour',
+      doneHref: 'ListeApresSuppression.dc.html',
+      canLeave: !busy && !failed,
+      locked: busy || failed,
+      failed,
+      busy,
+      progressNote: busy,
+      ready,
+      notReady: !ready,
+      buttonLabel: busy ? 'Suppression…' : (failed ? 'Réessayer' : 'Tout supprimer définitivement'),
+      yes: true
+    };
+  }
+}
+</script>
+</body>
+</html>
