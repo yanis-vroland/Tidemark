@@ -8,6 +8,7 @@ import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
 import '../widgets/error_banner.dart';
 import '../widgets/model_settings_section.dart';
+import '../widgets/my_data_section.dart';
 
 /// Écran des réglages (glossaire : `SettingsScreen`, spec 002). Un degré choisi est
 /// enregistré aussitôt, sans bouton « Enregistrer » (CA19).
@@ -16,9 +17,14 @@ class SettingsScreen extends StatefulWidget {
     super.key,
     required this.settings,
     required this.downloader,
+    this.data,
   });
 
   final SettingsRepository settings;
+
+  /// Export et suppression totale : section « Mes données » (spec 005) ; `null` :
+  /// section absente (écran testé seul).
+  final DataActions? data;
 
   /// Modèle local : section « Analyse sur le téléphone » (spec 003).
   final ModelDownloader downloader;

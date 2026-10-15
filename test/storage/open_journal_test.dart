@@ -19,6 +19,10 @@ class InMemoryKeyStore implements KeyStore {
     writes++;
     stored = key;
   }
+
+  // Ajouté par la spec 005 : le contrat KeyStore gagne deleteAll.
+  @override
+  Future<void> deleteAll() async => stored = null;
 }
 
 void main() {

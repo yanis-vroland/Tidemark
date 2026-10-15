@@ -11,19 +11,30 @@ import 'entries/entry_repository.dart';
 import 'model/model_downloader.dart';
 import 'model/model_source.dart';
 import 'model/model_transport.dart';
+import 'export/share_sheet.dart';
 import 'settings/settings_repository.dart';
 import 'storage/app_database.dart';
+import 'storage/app_storage.dart';
 import 'storage/database_key.dart';
 import 'ui/analysis_scope.dart';
+import 'ui/app_host.dart';
 import 'ui/phone_dialer.dart';
 import 'ui/screens/entry_list_screen.dart';
 import 'ui/theme/tidemark_colors.dart';
 import 'ui/theme/tidemark_theme.dart';
 import 'ui/theme/tidemark_tokens.dart';
+import 'ui/widgets/my_data_section.dart';
+import 'wipe/journal_wiper.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(await startApp());
+  final storage = await AppStorage.system();
+  runApp(
+    AppHost(
+      initial: await startApp(storage: storage),
+      restart: ({required wiped}) => startApp(storage: storage, wiped: wiped),
+    ),
+  );
 }
 
 /// Journal ouvert : ses entrées et les réglages, sur la même base chiffrée.
@@ -33,6 +44,7 @@ class Journal {
     required this.settings,
     required this.downloader,
     this.analyzer,
+    this.close,
   });
 
   final EntryRepository entries;
@@ -43,11 +55,30 @@ class Journal {
 
   /// Modèle local, dans le dossier `models/` à côté de la base (spec 003).
   final ModelDownloader downloader;
+
+  /// Ferme la base (suppression totale, spec 005) ; `null` : rien à fermer.
+  final Future<void> Function()? close;
 }
 
 /// Application de démarrage : le journal ouvert, ou l'écran d'erreur qui
 /// correspond à la cause (CA35). [open] est injectable pour les tests.
-Future<Widget> startApp({Future<Journal> Function() open = openJournal}) async {
+///
+/// Avec [storage] (spec 005) : purge des fichiers temporaires d'export, reprise
+/// d'une suppression totale interrompue, marqueur d'installation, puis ouverture
+/// (par défaut [openJournal] sur [storage]) ; export par [shareSheet] et
+/// suppression totale proposés dans les Réglages. Sans [storage] ni [open], les
+/// emplacements du téléphone. [wiped] : une suppression vient de réussir (CA18).
+Future<Widget> startApp({
+  Future<Journal> Function()? open,
+  AppStorage? storage,
+  ShareSheet shareSheet = const SharePlusShareSheet(),
+  bool wiped = false,
+}) async {
+  if (open == null && storage == null) {
+    storage = await AppStorage.system();
+  }
+  final store = storage;
+  open ??= () => openJournal(folder: store!.folder, keyStore: store.keyStore);
   try {
     final journal = await open();
     // Avant tout affichage ; n'échoue jamais (CA16).
@@ -106,6 +137,7 @@ Future<Journal> openJournal({Directory? folder, KeyStore? keyStore}) async {
     analyzer: LlamaMoodAnalyzer(
       modelFile: File('${dir.path}/models/${qwenModelSource.fileName}'),
     ),
+    close: db.close,
   );
 }
 
@@ -118,7 +150,16 @@ class TidemarkApp extends StatelessWidget {
     this.dialer = const UrlLauncherDialer(),
     this.analysisQueue,
     this.clock,
+    this.data,
+    this.wiped = false,
   });
+
+  /// Export et suppression totale, dans les Réglages (spec 005) ; `null` : section
+  /// « Mes données » absente.
+  final DataActions? data;
+
+  /// Une suppression totale vient de réussir : message de fin sur la liste (CA18).
+  final bool wiped;
 
   final EntryRepository repository;
   final SettingsRepository settings;
@@ -144,6 +185,8 @@ class TidemarkApp extends StatelessWidget {
         downloader: downloader,
         dialer: dialer,
         clock: clock ?? DateTime.now,
+        data: data,
+        wiped: wiped,
       ),
     );
     final queue = analysisQueue;
@@ -153,11 +196,24 @@ class TidemarkApp extends StatelessWidget {
 
 /// Écran affiché si le journal ne peut pas être ouvert (clé absente, base illisible).
 class StartupErrorApp extends StatelessWidget {
-  const StartupErrorApp({super.key, required this.keyMissing});
+  const StartupErrorApp({
+    super.key,
+    required this.keyMissing,
+    this.wipeIncomplete = false,
+    this.wiper,
+  });
 
   /// La base existe mais sa clé est introuvable ; sinon, autre cause (disque,
   /// moteur sans chiffrement, base illisible).
   final bool keyMissing;
+
+  /// Une suppression totale interrompue n'a pas pu être reprise au démarrage
+  /// (spec 005, CA23) : « Réessayer » la rejoue.
+  final bool wipeIncomplete;
+
+  /// Suppression totale proposée quand la clé est introuvable (spec 005, CA26) ;
+  /// `null` : aucun bouton.
+  final JournalWiper? wiper;
 
   @override
   Widget build(BuildContext context) {

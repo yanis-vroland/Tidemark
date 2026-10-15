@@ -17,6 +17,9 @@ class _MemoryKeyStore implements KeyStore {
 
   @override
   Future<void> write(String key) async => stored = key;
+  // Ajouté par la spec 005 : le contrat KeyStore gagne deleteAll.
+  @override
+  Future<void> deleteAll() async => stored = null;
 }
 
 String _withoutXmlComments(String xml) =>

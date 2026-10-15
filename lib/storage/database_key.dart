@@ -7,6 +7,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 abstract interface class KeyStore {
   Future<String?> read();
   Future<void> write(String key);
+
+  /// Efface toute clé de l'app (suppression totale et nouvelle installation,
+  /// spec 005). Sans effet si aucune clé n'est gardée.
+  Future<void> deleteAll();
 }
 
 /// La base existe, mais sa clé est introuvable : ne jamais en créer une autre, qui
@@ -58,4 +62,7 @@ class SecureKeyStore implements KeyStore {
 
   @override
   Future<void> write(String key) => _storage.write(key: _name, value: key);
+
+  @override
+  Future<void> deleteAll() => _storage.deleteAll();
 }
