@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import '../../entries/day_grouping.dart';
 import '../../entries/entry.dart';
 import '../../entries/entry_repository.dart';
+import '../../model/model_downloader.dart';
 import '../theme/tidemark_colors.dart';
 import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
+import '../widgets/entry_tags_section.dart';
 import '../widgets/mood_dot.dart';
 
 /// Détail d'une entrée et sa suppression (spec 001). Aucun moyen de la modifier
@@ -15,11 +17,16 @@ class EntryDetailScreen extends StatelessWidget {
     super.key,
     required this.entry,
     required this.repository,
+    this.downloader,
     this.clock,
   });
 
   final Entry entry;
   final EntryRepository repository;
+
+  /// Modèle local, pour l'état de l'analyse d'une entrée « en attente » (spec 004,
+  /// CA23) ; sans lui, cet état n'est pas affiché.
+  final ModelDownloader? downloader;
 
   /// Date et heure locales, pour n'afficher l'année que si elle diffère de l'année
   /// en cours (maquette) ; [DateTime.now] par défaut.
@@ -155,6 +162,19 @@ class EntryDetailScreen extends StatelessWidget {
                       const SizedBox(height: TidemarkSpacing.space6),
                       Text(text, style: TidemarkTypography.body),
                     ],
+                    // L'entrée relue à chaque changement : ses étiquettes
+                    // apparaissent dès que l'analyse se termine (CA18).
+                    StreamBuilder<List<Entry>>(
+                      stream: repository.watchEntries(),
+                      builder: (context, snapshot) => EntryTagsSection(
+                        entry:
+                            snapshot.data
+                                ?.where((e) => e.id == entry.id)
+                                .firstOrNull ??
+                            entry,
+                        downloader: downloader,
+                      ),
+                    ),
                   ],
                 ),
               ),

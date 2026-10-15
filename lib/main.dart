@@ -3,13 +3,18 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'analysis/analysis_queue.dart';
+import 'analysis/llama_mood_analyzer.dart';
+import 'analysis/mood_analyzer.dart';
 import 'distress/startup_screening.dart';
 import 'entries/entry_repository.dart';
 import 'model/model_downloader.dart';
+import 'model/model_source.dart';
 import 'model/model_transport.dart';
 import 'settings/settings_repository.dart';
 import 'storage/app_database.dart';
 import 'storage/database_key.dart';
+import 'ui/analysis_scope.dart';
 import 'ui/phone_dialer.dart';
 import 'ui/screens/entry_list_screen.dart';
 import 'ui/theme/tidemark_colors.dart';
@@ -27,10 +32,14 @@ class Journal {
     required this.entries,
     required this.settings,
     required this.downloader,
+    this.analyzer,
   });
 
   final EntryRepository entries;
   final SettingsRepository settings;
+
+  /// Analyseur du modèle local (spec 004) ; `null` : aucune analyse.
+  final MoodAnalyzer? analyzer;
 
   /// Modèle local, dans le dossier `models/` à côté de la base (spec 003).
   final ModelDownloader downloader;
@@ -48,10 +57,19 @@ Future<Widget> startApp({Future<Journal> Function() open = openJournal}) async {
     try {
       await journal.downloader.checkAtStartup();
     } catch (_) {}
+    final analyzer = journal.analyzer;
+    final queue = analyzer == null
+        ? null
+        : (AnalysisQueue(
+            repository: journal.entries,
+            analyzer: analyzer,
+            downloader: journal.downloader,
+          )..start());
     return TidemarkApp(
       repository: journal.entries,
       settings: journal.settings,
       downloader: journal.downloader,
+      analysisQueue: queue,
     );
   } on DatabaseKeyMissingError {
     // Aucune perte silencieuse : ni nouvelle clé, ni base recréée (spec 001).
@@ -85,6 +103,9 @@ Future<Journal> openJournal({Directory? folder, KeyStore? keyStore}) async {
       transport: IoModelTransport(),
       folder: Directory('${dir.path}/models'),
     ),
+    analyzer: LlamaMoodAnalyzer(
+      modelFile: File('${dir.path}/models/${qwenModelSource.fileName}'),
+    ),
   );
 }
 
@@ -95,6 +116,7 @@ class TidemarkApp extends StatelessWidget {
     required this.settings,
     required this.downloader,
     this.dialer = const UrlLauncherDialer(),
+    this.analysisQueue,
     this.clock,
   });
 
@@ -103,12 +125,16 @@ class TidemarkApp extends StatelessWidget {
   final ModelDownloader downloader;
   final PhoneDialer dialer;
 
+  /// File d'analyse (spec 004), visible des écrans par [AnalysisScope] ; `null` :
+  /// aucune analyse affichée.
+  final AnalysisQueue? analysisQueue;
+
   /// Date et heure locales ; [DateTime.now] par défaut.
   final DateTime Function()? clock;
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    final app = MaterialApp(
       title: 'Tidemark',
       theme: buildTidemarkTheme(Brightness.light),
       darkTheme: buildTidemarkTheme(Brightness.dark),
@@ -120,6 +146,8 @@ class TidemarkApp extends StatelessWidget {
         clock: clock ?? DateTime.now,
       ),
     );
+    final queue = analysisQueue;
+    return queue == null ? app : AnalysisScope(queue: queue, child: app);
   }
 }
 

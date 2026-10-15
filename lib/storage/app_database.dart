@@ -4,6 +4,7 @@ import 'package:characters/characters.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 
+import '../analysis/mood_analyzer.dart';
 import '../distress/distress_detector.dart';
 import '../entries/entry.dart';
 import '../entries/entry_repository.dart';
@@ -46,6 +47,24 @@ class Settings extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// Étiquettes des entrées (spec 004) : supprimées avec leur entrée (RM15).
+@DataClassName('TagRow')
+class Tags extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get entryId =>
+      integer().references(Entries, #id, onDelete: KeyAction.cascade)();
+  TextColumn get label => text()();
+  TextColumn get kind => textEnum<TagKind>()();
+
+  /// Ordre d'affichage : émotions puis thèmes, dans l'ordre de la sortie.
+  IntColumn get position => integer()();
+
+  @override
+  List<Set<Column<Object>>> get uniqueKeys => [
+    {entryId, label},
+  ];
+}
+
 /// Erreur levée quand le moteur SQLite n'a pas le chiffrement.
 class CipherUnavailableError extends StateError {
   CipherUnavailableError()
@@ -60,7 +79,7 @@ void ensureCipherAvailable(int Function(String sql) rowCount) {
 }
 
 /// Base locale des entrées, chiffrée par SQLite3MultipleCiphers (ADR-002).
-@DriftDatabase(tables: [Entries, Settings])
+@DriftDatabase(tables: [Entries, Settings, Tags])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._(super.executor);
 
@@ -89,7 +108,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -102,6 +121,12 @@ class AppDatabase extends _$AppDatabase {
         // Version 3 : proposition du modèle (spec 003).
         await m.addColumn(settings, settings.modelOfferShown);
       }
+      // Version 4 : étiquettes (spec 004).
+      if (from < 4) await m.createTable(tags);
+    },
+    // Sans cela, SQLite ignore la suppression en cascade des étiquettes (CA17).
+    beforeOpen: (_) async {
+      await customStatement('PRAGMA foreign_keys = ON');
     },
   );
 
@@ -121,23 +146,45 @@ class DriftEntryRepository implements EntryRepository {
   final AppDatabase db;
   final DateTime Function() clock;
 
-  static Entry _toEntry(EntryRow row) => Entry(
+  static Entry _toEntry(EntryRow row, {List<Tag> tags = const []}) => Entry(
     id: row.id,
     mood: row.mood,
     text: row.body,
     createdAt: row.createdAt.toUtc(),
     utcOffset: Duration(minutes: row.utcOffsetMinutes),
     analysisStatus: row.analysisStatus,
+    tags: tags,
   );
 
   @override
   Stream<List<Entry>> watchEntries() {
-    final query = db.select(db.entries)
-      ..orderBy([
-        (e) => OrderingTerm.desc(e.createdAt),
-        (e) => OrderingTerm.desc(e.id),
-      ]);
-    return query.watch().map((rows) => rows.map(_toEntry).toList());
+    final query =
+        db.select(db.entries).join([
+          leftOuterJoin(db.tags, db.tags.entryId.equalsExp(db.entries.id)),
+        ])..orderBy([
+          OrderingTerm.desc(db.entries.createdAt),
+          OrderingTerm.desc(db.entries.id),
+          OrderingTerm.asc(db.tags.position),
+        ]);
+    return query.watch().map(_withTags);
+  }
+
+  /// Regroupe les lignes de la jointure : une entrée et ses étiquettes, dans
+  /// l'ordre enregistré.
+  List<Entry> _withTags(List<TypedResult> rows) {
+    final entries = <int, EntryRow>{};
+    final tags = <int, List<Tag>>{};
+    for (final row in rows) {
+      final entry = row.readTable(db.entries);
+      entries.putIfAbsent(entry.id, () => entry);
+      final tag = row.readTableOrNull(db.tags);
+      final list = tags.putIfAbsent(entry.id, () => []);
+      if (tag != null) list.add(Tag(tag.label, tag.kind));
+    }
+    return [
+      for (final MapEntry(key: id, value: row) in entries.entries)
+        _toEntry(row, tags: tags[id] ?? const []),
+    ];
   }
 
   @override
@@ -218,6 +265,43 @@ class DriftEntryRepository implements EntryRepository {
       );
     return (await query.get()).map(_toEntry).toList();
   }
+
+  @override
+  Future<void> saveAnalysis(int entryId, AnalysisResult result) =>
+      db.transaction(() async {
+        final entry = await (db.select(
+          db.entries,
+        )..where((e) => e.id.equals(entryId))).getSingleOrNull();
+        // Supprimée pendant l'analyse, ou plus « en attente » : rien à écrire
+        // (CA16).
+        if (entry == null || entry.analysisStatus != AnalysisStatus.pending) {
+          return;
+        }
+        if (result is Tagged) {
+          for (final (position, tag) in result.tags.indexed) {
+            await db
+                .into(db.tags)
+                .insert(
+                  TagsCompanion.insert(
+                    entryId: entryId,
+                    label: tag.label,
+                    kind: tag.kind,
+                    position: position,
+                  ),
+                );
+          }
+        }
+        // Étiquettes et statut ensemble : une erreur annule tout (CA8).
+        await (db.update(db.entries)..where((e) => e.id.equals(entryId))).write(
+          EntriesCompanion(
+            analysisStatus: Value(
+              result is Tagged
+                  ? AnalysisStatus.tagged
+                  : AnalysisStatus.untagged,
+            ),
+          ),
+        );
+      });
 
   @override
   Future<void> markSkipped(Iterable<int> ids) =>

@@ -22,8 +22,9 @@ void main() {
 
     tearDown(() async => await db.close());
 
-    test('le schéma est en version 3', () {
-      expect(db.schemaVersion, 3);
+    // Version 3 introduite par la spec 003 ; la spec 004 passe à la version 4.
+    test('le schéma est au moins en version 3', () {
+      expect(db.schemaVersion, greaterThanOrEqualTo(3));
     });
 
     test('la proposition n\'est pas affichée par défaut, en lecture comme en '
@@ -172,7 +173,7 @@ void main() {
       final settings = DriftSettingsRepository(db);
       expect(await settings.readLowMoodSensitivity(), LowMoodSensitivity.high);
       expect(await settings.readModelOfferShown(), isFalse);
-      expect(db.schemaVersion, 3);
+      expect(db.schemaVersion, greaterThanOrEqualTo(3));
     });
 
     test('migration : après le passage en version 3, la proposition se marque '

@@ -1,6 +1,8 @@
 /// Entrée du journal (glossaire : `Entry`) et son statut d'analyse.
 library;
 
+import '../analysis/mood_analyzer.dart';
+
 /// Où en est l'analyse d'une entrée (glossaire : `AnalysisStatus`).
 enum AnalysisStatus {
   /// En attente : l'entrée a un texte, l'analyse n'a pas encore eu lieu.
@@ -34,6 +36,7 @@ class Entry {
     required this.createdAt,
     required this.utcOffset,
     required this.analysisStatus,
+    this.tags = const [],
   });
 
   final int id;
@@ -52,6 +55,10 @@ class Entry {
   final Duration utcOffset;
 
   final AnalysisStatus analysisStatus;
+
+  /// Étiquettes de l'entrée, émotions puis thèmes, dans l'ordre enregistré ; vide
+  /// si elle n'est pas « étiquetée » (spec 004).
+  final List<Tag> tags;
 
   /// Date et heure locales de la saisie (heure murale, marquée UTC par convention).
   DateTime get localCreatedAt => createdAt.toUtc().add(utcOffset);

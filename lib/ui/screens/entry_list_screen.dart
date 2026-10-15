@@ -9,7 +9,11 @@ import '../phone_dialer.dart';
 import '../theme/tidemark_colors.dart';
 import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
+import '../analysis_scope.dart';
+import '../widgets/entry_tags_section.dart' show analysingText;
+import '../widgets/loading_note.dart';
 import '../widgets/mood_dot.dart';
+import '../widgets/tag_chip.dart';
 import 'entry_detail_screen.dart';
 import 'entry_form_screen.dart';
 import 'settings_screen.dart';
@@ -105,6 +109,7 @@ class _EntryListScreenState extends State<EntryListScreen> {
                           onOpenSettings: _openSettings,
                           groups: groupByDay(entries, widget.clock()),
                           repository: widget.repository,
+                          downloader: widget.downloader,
                           clock: widget.clock,
                         ),
                 ),
@@ -245,12 +250,14 @@ class _EntryList extends StatelessWidget {
     required this.onOpenSettings,
     required this.groups,
     required this.repository,
+    required this.downloader,
     required this.clock,
   });
 
   final VoidCallback onOpenSettings;
   final List<DayGroup> groups;
   final EntryRepository repository;
+  final ModelDownloader downloader;
   final DateTime Function() clock;
 
   @override
@@ -282,6 +289,7 @@ class _EntryList extends StatelessWidget {
               child: _EntryCard(
                 entry: entry,
                 repository: repository,
+                downloader: downloader,
                 clock: clock,
               ),
             ),
@@ -306,11 +314,13 @@ class _EntryCard extends StatelessWidget {
   const _EntryCard({
     required this.entry,
     required this.repository,
+    required this.downloader,
     required this.clock,
   });
 
   final Entry entry;
   final EntryRepository repository;
+  final ModelDownloader downloader;
   final DateTime Function() clock;
 
   @override
@@ -323,7 +333,8 @@ class _EntryCard extends StatelessWidget {
       button: true,
       label:
           '${moodLabel(entry.mood)}, humeur ${entry.mood} sur 5, $time'
-          '${text == null ? '' : ', ${_excerpt(text)}'}',
+          '${text == null ? '' : ', ${_excerpt(text)}'}'
+          '${entry.tags.isEmpty ? '' : ', étiquettes : ${entry.tags.map((t) => t.label).join(', ')}'}',
       excludeSemantics: true,
       onTap: () => _open(context),
       child: _cardBody(context, colors, text),
@@ -332,8 +343,12 @@ class _EntryCard extends StatelessWidget {
 
   void _open(BuildContext context) => Navigator.of(context).push(
     MaterialPageRoute<void>(
-      builder: (_) =>
-          EntryDetailScreen(entry: entry, repository: repository, clock: clock),
+      builder: (_) => EntryDetailScreen(
+        entry: entry,
+        repository: repository,
+        downloader: downloader,
+        clock: clock,
+      ),
     ),
   );
 
@@ -380,6 +395,14 @@ class _EntryCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TidemarkTypography.body,
                 ),
+              ],
+              if (AnalysisScope.maybeOf(context)?.currentEntryId ==
+                  entry.id) ...[
+                const SizedBox(height: TidemarkSpacing.space3),
+                const LoadingNote(text: analysingText),
+              ] else if (entry.tags.isNotEmpty) ...[
+                const SizedBox(height: TidemarkSpacing.space3),
+                TagChips(tags: entry.tags),
               ],
             ],
           ),

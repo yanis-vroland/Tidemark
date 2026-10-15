@@ -1,3 +1,4 @@
+import '../analysis/mood_analyzer.dart';
 import 'entry.dart';
 
 /// Accès aux entrées, derrière une interface : les écrans ne connaissent pas la base.
@@ -26,6 +27,11 @@ abstract interface class EntryRepository {
 
   /// Passe les entrées [ids] au statut « non analysée » (détresse, RM17).
   Future<void> markSkipped(Iterable<int> ids);
+
+  /// Enregistre le résultat de l'analyse de [entryId] (spec 004) : étiquettes et
+  /// statut « étiquetée » dans une même transaction, ou statut « sans étiquette ».
+  /// Sans effet si l'entrée n'existe plus (CA16).
+  Future<void> saveAnalysis(int entryId, AnalysisResult result);
 
   /// Supprime définitivement l'entrée [id] (RM15, RM28).
   Future<void> deleteEntry(int id);
