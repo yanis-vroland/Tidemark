@@ -272,6 +272,10 @@ class AnalysisQueue extends ChangeNotifier {
         try {
           await analysis;
         } catch (_) {}
+        // L'analyseur a pu libérer son moteur pour l'arrêter : la file le
+        // libère aussi, et l'entrée suivante le recharge (CA35), au lieu de
+        // devenir « sans étiquette » faute de moteur.
+        await _release();
         return const Untagged();
       } catch (_) {
         return const Untagged();
