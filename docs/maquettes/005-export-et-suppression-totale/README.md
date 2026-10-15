@@ -2,7 +2,7 @@
 
 Copie versionnée de l'artefact Claude de type « Design » ([lien privé](https://claude.ai/artifact/Fe2pd6Z9VV6Utfpg59JA9x)), construit sur la [charte](../000-charte/). **Cette copie fait foi.** Spec : [`docs/specs/005-export-et-suppression-totale.md`](../../specs/005-export-et-suppression-totale.md).
 
-Statut : **à valider par Yanis.**
+Statut : **validée par Yanis** (merge de la PR #16, 2026-10-14).
 
 | Écran | Fichiers (artboards) | Critères |
 | --- | --- | --- |
