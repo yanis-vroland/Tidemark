@@ -10,6 +10,7 @@ import 'package:tidemark/ui/theme/tidemark_colors.dart';
 import '../support/fake_settings_repository.dart';
 
 import '../support/fake_entry_repository.dart';
+import '../support/fake_model_downloader.dart';
 import '../support/ui_harness.dart';
 
 const maxScale = 2.0;
@@ -42,6 +43,7 @@ void main() {
             repository: env.repo,
             settings: FakeSettingsRepository(),
             clock: () => env.now,
+            downloader: FakeModelDownloader(readyModel),
           ),
           textScale: maxScale,
         ),
@@ -59,6 +61,7 @@ void main() {
             repository: env.repo,
             settings: FakeSettingsRepository(),
             clock: () => env.now,
+            downloader: FakeModelDownloader(readyModel),
           ),
           textScale: maxScale,
         ),
@@ -75,6 +78,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(readyModel),
           ),
           textScale: maxScale,
         ),
@@ -94,6 +98,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(readyModel),
           ),
           textScale: maxScale,
         ),
@@ -114,7 +119,11 @@ void main() {
       );
       await tester.pumpWidget(
         testApp(
-          EntryFormScreen(repository: repo, settings: FakeSettingsRepository()),
+          EntryFormScreen(
+            repository: repo,
+            settings: FakeSettingsRepository(),
+            downloader: FakeModelDownloader(readyModel),
+          ),
           textScale: maxScale,
         ),
       );

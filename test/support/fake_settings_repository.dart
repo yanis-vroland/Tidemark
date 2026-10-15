@@ -39,4 +39,23 @@ class FakeSettingsRepository implements SettingsRepository {
     value = sensitivity;
     _changes.add(value);
   }
+
+  /// Proposition du modèle déjà affichée (spec 003).
+  bool modelOfferShown = false;
+  final _offerChanges = StreamController<bool>.broadcast();
+
+  @override
+  Stream<bool> watchModelOfferShown() async* {
+    yield modelOfferShown;
+    yield* _offerChanges.stream;
+  }
+
+  @override
+  Future<bool> readModelOfferShown() async => modelOfferShown;
+
+  @override
+  Future<void> setModelOfferShown() async {
+    modelOfferShown = true;
+    _offerChanges.add(true);
+  }
 }

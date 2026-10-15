@@ -10,6 +10,7 @@ import 'package:tidemark/ui/screens/settings_screen.dart';
 import 'package:tidemark/ui/theme/tidemark_colors.dart';
 
 import '../support/distress_harness.dart';
+import '../support/fake_model_downloader.dart';
 import '../support/fake_settings_repository.dart';
 import '../support/ui_harness.dart';
 
@@ -19,7 +20,13 @@ Future<void> showSettings(
   double textScale = 1.0,
 }) async {
   await tester.pumpWidget(
-    testApp(SettingsScreen(settings: settings), textScale: textScale),
+    testApp(
+      SettingsScreen(
+        settings: settings,
+        downloader: FakeModelDownloader(readyModel),
+      ),
+      textScale: textScale,
+    ),
   );
   await settle(tester);
 }
@@ -194,6 +201,9 @@ void main() {
         final settings = FakeSettingsRepository(start);
         await showSettings(tester, settings);
 
+        // Spec 003 : la section du modèle, au-dessus, pousse les degrés vers le bas.
+        await tester.ensureVisible(find.text(label));
+        await tester.pump();
         await tester.tap(find.text(label));
         await settle(tester);
 
@@ -225,6 +235,9 @@ void main() {
       usePhoneScreen(tester);
       final settings = FakeSettingsRepository();
       await showSettings(tester, settings);
+      // Spec 003 : la section du modèle, au-dessus, pousse les degrés vers le bas.
+      await tester.ensureVisible(find.text(lowLabel));
+      await tester.pump();
       await tester.tap(find.text(lowLabel));
       await settle(tester);
 
@@ -257,6 +270,9 @@ void main() {
       await showSettings(tester, settings);
       expect(find.text(settingsSaveFailedTitle), findsNothing);
 
+      // Spec 003 : la section du modèle, au-dessus, pousse les degrés vers le bas.
+      await tester.ensureVisible(find.text(lowLabel));
+      await tester.pump();
       await tester.tap(find.text(lowLabel));
       await settle(tester);
 
@@ -276,6 +292,9 @@ void main() {
         ..writeError = StateError('écriture impossible');
       await showSettings(tester, settings);
 
+      // Spec 003 : la section du modèle, au-dessus, pousse les degrés vers le bas.
+      await tester.ensureVisible(find.text(highLabel));
+      await tester.pump();
       await tester.tap(find.text(highLabel));
       await settle(tester);
 
@@ -296,6 +315,9 @@ void main() {
         ..writeError = StateError('écriture impossible');
       await showSettings(tester, settings);
 
+      // Spec 003 : la section du modèle, au-dessus, pousse les degrés vers le bas.
+      await tester.ensureVisible(find.text(highLabel));
+      await tester.pump();
       await tester.tap(find.text(highLabel));
       await settle(tester);
 
@@ -348,6 +370,9 @@ void main() {
     await showSettings(tester, settings);
 
     expect(radioChecked(tester, normalLabel), isTrue);
+    // Spec 003 : la section du modèle, au-dessus, pousse les degrés vers le bas.
+    await tester.ensureVisible(find.text(highLabel));
+    await tester.pump();
     await tester.tap(find.text(highLabel));
     await settle(tester);
     expect(settings.setCalls, [LowMoodSensitivity.high]);
@@ -384,6 +409,9 @@ void main() {
       usePhoneScreen(tester);
       await showSettings(tester, FakeSettingsRepository());
 
+      // Spec 003 : la section du modèle, au-dessus, pousse les degrés vers le bas.
+      await tester.ensureVisible(find.text(highLabel));
+      await tester.pump();
       await tester.tap(find.text(highLabel));
       await settle(tester);
 
@@ -508,6 +536,9 @@ void main() {
         ..writeError = StateError('écriture impossible');
       await showSettings(tester, settings);
 
+      // Spec 003 : la section du modèle, au-dessus, pousse les degrés vers le bas.
+      await tester.ensureVisible(find.text(highLabel));
+      await tester.pump();
       await tester.tap(find.text(highLabel));
       await settle(tester);
 

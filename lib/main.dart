@@ -5,6 +5,8 @@ import 'package:path_provider/path_provider.dart';
 
 import 'distress/startup_screening.dart';
 import 'entries/entry_repository.dart';
+import 'model/model_downloader.dart';
+import 'model/model_transport.dart';
 import 'settings/settings_repository.dart';
 import 'storage/app_database.dart';
 import 'storage/database_key.dart';
@@ -21,10 +23,17 @@ Future<void> main() async {
 
 /// Journal ouvert : ses entrées et les réglages, sur la même base chiffrée.
 class Journal {
-  const Journal({required this.entries, required this.settings});
+  const Journal({
+    required this.entries,
+    required this.settings,
+    required this.downloader,
+  });
 
   final EntryRepository entries;
   final SettingsRepository settings;
+
+  /// Modèle local, dans le dossier `models/` à côté de la base (spec 003).
+  final ModelDownloader downloader;
 }
 
 /// Application de démarrage : le journal ouvert, ou l'écran d'erreur qui
@@ -34,7 +43,16 @@ Future<Widget> startApp({Future<Journal> Function() open = openJournal}) async {
     final journal = await open();
     // Avant tout affichage ; n'échoue jamais (CA16).
     await screenPendingEntries(journal.entries);
-    return TidemarkApp(repository: journal.entries, settings: journal.settings);
+    // État du modèle déduit des fichiers ; une erreur laisse le modèle absent
+    // (spec 003, CA21, CA22).
+    try {
+      await journal.downloader.checkAtStartup();
+    } catch (_) {}
+    return TidemarkApp(
+      repository: journal.entries,
+      settings: journal.settings,
+      downloader: journal.downloader,
+    );
   } on DatabaseKeyMissingError {
     // Aucune perte silencieuse : ni nouvelle clé, ni base recréée (spec 001).
     return const StartupErrorApp(keyMissing: true);
@@ -63,6 +81,10 @@ Future<Journal> openJournal({Directory? folder, KeyStore? keyStore}) async {
   return Journal(
     entries: DriftEntryRepository(db),
     settings: DriftSettingsRepository(db),
+    downloader: HttpModelDownloader(
+      transport: IoModelTransport(),
+      folder: Directory('${dir.path}/models'),
+    ),
   );
 }
 
@@ -71,12 +93,14 @@ class TidemarkApp extends StatelessWidget {
     super.key,
     required this.repository,
     required this.settings,
+    required this.downloader,
     this.dialer = const UrlLauncherDialer(),
     this.clock,
   });
 
   final EntryRepository repository;
   final SettingsRepository settings;
+  final ModelDownloader downloader;
   final PhoneDialer dialer;
 
   /// Date et heure locales ; [DateTime.now] par défaut.
@@ -91,6 +115,7 @@ class TidemarkApp extends StatelessWidget {
       home: EntryListScreen(
         repository: repository,
         settings: settings,
+        downloader: downloader,
         dialer: dialer,
         clock: clock ?? DateTime.now,
       ),

@@ -8,6 +8,8 @@ import 'package:tidemark/main.dart';
 import 'package:tidemark/storage/app_database.dart';
 import 'package:tidemark/ui/theme/tidemark_theme.dart';
 
+import 'fake_model_downloader.dart';
+
 /// Horloge fixe des tests d'interface : mercredi 14 octobre 2026, 21:40 (heure locale).
 final fixedNow = DateTime(2026, 10, 14, 21, 40);
 
@@ -77,6 +79,7 @@ class DbEnv {
     repository: repo,
     settings: DriftSettingsRepository(db),
     clock: () => now,
+    downloader: FakeModelDownloader(readyModel),
   );
 
   /// Enregistre une entrée comme si elle avait été saisie à [at] (heure locale).

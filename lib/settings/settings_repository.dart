@@ -11,4 +11,14 @@ abstract interface class SettingsRepository {
 
   /// Enregistre le degré choisi.
   Future<void> setLowMoodSensitivity(LowMoodSensitivity sensitivity);
+
+  /// Vrai si la proposition du modèle s'est déjà ouverte d'elle-même (spec 003,
+  /// RM31) ; faux par défaut.
+  Stream<bool> watchModelOfferShown();
+
+  /// Valeur actuelle de [watchModelOfferShown].
+  Future<bool> readModelOfferShown();
+
+  /// Marque la proposition du modèle comme affichée.
+  Future<void> setModelOfferShown();
 }

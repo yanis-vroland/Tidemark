@@ -269,8 +269,11 @@ void main() {
 
     tearDown(() async => await db.close());
 
-    test('le schéma est en version 2', () {
-      expect(db.schemaVersion, 2);
+    // Version 2 introduite par la spec 002 ; la spec 003 passe à la version 3
+    // (proposition du modèle). Le test vérifie que la table des réglages existe
+    // depuis la version 2.
+    test('le schéma est au moins en version 2', () {
+      expect(db.schemaVersion, greaterThanOrEqualTo(2));
     });
 
     test('CA18 : sans choix, le degré est « Normale », en lecture comme en '

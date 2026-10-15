@@ -1,18 +1,27 @@
 import 'package:flutter/material.dart';
 
 import '../../distress/distress_detector.dart';
+import '../../model/model_downloader.dart';
 import '../../settings/settings_repository.dart';
 import '../theme/tidemark_colors.dart';
 import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
 import '../widgets/error_banner.dart';
+import '../widgets/model_settings_section.dart';
 
 /// Écran des réglages (glossaire : `SettingsScreen`, spec 002). Un degré choisi est
 /// enregistré aussitôt, sans bouton « Enregistrer » (CA19).
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key, required this.settings});
+  const SettingsScreen({
+    super.key,
+    required this.settings,
+    required this.downloader,
+  });
 
   final SettingsRepository settings;
+
+  /// Modèle local : section « Analyse sur le téléphone » (spec 003).
+  final ModelDownloader downloader;
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -105,7 +114,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       message: 'Le réglage précédent reste en place. Réessaie.',
                     ),
                   ],
+                  // Après la lecture du degré : pendant le chargement, seuls le
+                  // retour et le titre sont visibles (spec 002, CA22).
                   if (current != null) ...[
+                    const SizedBox(height: TidemarkSpacing.space6),
+                    ModelSettingsSection(downloader: widget.downloader),
                     const SizedBox(height: TidemarkSpacing.space6),
                     _HelpSection(current: current, onChanged: _choose),
                   ],
