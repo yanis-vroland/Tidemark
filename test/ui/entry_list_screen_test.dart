@@ -12,7 +12,7 @@ Widget listScreen(DbEnv env) => testApp(
     repository: env.repo,
     settings: FakeSettingsRepository(),
     clock: () => env.now,
-    downloader: FakeModelDownloader(),
+    downloader: FakeModelDownloader(readyModel),
   ),
 );
 

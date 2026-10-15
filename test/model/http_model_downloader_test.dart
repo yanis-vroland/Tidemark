@@ -680,6 +680,25 @@ void main() {
       );
     });
 
+    // Ajouté après le contrôle par mutation : une erreur HTTP qui renverrait
+    // exactement les octets attendus ne doit pas être prise pour le modèle.
+    test(
+      'CA17 : une réponse 404 avec les bons octets reste un échec « réseau »',
+      () async {
+        final transport = FakeModelTransport([
+          TransportResponse(
+            statusCode: 404,
+            body: Stream.fromIterable(chunksOf(modelBytes, 100)),
+          ),
+        ]);
+
+        final log = await download(build(transport));
+
+        expectFailure(log, DownloadFailure.network);
+        expect(filesIn(models), isEmpty);
+      },
+    );
+
     for (final code in [204, 206, 400, 403, 404, 416, 500, 503]) {
       test('CA17 : une réponse $code est un échec « réseau »', () async {
         final transport = FakeModelTransport([FakeModelTransport.status(code)]);

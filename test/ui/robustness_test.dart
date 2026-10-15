@@ -36,7 +36,7 @@ void main() {
           repository: repo,
           settings: FakeSettingsRepository(),
           clock: () => fixedNow,
-          downloader: FakeModelDownloader(),
+          downloader: FakeModelDownloader(readyModel),
         ),
       );
       await tester.pump();
@@ -69,7 +69,7 @@ void main() {
         repository: repo,
         settings: FakeSettingsRepository(),
         clock: () => fixedNow,
-        downloader: FakeModelDownloader(),
+        downloader: FakeModelDownloader(readyModel),
       ),
     );
     await tester.pump();
@@ -100,7 +100,7 @@ void main() {
         repository: repo,
         settings: FakeSettingsRepository(),
         clock: () => fixedNow,
-        downloader: FakeModelDownloader(),
+        downloader: FakeModelDownloader(readyModel),
       ),
     );
     await tester.pump();
@@ -146,7 +146,7 @@ void main() {
         repository: repo,
         settings: FakeSettingsRepository(),
         clock: () => fixedNow,
-        downloader: FakeModelDownloader(),
+        downloader: FakeModelDownloader(readyModel),
       ),
     );
     await tester.pump();
@@ -165,7 +165,7 @@ void main() {
         repository: repo,
         settings: FakeSettingsRepository(),
         clock: () => fixedNow,
-        downloader: FakeModelDownloader(),
+        downloader: FakeModelDownloader(readyModel),
       ),
     );
     await tester.pump();
@@ -185,7 +185,7 @@ void main() {
         repository: repo,
         settings: FakeSettingsRepository(),
         clock: () => fixedNow,
-        downloader: FakeModelDownloader(),
+        downloader: FakeModelDownloader(readyModel),
       ),
     );
     await tester.pump();

@@ -3,6 +3,10 @@ import 'dart:async';
 import 'package:tidemark/model/model_downloader.dart';
 import 'package:tidemark/model/model_state.dart';
 
+/// Modèle déjà prêt : cadre neutre des tests des specs 001 et 002, où la
+/// proposition du modèle (spec 003, CA1) ne doit pas s'ouvrir.
+const readyModel = ModelReady(path: 'tidemark/models/modele.gguf');
+
 /// Téléchargeur factice pour les écrans : l'état se règle par [emit], les appels
 /// sont comptés. Aucun réseau.
 class FakeModelDownloader implements ModelDownloader {

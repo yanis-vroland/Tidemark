@@ -45,6 +45,15 @@ void main() {
   });
 
   group('hôtes admis, ModelSource.isAllowed (CA8)', () {
+    // Ajouté après le contrôle par mutation : le port 443 ne rend pas `http`
+    // acceptable.
+    test('CA8 : http sur le port 443 est refusé', () {
+      expect(
+        ModelSource.isAllowed(Uri.parse('http://huggingface.co:443/x')),
+        isFalse,
+      );
+    });
+
     const allowed = [
       'https://huggingface.co/Qwen/x/resolve/abc/f.gguf',
       'https://cdn-lfs.huggingface.co/repos/ab/cd/file',

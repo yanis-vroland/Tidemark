@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Seul usage : le téléchargement du modèle local (spec 003, RM1). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="tidemark"
         android:name="${applicationName}"

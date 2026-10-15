@@ -5,6 +5,7 @@ import '../../distress/guarded_save.dart';
 import '../../entries/day_grouping.dart';
 import '../../entries/entry.dart';
 import '../../entries/entry_repository.dart';
+import '../../model/model_state.dart';
 import '../../model/model_downloader.dart';
 import '../../settings/settings_repository.dart';
 import '../phone_dialer.dart';
@@ -14,6 +15,7 @@ import '../theme/tidemark_typography.dart';
 import '../widgets/error_banner.dart';
 import '../widgets/mood_dot.dart';
 import 'help_screen.dart';
+import 'model_download_screen.dart';
 
 /// Seuil d'affichage du compteur de caractères (CA12).
 const _counterThreshold = 1800;
@@ -102,7 +104,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             builder: (_) => HelpScreen(dialer: widget.dialer),
           ),
         );
-      } else {
+      } else if (await _shouldOfferModel(outcome.entry.analysisStatus)) {
+        if (!mounted) return;
+        await Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(
+            builder: (_) => ModelDownloadScreen(downloader: widget.downloader),
+          ),
+        );
+      } else if (mounted) {
         Navigator.of(context).pop();
       }
     } catch (_) {
@@ -112,6 +121,21 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           _failed = true;
         });
       }
+    }
+  }
+
+  /// La proposition du modèle s'ouvre d'elle-même une seule fois : après une
+  /// entrée « en attente », modèle absent (spec 003, RM31). Une erreur de lecture
+  /// du réglage ne la montre pas : elle reste accessible par les Réglages.
+  Future<bool> _shouldOfferModel(AnalysisStatus status) async {
+    if (status != AnalysisStatus.pending) return false;
+    if (widget.downloader.current is! ModelAbsent) return false;
+    try {
+      if (await widget.settings.readModelOfferShown()) return false;
+      await widget.settings.setModelOfferShown();
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 

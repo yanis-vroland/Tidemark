@@ -40,7 +40,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
-            downloader: FakeModelDownloader(),
+            downloader: FakeModelDownloader(readyModel),
           ),
         ),
       );
@@ -59,7 +59,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
-            downloader: FakeModelDownloader(),
+            downloader: FakeModelDownloader(readyModel),
           ),
         ),
       );
@@ -79,7 +79,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
-            downloader: FakeModelDownloader(),
+            downloader: FakeModelDownloader(readyModel),
           ),
         ),
       );
@@ -99,7 +99,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
-            downloader: FakeModelDownloader(),
+            downloader: FakeModelDownloader(readyModel),
           ),
         ),
       );
@@ -126,7 +126,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
-            downloader: FakeModelDownloader(),
+            downloader: FakeModelDownloader(readyModel),
           ),
         ),
       );
@@ -144,7 +144,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
-            downloader: FakeModelDownloader(),
+            downloader: FakeModelDownloader(readyModel),
           ),
         ),
       );
@@ -167,7 +167,7 @@ void main() {
             EntryFormScreen(
               repository: env.repo,
               settings: FakeSettingsRepository(),
-              downloader: FakeModelDownloader(),
+              downloader: FakeModelDownloader(readyModel),
             ),
           ),
         );
@@ -189,7 +189,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
-            downloader: FakeModelDownloader(),
+            downloader: FakeModelDownloader(readyModel),
           ),
         ),
       );
@@ -207,7 +207,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
-            downloader: FakeModelDownloader(),
+            downloader: FakeModelDownloader(readyModel),
           ),
         ),
       );
@@ -226,7 +226,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
-            downloader: FakeModelDownloader(),
+            downloader: FakeModelDownloader(readyModel),
           ),
         ),
       );
@@ -244,7 +244,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
-            downloader: FakeModelDownloader(),
+            downloader: FakeModelDownloader(readyModel),
           ),
         ),
       );
@@ -263,7 +263,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
-            downloader: FakeModelDownloader(),
+            downloader: FakeModelDownloader(readyModel),
           ),
         ),
       );
@@ -279,7 +279,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
-            downloader: FakeModelDownloader(),
+            downloader: FakeModelDownloader(readyModel),
           ),
         ),
       );
@@ -297,7 +297,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
-            downloader: FakeModelDownloader(),
+            downloader: FakeModelDownloader(readyModel),
           ),
         ),
       );
@@ -320,7 +320,7 @@ void main() {
           EntryFormScreen(
             repository: env.repo,
             settings: FakeSettingsRepository(),
-            downloader: FakeModelDownloader(),
+            downloader: FakeModelDownloader(readyModel),
           ),
         ),
       );
@@ -545,7 +545,7 @@ void main() {
           EntryFormScreen(
             repository: repo,
             settings: FakeSettingsRepository(),
-            downloader: FakeModelDownloader(),
+            downloader: FakeModelDownloader(readyModel),
           ),
         ),
       );
@@ -579,7 +579,7 @@ void main() {
           repository: repo,
           settings: FakeSettingsRepository(),
           clock: () => fixedNow,
-          downloader: FakeModelDownloader(),
+          downloader: FakeModelDownloader(readyModel),
         ),
       );
       await tester.pump();
@@ -616,7 +616,7 @@ void main() {
           repository: repo,
           settings: FakeSettingsRepository(),
           clock: () => fixedNow,
-          downloader: FakeModelDownloader(),
+          downloader: FakeModelDownloader(readyModel),
         ),
       );
       await tester.pump();

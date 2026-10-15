@@ -38,6 +38,10 @@ class Settings extends Table {
   /// Degré de sensibilité aux humeurs basses, par son nom (`LowMoodSensitivity`).
   TextColumn get lowMoodSensitivity => text()();
 
+  /// Proposition du modèle déjà affichée (spec 003, RM31).
+  BoolColumn get modelOfferShown =>
+      boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
@@ -85,14 +89,19 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
     onUpgrade: (m, from, to) async {
       // Version 2 : table des réglages (spec 002).
-      if (from < 2) await m.createTable(settings);
+      if (from < 2) {
+        await m.createTable(settings);
+      } else if (from < 3) {
+        // Version 3 : proposition du modèle (spec 003).
+        await m.addColumn(settings, settings.modelOfferShown);
+      }
     },
   );
 
@@ -241,13 +250,26 @@ class DriftSettingsRepository implements SettingsRepository {
       _parse(await _row.getSingleOrNull());
 
   @override
-  Stream<bool> watchModelOfferShown() => throw UnimplementedError();
+  Stream<bool> watchModelOfferShown() =>
+      _row.watchSingleOrNull().map((row) => row?.modelOfferShown ?? false);
 
   @override
-  Future<bool> readModelOfferShown() => throw UnimplementedError();
+  Future<bool> readModelOfferShown() async =>
+      (await _row.getSingleOrNull())?.modelOfferShown ?? false;
 
   @override
-  Future<void> setModelOfferShown() => throw UnimplementedError();
+  Future<void> setModelOfferShown() => db
+      .into(db.settings)
+      .insert(
+        SettingsCompanion.insert(
+          id: const Value(1),
+          lowMoodSensitivity: LowMoodSensitivity.normal.name,
+          modelOfferShown: const Value(true),
+        ),
+        onConflict: DoUpdate(
+          (_) => const SettingsCompanion(modelOfferShown: Value(true)),
+        ),
+      );
 
   @override
   Future<void> setLowMoodSensitivity(LowMoodSensitivity sensitivity) => db
