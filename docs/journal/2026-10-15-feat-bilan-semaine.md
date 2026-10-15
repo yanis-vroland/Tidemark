@@ -122,4 +122,4 @@ Revues `reviewer` et `security-reviewer`, corrections, puis PR.
 
 ### Prochaine étape
 
-Ouvrir la PR, puis attendre la validation de l'ADR-005 et le test humain de Yanis.
+PR #27 ouverte (numéro reporté dans le cahier des charges et la spec). Attendre la validation de l'ADR-005 et le test humain de Yanis ; rebaser après le merge de `fix/etiquetage-interruption`.

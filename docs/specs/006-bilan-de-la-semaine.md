@@ -304,7 +304,7 @@ Fixées par cette spec, puis reportées dans l'architecture technique avec l'imp
 - **Faits du bilan** (`ReviewFacts`) : `averageMoodLabel`, `regularity` (`WeekRegularity`), `topTagLabels`, `trend` (`ReviewTrend`). Aucun champ numérique.
 - **Rédacteur du bilan** (`ReviewWriter`), interface qui isole le modèle comme `MoodAnalyzer` :
   - `Future<ReviewDraft> write(ReviewFacts facts)`, qui ne lève jamais d'exception. `ReviewDraft` vaut `RawReview(String output)` (la sortie brute du modèle, à valider), `ModelMissing` ou `WriterFailed`.
-  - `Future<void> cancel()` : abandonne la mise en mots en cours (délai de 30 s dépassé, écran quitté, autre semaine affichée) ; `write` rend alors `WriterFailed`. Ajouté à l'implémentation (PR de `feat/bilan-semaine`), nécessaire aux « Cas limites ».
+  - `Future<void> cancel()` : abandonne la mise en mots en cours (délai de 30 s dépassé, écran quitté, autre semaine affichée) ; `write` rend alors `WriterFailed`. Ajouté à l'implémentation (PR #27), nécessaire aux « Cas limites ».
   - Implémentation réelle sur `llamadart` (ADR-001), même modèle que l'étiquetage, une génération à la fois ; `FakeReviewWriter` dans `test/support/`, seul utilisé par les tests et la CI, qui rend une sortie choisie par le test et enregistre ce qu'il reçoit.
   - L'appelant applique le délai de 30 secondes, puis `ReviewTextValidator`.
 - **Validateur** (`ReviewTextValidator`) : code Dart pur. `String? validate(String output)` rend le texte à afficher, ou `null` si la sortie est rejetée. Il réutilise la normalisation et `detectInText` de `DistressDetector` (spec 002).
