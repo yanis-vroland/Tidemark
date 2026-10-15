@@ -29,3 +29,26 @@ Branche `feat/export-suppression`, partie de `main` à jour (lot H du plan). Spe
 ### Prochaine étape
 
 Tests de la spec 005 par le subagent `test-writer`, committés seuls et rouges ; puis implémentation.
+
+## 2026-10-15 16:30
+
+### Fait
+
+- Tests de la spec 005 écrits par le subagent `test-writer` à partir de la spec et des maquettes, avant toute implémentation : 295 tests nouveaux, dont 270 en échec et 25 qui passent sans implémentation (gardes « rien ne se passe » et forme du squelette, chacun avec un pendant rouge). Les 968 tests existants restent verts (`flutter test` : 993 verts, 270 rouges, tous dans les nouveaux fichiers).
+- Rouges par fichier (raison : `UnimplementedError`, section ou écran vides, reprise et marqueur absents au démarrage) : `journal_exporter_test` 28, `journal_export_test` 22, `journal_wiper_test` 55, `install_marker_test` 12, `all_entries_with_tags_test` 7, `startup_wipe_test` 24, `my_data_section_test` 27, `wipe_confirmation_screen_test` 64, `startup_error_wipe_test` 16, `wipe_flow_test` 6, `list_after_wipe_test` 5, `app_host_test` 2, `share_sheet_only_on_tap_test` 2.
+- Harnais : `test/support/fake_share_sheet.dart`, `test/support/wipe_harness.dart`.
+
+### Décisions
+
+- Apostrophe droite dans « Préparation de l'export… » et « Réessayer l'export », comme la spec (la maquette a l'apostrophe typographique) (agent).
+- JSON octet pour octet : la règle normative de la spec (`JsonEncoder.withIndent('  ')`) prime sur l'exemple, qui écrit chaque étiquette sur une ligne ; le test l'écrit en dur au format de l'encodeur (agent).
+- CA20 : « Réessayer » actif sans réécrire « SUPPRIMER », il rejoue `wipe()` (maquette) (agent).
+
+### Corrections et limites
+
+- CA10 au démarrage force l'échec de la purge par `chmod 555` : sans effet si les tests tournent en root.
+- CA32 : si l'effacement de la clé échoue à une nouvelle installation, la base neuve prend la clé restante ; au démarrage suivant, la base existe et la clé n'est plus effacée. Conforme à la table de la spec, mais à signaler.
+
+### Prochaine étape
+
+Implémentation jusqu'au vert, puis contrôle par mutation des garde-fous et revues.
