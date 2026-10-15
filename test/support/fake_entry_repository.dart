@@ -120,6 +120,15 @@ class FakeEntryRepository implements EntryRepository {
     return byTime != 0 ? byTime : b.id.compareTo(a.id);
   });
 
+  /// Si non nul, [allEntriesWithTags] lève cette erreur (export, spec 005).
+  Object? allEntriesError;
+
+  @override
+  Future<List<Entry>> allEntriesWithTags() async {
+    if (allEntriesError != null) throw allEntriesError!;
+    return entries.reversed.toList();
+  }
+
   @override
   Future<List<Entry>> latestEntries(int count) async {
     if (latestEntriesError != null) throw latestEntriesError!;

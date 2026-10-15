@@ -240,6 +240,9 @@ class DriftEntryRepository implements EntryRepository {
   }
 
   @override
+  Future<List<Entry>> allEntriesWithTags() => throw UnimplementedError();
+
+  @override
   Future<void> deleteEntry(int id) =>
       (db.delete(db.entries)..where((e) => e.id.equals(id))).go();
 

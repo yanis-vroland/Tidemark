@@ -13,6 +13,7 @@ import '../analysis_scope.dart';
 import '../widgets/entry_tags_section.dart' show analysingText;
 import '../widgets/loading_note.dart';
 import '../widgets/mood_dot.dart';
+import '../widgets/my_data_section.dart';
 import '../widgets/tag_chip.dart';
 import 'entry_detail_screen.dart';
 import 'entry_form_screen.dart';
@@ -27,7 +28,16 @@ class EntryListScreen extends StatefulWidget {
     required this.downloader,
     this.dialer = const UrlLauncherDialer(),
     required this.clock,
+    this.data,
+    this.wiped = false,
   });
+
+  /// Export et suppression totale, passés aux Réglages (spec 005).
+  final DataActions? data;
+
+  /// Une suppression totale vient de réussir : message de fin au-dessus de la
+  /// liste vide (CA18).
+  final bool wiped;
 
   final EntryRepository repository;
 
@@ -83,6 +93,7 @@ class _EntryListScreenState extends State<EntryListScreen> {
       builder: (_) => SettingsScreen(
         settings: widget.settings,
         downloader: widget.downloader,
+        data: widget.data,
       ),
     ),
   );
