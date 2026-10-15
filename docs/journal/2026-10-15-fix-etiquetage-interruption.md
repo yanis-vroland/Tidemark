@@ -101,3 +101,23 @@ Correction de `AnalysisQueue`, `LlamaMoodAnalyzer`, `appLifecycleStates()` et du
 ### Prochaine étape
 
 Revues `reviewer` puis `security-reviewer`, puis PR.
+
+## 2026-10-15 16:40
+
+### Fait
+
+- Revues lancées : `reviewer` (1 bloquant, 5 à corriger, 4 suggestions) et `security-reviewer` (rien de bloquant, 2 à corriger, 2 suggestions). Point commun bloquant : après une annulation qui dépasse 5 s, `LlamaMoodAnalyzer` a libéré son moteur, mais la file le croit encore chargé ; chaque entrée suivante devenait « sans étiquette » sans analyse.
+- Spec 004 précisée (CA35) : seul le moteur annulé est libéré, attente de la libération bornée, et la file libère le modèle après un délai de 30 s dépassé, pour que l'entrée suivante le recharge. Cahier des charges : RM34 dit maintenant que l'analyse n'a lieu qu'au premier plan et reprend au retour.
+- 5 tests de non-régression ajoutés à `test/analysis/llama_mood_analyzer_cancel_test.dart`, tous rouges pour la bonne raison : libération qui ne se termine jamais (`cancel()` bloqué), analyse abandonnée rendue avant la fin de la libération, moteur chargé entre-temps libéré à tort, `cancel()` qui n'attend plus la génération une fois le moteur libéré, entrée suivante « sans étiquette » sans rechargement du modèle (file branchée sur `LlamaMoodAnalyzer` et un moteur factice).
+
+### Décisions
+
+- Correction du bloquant côté file (libération après un délai dépassé), sans changer le contrat de `MoodAnalyzer` (agent, option proposée par les deux revues).
+
+### Corrections et limites
+
+- Le premier essai du test « analyse abandonnée après la libération » passait sans correction (la libération factice était instantanée) : renforcé avec une libération de 100 ms.
+
+### Prochaine étape
+
+Corrections jusqu'au vert, puis réponse aux revues dans la PR.
