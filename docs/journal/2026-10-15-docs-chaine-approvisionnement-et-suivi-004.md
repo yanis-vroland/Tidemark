@@ -40,3 +40,32 @@ Branche `docs/chaine-approvisionnement-et-suivi-004`.
 1. Revue de la PR par Yanis ; décision sur l'ADR-004 (accepter, refuser ou amender).
 2. Si accepté : PR `chore` pour le script de récupération vérifiée du moteur, `llamadart_native_runtimes` et le niveau de journal ; complément de la spec 003 pour l'empreinte du modèle au lancement, puis tests d'abord.
 3. Réponses de Yanis aux questions ouvertes de la spec 004, puis report dans la spec.
+
+## 2026-10-15 15:26
+
+### Fait
+
+- Revues lancées sur le premier commit : `reviewer` (aucun point bloquant, 8 à corriger) et `security-reviewer` (aucun point bloquant, 4 à corriger). L'entrée précédente, qui les disait « à lancer par l'agent principal », est dépassée.
+- Corrections de l'ADR-004 :
+  - comparaison avec l'installation de gitleaks retirée : `garde-fous.yml` lit `checksums.txt` dans la même release que l'archive, l'option A est plus stricte ;
+  - conditions de l'option A : dossier limité aux archives (le hook préfère un dossier de bibliothèques, sans contrôle), revérification à chaque lancement du script, cibles de l'hôte (`linux-x64`, `macos-arm64`) à vérifier avant acceptation, cible `ios-x86_64-sim` ajoutée, limite du script non lancé ;
+  - concordance des archives ramenée à ce qu'elle prouve (premier téléchargement, dossier `extracted/` non comparé) ; dates des assets et absence d'attestation relevées ;
+  - constat 2 rattaché à la décision 5 de la spec 003 et au CA15 de la spec 004, que l'option E remet en cause ; mesure du hachage présentée comme borne basse ;
+  - modèle de menace complété : code exécuté à la construction, failles figées par l'épinglage, iOS sans permission réseau, garde-fou réseau limité au Dart, cache de la CI.
+- Architecture : phrase « Empreinte et taille vérifiées avant usage » corrigée ; détails de la chaîne d'approvisionnement ramenés à un renvoi vers l'ADR-004.
+- Cahier des charges : délégation de la spec 004 expliquée, effet de l'échec d'écriture sur les entrées plus anciennes, CA28 recentré sur le détail, question déjà tranchée retirée.
+- `flutter test` : 968 tests verts ; `dart analyze --fatal-infos` et `dart format` au vert (aucun code modifié).
+
+### Décisions
+
+- Aucune décision d'architecture : l'ADR-004 reste « proposé » (agent).
+- Durcissement de l'installation de gitleaks (empreinte écrite dans le dépôt) : signalé dans la PR, hors de son périmètre (agent).
+
+### Corrections et limites
+
+- Suggestion non suivie : comparer le dossier `extracted/` au contenu des archives ; l'ADR l'écrit comme limite du constat.
+- Restent non mesurés : temps de hachage sur l'iPhone et l'émulateur, présence de LiteRT-LM dans l'APK et l'IPA, déclenchement du hook par `flutter test`.
+
+### Prochaine étape
+
+Revue de la PR par Yanis ; décision sur l'ADR-004 ; réponses aux questions ouvertes de la spec 004.
