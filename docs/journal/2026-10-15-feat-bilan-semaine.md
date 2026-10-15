@@ -27,3 +27,24 @@ Branche `feat/bilan-semaine`, partie de `main` à jour (lot I du plan). Spec : [
 ### Prochaine étape
 
 Tests de la spec 006 par le subagent `test-writer`, committés seuls et rouges ; puis implémentation.
+
+## 2026-10-15 15:41
+
+### Fait
+
+- Tests de la spec 006 écrits par le subagent `test-writer`, à partir de la spec et de la maquette seules, avant toute implémentation : 344 tests, dont **342 en échec** pour la bonne raison (`UnimplementedError`, texte absent de l'écran vide, listes de rejet vides, jetons `bar-thickness` et `day-cell` absents de `tokens.json`). Les 968 tests existants restent verts.
+- Fichiers : `test/review/` (`local_week_test` 31, `weekly_review_calculator_test` 65, `review_text_validator_test` 80, `review_narrator_test` 42, `review_wiring_test` 4), `test/model/model_gate_test.dart` (22), `test/ui/weekly_review_screen_test.dart` (97), `test/ui/theme/review_tokens_test.dart` (3), harnais `test/support/review_harness.dart`.
+- Les 2 tests verts sans implémentation : `icon-md` et `icon-button`, déjà dans `tokens.json` ; aucun libellé de la liste fermée dans les blocs de la spec 006 (vérifie la spec, pas le code ; le même test sur le code échoue).
+
+### Décisions
+
+- Accord de Yanis du 2026-10-15 appliqué : pas de pause après les tests rouges, implémentation enchaînée (Yanis).
+- Horloge des tests d'écran : dimanche 18 octobre 2026, comme la maquette (test-writer).
+
+### Corrections et limites
+
+- Points non fixés par la spec, signalés par le test-writer et non testés : « 1er » du mois dans les dates ; tri alphabétique avec accents ; semaine sensible sans modèle (`Withheld` ou `ModelMissing`) ; changement de semaine pendant une mise en mots ; partage réel du verrou entre analyseur et rédacteur (non observable sans moteur).
+
+### Prochaine étape
+
+Implémentation jusqu'au vert, ADR-005 (proposé), documents de référence.
