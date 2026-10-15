@@ -4,6 +4,7 @@ import 'package:characters/characters.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 
+import '../analysis/mood_analyzer.dart';
 import '../distress/distress_detector.dart';
 import '../entries/entry.dart';
 import '../entries/entry_repository.dart';
@@ -218,6 +219,10 @@ class DriftEntryRepository implements EntryRepository {
       );
     return (await query.get()).map(_toEntry).toList();
   }
+
+  @override
+  Future<void> saveAnalysis(int entryId, AnalysisResult result) =>
+      throw UnimplementedError();
 
   @override
   Future<void> markSkipped(Iterable<int> ids) =>

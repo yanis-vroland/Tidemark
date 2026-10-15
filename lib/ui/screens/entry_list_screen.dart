@@ -105,6 +105,7 @@ class _EntryListScreenState extends State<EntryListScreen> {
                           onOpenSettings: _openSettings,
                           groups: groupByDay(entries, widget.clock()),
                           repository: widget.repository,
+                          downloader: widget.downloader,
                           clock: widget.clock,
                         ),
                 ),
@@ -245,12 +246,14 @@ class _EntryList extends StatelessWidget {
     required this.onOpenSettings,
     required this.groups,
     required this.repository,
+    required this.downloader,
     required this.clock,
   });
 
   final VoidCallback onOpenSettings;
   final List<DayGroup> groups;
   final EntryRepository repository;
+  final ModelDownloader downloader;
   final DateTime Function() clock;
 
   @override
@@ -282,6 +285,7 @@ class _EntryList extends StatelessWidget {
               child: _EntryCard(
                 entry: entry,
                 repository: repository,
+                downloader: downloader,
                 clock: clock,
               ),
             ),
@@ -306,11 +310,13 @@ class _EntryCard extends StatelessWidget {
   const _EntryCard({
     required this.entry,
     required this.repository,
+    required this.downloader,
     required this.clock,
   });
 
   final Entry entry;
   final EntryRepository repository;
+  final ModelDownloader downloader;
   final DateTime Function() clock;
 
   @override
@@ -332,8 +338,12 @@ class _EntryCard extends StatelessWidget {
 
   void _open(BuildContext context) => Navigator.of(context).push(
     MaterialPageRoute<void>(
-      builder: (_) =>
-          EntryDetailScreen(entry: entry, repository: repository, clock: clock),
+      builder: (_) => EntryDetailScreen(
+        entry: entry,
+        repository: repository,
+        downloader: downloader,
+        clock: clock,
+      ),
     ),
   );
 

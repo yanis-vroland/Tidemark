@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:tidemark/analysis/mood_analyzer.dart';
 import 'package:tidemark/entries/entry.dart';
 import 'package:tidemark/entries/entry_repository.dart';
 
@@ -149,6 +150,33 @@ class FakeEntryRepository implements EntryRepository {
         );
       }
     }
+    _changes.add(entries);
+  }
+
+  /// Si non nul, [saveAnalysis] lève cette erreur (CA8).
+  Object? saveAnalysisError;
+
+  /// Appels à [saveAnalysis], dans l'ordre, y compris ceux qui ont échoué.
+  final List<({int entryId, AnalysisResult result})> saveAnalysisCalls = [];
+
+  @override
+  Future<void> saveAnalysis(int entryId, AnalysisResult result) async {
+    saveAnalysisCalls.add((entryId: entryId, result: result));
+    if (saveAnalysisError != null) throw saveAnalysisError!;
+    final i = _entries.indexWhere((e) => e.id == entryId);
+    if (i < 0) return;
+    final e = _entries[i];
+    _entries[i] = Entry(
+      id: e.id,
+      mood: e.mood,
+      text: e.text,
+      createdAt: e.createdAt,
+      utcOffset: e.utcOffset,
+      analysisStatus: result is Tagged
+          ? AnalysisStatus.tagged
+          : AnalysisStatus.untagged,
+      tags: result is Tagged ? result.tags : const [],
+    );
     _changes.add(entries);
   }
 }
