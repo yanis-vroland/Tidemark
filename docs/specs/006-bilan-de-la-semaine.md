@@ -1,6 +1,6 @@
 # Spec 006 : bilan de la semaine
 
-Statut : brouillon (décisions métier prises par l'agent à la demande de Yanis, 2026-10-14) ; spec et maquette à valider par Yanis avant les tests
+Statut : validée (Yanis, merge de la PR #17, 2026-10-14 ; décisions métier déléguées à l'agent)
 Date : 2026-10-14
 
 ## Besoin

@@ -93,7 +93,7 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 - **Garde-fou de détresse** : règles déterministes, sans modèle (RM6) ; une entrée en détresse est enregistrée `skipped` et ne sera jamais transmise au modèle (RM8) ; l'écran d'aide est fixe (RM7). Le composeur s'ouvre par `tel:` (`url_launcher`), sans aucune connexion réseau (RM1) ; aucune déclaration native, puisque `canLaunchUrl` n'est pas utilisé.
 - **Secrets** : aucun dans le dépôt ni dans l'app ; la seule clé est générée sur le téléphone. Seul `.env.example` serait versionné.
 - **Réseau** : aucun accès réseau dans l'app à ce jour. Le seul prévu est le téléchargement du modèle local, depuis Hugging Face, sans donnée de la personne ([spec 003](specs/003-telechargement-du-modele.md), RM30) ; il sera décrit ici avec son implémentation.
-- **Export (prévu, lot H)** : seule voie de sortie d'une donnée de la personne, en clair, par la feuille de partage et sur son appui seulement (RM1, RM23, RM41, [ADR-003](adr/003-export-par-la-feuille-de-partage.md), proposé). Fichier temporaire dans le cache, effacé après le partage ; dossiers temporaires purgés au démarrage et avant chaque export.
+- **Export (prévu, lot H)** : seule voie de sortie d'une donnée de la personne, en clair, par la feuille de partage et sur son appui seulement (RM1, RM23, RM41, [ADR-003](adr/003-export-par-la-feuille-de-partage.md)). Fichier temporaire dans le cache, effacé après le partage ; dossiers temporaires purgés au démarrage et avant chaque export.
 - **Suppression totale (prévue, lot H)** : base effacée avant la clé (`KeyStore.deleteAll`), jamais l'inverse ; marqueur `wipe-pending` et reprise au démarrage (RM43, [spec 005](specs/005-export-et-suppression-totale.md)).
 - **Marqueur d'installation (prévu, lot H)** : la parade de l'ADR-002 est précisée par la [spec 005](specs/005-export-et-suppression-totale.md) (RM45) : sans marqueur, la clé restée dans le trousseau n'est effacée que si aucune base n'existe, pour ne pas rendre illisible le journal d'une installation antérieure au marqueur.
 
@@ -110,4 +110,4 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 | --- | --- | --- |
 | [ADR-001](adr/001-moteur-ia-local.md) | Moteur d'IA local | accepté |
 | [ADR-002](adr/002-stockage-local-chiffre.md) | Stockage local chiffré | accepté |
-| [ADR-003](adr/003-export-par-la-feuille-de-partage.md) | Export par la feuille de partage | proposé |
+| [ADR-003](adr/003-export-par-la-feuille-de-partage.md) | Export par la feuille de partage | accepté |

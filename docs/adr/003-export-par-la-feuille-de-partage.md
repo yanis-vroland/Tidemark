@@ -1,6 +1,6 @@
 # ADR-003 : Export par la feuille de partage
 
-Statut : proposé (agent, 2026-10-14) ; à accepter par Yanis
+Statut : accepté (Yanis, merge de la PR #16, 2026-10-14)
 Date : 2026-10-14
 
 Contexte : RM1 interdit qu'une donnée de la personne quitte le téléphone par l'app ; le seul accès réseau admis est le téléchargement du modèle. Or la personne doit pouvoir emporter son journal (RM20), par exemple avant de changer de téléphone : la base est exclue des sauvegardes et sa clé ne quitte pas l'appareil (ADR-002), donc sans export, changer de téléphone fait perdre le journal. Yanis a décidé le 2026-10-14 que l'export passe par la feuille de partage du système, déclenché par la personne seulement, et qu'un ADR documente cette exception (RM23). Le comportement de l'export est fixé par la [spec 005](../specs/005-export-et-suppression-totale.md).
