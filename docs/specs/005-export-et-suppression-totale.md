@@ -1,6 +1,6 @@
 # Spec 005 : export et suppression totale
 
-Statut : proposée, en attente de validation par Yanis (spec, maquette et [ADR-003](../adr/003-export-par-la-feuille-de-partage.md), au statut « proposé »). Décisions métier déléguées à l'agent par Yanis le 2026-10-14 : voir « Questions ouvertes ».
+Statut : validée (Yanis, merge de la PR #16, 2026-10-14 ; décisions métier déléguées à l'agent), avec sa maquette et l'[ADR-003](../adr/003-export-par-la-feuille-de-partage.md)
 Date : 2026-10-14
 
 ## Besoin
