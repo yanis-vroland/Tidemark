@@ -120,7 +120,10 @@ void main() {
 
       expect(find.text('Ta semaine'), findsOneWidget);
       expect(find.text('Entrées'), findsOneWidget);
-      expect(find.text('3'), findsOneWidget);
+      // « 3 » est aussi le chiffre de la pastille « Neutre » de la répartition
+      // (charte : une pastille porte toujours son chiffre) : au moins un.
+      expect(find.text('3'), findsWidgets);
+      expect(find.text('Humeur moyenne'), findsOneWidget);
       expect(find.text(validReviewText), findsNothing);
       expect(find.text(writingText), findsNothing);
       expect(tester.takeException(), isNull);

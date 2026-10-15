@@ -49,7 +49,25 @@ class ReviewFacts {
   final ReviewTrend trend;
 
   /// Forme sérialisée, envoyée au modèle comme message : des mots, sans chiffre.
-  String toPrompt() => throw UnimplementedError();
+  String toPrompt() {
+    final regularityText = switch (regularity) {
+      WeekRegularity.everyDay => 'notée chaque jour',
+      WeekRegularity.mostDays => 'notée la plupart des jours',
+      WeekRegularity.someDays => 'notée certains jours',
+      WeekRegularity.fewDays => 'notée peu de jours',
+    };
+    final trendText = switch (trend) {
+      ReviewTrend.up => 'humeur en hausse',
+      ReviewTrend.down => 'humeur en baisse',
+      ReviewTrend.stable => 'humeur stable',
+      ReviewTrend.none => 'pas de comparaison possible',
+    };
+    final tags = topTagLabels.isEmpty ? 'aucune' : topTagLabels.join(', ');
+    return 'Humeur moyenne de la semaine : $averageMoodLabel.\n'
+        'Régularité : semaine $regularityText.\n'
+        'Étiquettes fréquentes : $tags.\n'
+        'Par rapport à la semaine précédente : $trendText.';
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -159,4 +177,4 @@ final class ComputedWeek extends WeeklyReview {
 }
 
 /// Dixièmes affichés avec une virgule : 36 → « 3,6 », 30 → « 3,0 ».
-String formatTenths(int tenths) => throw UnimplementedError();
+String formatTenths(int tenths) => '${tenths ~/ 10},${tenths % 10}';

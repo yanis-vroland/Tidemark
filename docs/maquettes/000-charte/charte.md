@@ -15,7 +15,7 @@ Tidemark est un journal d'humeur dont l'IA tourne sur le téléphone. La charte 
 - Texte principal en `ink`, texte secondaire en `ink-muted`. Les deux tiennent 4,5:1 sur `surface` et `surface-raised`, dans les deux thèmes.
 - `tide` est la seule couleur d'action : bouton principal, lien, focus, sélection. Un écran n'a qu'un bouton plein en `tide`. Le texte posé dessus est en `on-tide`.
 - `tide-soft` sert de fond aux puces d'étiquette et aux options sélectionnées.
-- `line` borde les champs et les contrôles (3:1 au moins). Pas d'ombre pour séparer des blocs : un fond `surface-raised` sur `surface` suffit.
+- `line` borde les champs et les contrôles (3:1 au moins), et colore l'icône d'une flèche désactivée. Pas d'ombre pour séparer des blocs : un fond `surface-raised` sur `surface` suffit.
 - `danger` est réservé aux erreurs et à la suppression totale, toujours avec un libellé. L'écran d'aide (3114) n'utilise **pas** `danger` : il reste calme, en `ink` sur `surface`, avec le numéro en `title` et un bouton `tide` pour appeler.
 
 ### Échelle d'humeur

@@ -1011,7 +1011,9 @@ void main() {
     final rejected = <String, ({String output, String snippet})>{
       'CA22 : un chiffre (« 3 jours »)': (
         output: jsonText('Des journées calmes, 3 jours notés.'),
-        snippet: '3 jours',
+        // « 3 jours » seul figure aussi dans les chiffres de l'app (« sur 3
+        // jours ») : on cherche la phrase de la sortie brute.
+        snippet: '3 jours notés',
       ),
       'CA22 : un chiffre d\'une autre écriture': (
         output: jsonText('Des journées calmes, ٣ jours notés.'),
@@ -1127,7 +1129,9 @@ void main() {
         expect(find.textContaining('élécharg'), findsNothing);
         expect(find.byType(FilledButton), findsNothing);
         expect(find.byType(ElevatedButton), findsNothing);
-        expect(find.byType(TextButton), findsNothing);
+        // Seul bouton texte : le retour « Journal » (CA4).
+        expect(find.byType(TextButton), findsOneWidget);
+        expect(find.widgetWithText(TextButton, 'Journal'), findsOneWidget);
         expect(find.byType(OutlinedButton), findsNothing);
       },
       build: () => ReviewEnv(model: absentModel),

@@ -61,6 +61,12 @@ abstract final class TidemarkSize {
   /// Anneau autour de la pastille choisie, et écart qui l'en sépare.
   static const double ringWidth = 3;
 
+  /// Épaisseur d'une barre de la répartition des humeurs (spec 006).
+  static const double barThickness = 8;
+
+  /// Hauteur d'une case de jour dans « Jours notés » (spec 006).
+  static const double dayCell = 40;
+
   static const Map<String, double> tokens = {
     'tap-min': tapMin,
     'mood-dot': moodDot,
@@ -72,6 +78,8 @@ abstract final class TidemarkSize {
     'icon-button': iconButton,
     'progress-height': progressHeight,
     'ring-width': ringWidth,
+    'bar-thickness': barThickness,
+    'day-cell': dayCell,
   };
 }
 

@@ -8,9 +8,13 @@ import 'analysis/llama_mood_analyzer.dart';
 import 'analysis/mood_analyzer.dart';
 import 'distress/startup_screening.dart';
 import 'entries/entry_repository.dart';
+import 'model/gated_mood_analyzer.dart';
 import 'model/model_downloader.dart';
+import 'model/model_gate.dart';
 import 'model/model_source.dart';
 import 'model/model_transport.dart';
+import 'review/gated_review_writer.dart';
+import 'review/llama_review_writer.dart';
 import 'review/review_narrator.dart';
 import 'review/review_writer.dart';
 import 'settings/settings_repository.dart';
@@ -71,8 +75,13 @@ Future<Widget> startApp({Future<Journal> Function() open = openJournal}) async {
             analyzer: analyzer,
             downloader: journal.downloader,
           )..start());
+    final writer = journal.reviewWriter;
+    final narrator = writer == null
+        ? null
+        : ReviewNarrator(writer: writer, downloader: journal.downloader);
     return TidemarkApp(
       repository: journal.entries,
+      reviewNarrator: narrator,
       settings: journal.settings,
       downloader: journal.downloader,
       analysisQueue: queue,
@@ -102,6 +111,10 @@ Future<Journal> openJournal({Directory? folder, KeyStore? keyStore}) async {
   final db = await AppDatabase.openEncrypted(file, key);
   // Vérifie la clé dès le démarrage, plutôt qu'à la première lecture.
   await db.countEntries();
+  // Un seul accès au modèle pour l'étiquetage et le bilan : jamais deux
+  // générations ni deux modèles en mémoire (ADR-005, proposé).
+  final gate = ModelGate();
+  final modelFile = File('${dir.path}/models/${qwenModelSource.fileName}');
   return Journal(
     entries: DriftEntryRepository(db),
     settings: DriftSettingsRepository(db),
@@ -109,8 +122,10 @@ Future<Journal> openJournal({Directory? folder, KeyStore? keyStore}) async {
       transport: IoModelTransport(),
       folder: Directory('${dir.path}/models'),
     ),
-    analyzer: LlamaMoodAnalyzer(
-      modelFile: File('${dir.path}/models/${qwenModelSource.fileName}'),
+    analyzer: GatedMoodAnalyzer(LlamaMoodAnalyzer(modelFile: modelFile), gate),
+    reviewWriter: GatedReviewWriter(
+      LlamaReviewWriter(modelFile: modelFile),
+      gate,
     ),
   );
 }

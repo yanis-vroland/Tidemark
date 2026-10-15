@@ -10,15 +10,40 @@ class GatedMoodAnalyzer implements MoodAnalyzer {
   final MoodAnalyzer inner;
   final ModelGate gate;
 
-  @override
-  Future<bool> prepare() => throw UnimplementedError();
+  void Function()? _release;
 
   @override
-  Future<AnalysisResult> analyze(String text) => throw UnimplementedError();
+  Future<bool> prepare() async {
+    if (_release != null) return inner.prepare();
+    _release = await gate.acquire();
+    var ready = false;
+    try {
+      ready = await inner.prepare();
+    } catch (_) {
+      ready = false;
+    }
+    if (!ready) _free();
+    return ready;
+  }
 
   @override
-  Future<void> cancel() => throw UnimplementedError();
+  Future<AnalysisResult> analyze(String text) => inner.analyze(text);
 
   @override
-  Future<void> release() => throw UnimplementedError();
+  Future<void> cancel() => inner.cancel();
+
+  @override
+  Future<void> release() async {
+    try {
+      await inner.release();
+    } finally {
+      _free();
+    }
+  }
+
+  void _free() {
+    final release = _release;
+    _release = null;
+    release?.call();
+  }
 }
