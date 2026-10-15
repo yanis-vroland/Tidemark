@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -23,8 +24,11 @@ import 'ui/theme/tidemark_tokens.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(await startApp());
+  runApp(await startApp(lifecycle: appLifecycleStates()));
 }
+
+/// Cycle de vie de l'app, observé par la file d'analyse (spec 004, CA32, CA33).
+Stream<AppLifecycleState> appLifecycleStates() => const Stream.empty();
 
 /// Journal ouvert : ses entrées et les réglages, sur la même base chiffrée.
 class Journal {
@@ -46,8 +50,13 @@ class Journal {
 }
 
 /// Application de démarrage : le journal ouvert, ou l'écran d'erreur qui
-/// correspond à la cause (CA35). [open] est injectable pour les tests.
-Future<Widget> startApp({Future<Journal> Function() open = openJournal}) async {
+/// correspond à la cause (CA35). [open] est injectable pour les tests ;
+/// [lifecycle] est le cycle de vie de l'app, donné à la file d'analyse (spec 004,
+/// CA32, CA33).
+Future<Widget> startApp({
+  Future<Journal> Function() open = openJournal,
+  Stream<AppLifecycleState>? lifecycle,
+}) async {
   try {
     final journal = await open();
     // Avant tout affichage ; n'échoue jamais (CA16).
@@ -64,6 +73,7 @@ Future<Widget> startApp({Future<Journal> Function() open = openJournal}) async {
             repository: journal.entries,
             analyzer: analyzer,
             downloader: journal.downloader,
+            lifecycle: lifecycle,
           )..start());
     return TidemarkApp(
       repository: journal.entries,
