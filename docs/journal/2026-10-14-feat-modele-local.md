@@ -31,3 +31,31 @@ Branche `feat/modele-local`.
 ### Prochaine étape
 
 Tests de la spec 003 par le subagent `test-writer`, committés seuls et rouges ; puis implémentation.
+
+## 2026-10-15 08:52
+
+### Fait
+
+- Tests de la spec 003, écrits à partir de la spec et de la maquette, sans toucher à `lib/` ni aux tests existants : 308 tests dans 9 fichiers, plus deux fichiers de support (`test/support/model_fixtures.dart`, `test/support/model_texts.dart`).
+  - `test/model/` : `http_model_downloader_test.dart` (CA6 à CA10, CA13 à CA18, CA20 à CA22, CA32, `deleteModel`), `io_model_transport_test.dart` (CA31, serveur local sur 127.0.0.1), `model_source_test.dart` (CA27, `isAllowed`, formats CA4 et CA9).
+  - `test/guards/no_network_outside_model_test.dart` (CA25, avec détection testée jeton par jeton et portée du balayage testée sur un dossier temporaire).
+  - `test/platform/model_download_config_test.dart` (CA26, permission `INTERNET`, pas d'exception ATS).
+  - `test/storage/model_offer_storage_test.dart` (réglage « proposition affichée », migration 2 vers 3 et 1 vers 3).
+  - `test/ui/` : `model_download_screen_test.dart` (CA4, CA5, CA7, CA9 à CA15, CA17 à CA20, CA28 à CA30), `settings_model_section_test.dart` (CA10, CA23, CA24, CA29, CA30), `model_offer_flow_test.dart` (CA1 à CA3, CA5, CA6, CA11, CA13, CA21).
+- Résultat avant implémentation : 438 tests existants verts, 308 nouveaux dont 238 en échec (`UnimplementedError` ou widget absent), 70 qui passent déjà (voir limites).
+- Mutations couvertes par un test chacune : suffixe d'hôte avec le point, refus de `http` et de tout port explicite, limite de 5 redirections, empreinte, taille (trop long et trop court), arrêt de la lecture dès le dépassement, effacement du `.part`, délai sans octet (valeur par défaut de 30 s et remise à zéro à chaque octet), absence d'en-tête `Range`.
+
+### Décisions
+
+- CA33 (relecture des PR) n'est pas testé : il porte sur la revue, pas sur le code (agent).
+- Le test de `IoModelTransport` admet seulement `host`, `user-agent`, `accept-encoding` et `content-length: 0` sur le fil ; c'est la liste que la spec demande de fixer, à ajuster à l'implémentation si `dart:io` en ajoute un autre, avec justification (agent).
+
+### Corrections et limites
+
+- À corriger à l'implémentation : `test/storage/distress_storage_test.dart` affirme `schemaVersion == 2`. Il contredit la migration vers la version 3 et devra être mis à jour par l'implémentation, en le signalant (test existant, non modifié ici).
+- Passent sans implémentation : CA27 (forme de la constante, déjà posée par le squelette), CA26 pour l'emplacement de `models/`, exclusion iOS et ATS, le balayage CA25 de `lib/` et les tests d'absence (CA2, CA3, CA5 côté liste) ; chacun est tenu par un test voisin qui échoue, sauf CA27 et le balayage CA25, qui sont des garde-fous.
+- Ambiguïtés de la spec laissées à l'humain, sans trancher : voir la réponse de fin de tâche (statuts de redirection, `hf.co` nu, taille au-delà de 1 000 Mo, « 1,0 Go », délai avant les en-têtes, retour de `start()`).
+
+### Prochaine étape
+
+Relire les tests, puis implémenter jusqu'au vert : `ModelSource.isAllowed` et formats, `HttpModelDownloader`, `IoModelTransport`, `ModelDownloadScreen`, section des Réglages, ouverture de la proposition après la saisie, `DriftSettingsRepository` et migration 3, permission `INTERNET`, jeton `progress-height`.
