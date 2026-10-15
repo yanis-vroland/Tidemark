@@ -200,7 +200,7 @@ void main() {
           open: () async => Journal(
             entries: repo,
             settings: FakeSettingsRepository(),
-            downloader: FakeModelDownloader(),
+            downloader: FakeModelDownloader(readyModel),
           ),
         ),
       );

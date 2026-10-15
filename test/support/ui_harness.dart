@@ -79,7 +79,7 @@ class DbEnv {
     repository: repo,
     settings: DriftSettingsRepository(db),
     clock: () => now,
-    downloader: FakeModelDownloader(),
+    downloader: FakeModelDownloader(readyModel),
   );
 
   /// Enregistre une entrée comme si elle avait été saisie à [at] (heure locale).

@@ -22,7 +22,16 @@ class ModelSource {
 
   /// Vrai si [url] peut être suivie : `https`, port par défaut, hôte
   /// `huggingface.co` ou finissant par `.huggingface.co` ou `.hf.co`.
-  static bool isAllowed(Uri url) => throw UnimplementedError();
+  static bool isAllowed(Uri url) {
+    if (url.scheme != 'https' || url.port != 443 || url.userInfo.isNotEmpty) {
+      return false;
+    }
+    final host = url.host.toLowerCase();
+    // Comparaison par suffixe, point compris : `evilhf.co` est refusé.
+    return host == 'huggingface.co' ||
+        host.endsWith('.huggingface.co') ||
+        host.endsWith('.hf.co');
+  }
 }
 
 /// Qwen2.5-1.5B-Instruct, GGUF Q4_K_M (ADR-001), révision du 2024-09-20 du dépôt
@@ -41,7 +50,18 @@ final qwenModelSource = ModelSource(
 
 /// Taille en gigaoctets (10⁹ octets), arrondie au dixième, avec une virgule :
 /// « 1,1 Go » (spec 003, CA4).
-String formatGigabytes(int bytes) => throw UnimplementedError();
+String formatGigabytes(int bytes) {
+  final tenths = (bytes / 1e8).round();
+  return '${tenths ~/ 10},${tenths % 10} Go';
+}
 
 /// Mégaoctets reçus (10⁶ octets), arrondis à l'inférieur : « 312 Mo » (CA9).
-String formatMegabytes(int bytes) => throw UnimplementedError();
+String formatMegabytes(int bytes) {
+  final digits = '${bytes ~/ 1000000}';
+  final buffer = StringBuffer();
+  for (var i = 0; i < digits.length; i++) {
+    if (i > 0 && (digits.length - i) % 3 == 0) buffer.write(' ');
+    buffer.write(digits[i]);
+  }
+  return '$buffer Mo';
+}

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 /// Réponse brute d'une requête du téléchargement : statut, `Location` et corps.
 class TransportResponse {
   const TransportResponse({
@@ -21,10 +23,27 @@ abstract interface class ModelTransport {
 }
 
 /// [ModelTransport] sur `dart:io` : seul code réseau de l'app (RM1, CA25, CA31).
+/// Pas de redirection suivie, pas de décompression, pas de cookie, et aucun
+/// en-tête par défaut de `dart:io` (`User-Agent: Dart/…`, `Accept-Encoding: gzip`).
 class IoModelTransport implements ModelTransport {
-  IoModelTransport();
+  IoModelTransport()
+    : _client = HttpClient()
+        ..autoUncompress = false
+        ..userAgent = null;
+
+  final HttpClient _client;
 
   @override
-  Future<TransportResponse> get(Uri url, Map<String, String> headers) =>
-      throw UnimplementedError();
+  Future<TransportResponse> get(Uri url, Map<String, String> headers) async {
+    final request = await _client.getUrl(url);
+    request.followRedirects = false;
+    request.headers.removeAll(HttpHeaders.acceptEncodingHeader);
+    headers.forEach(request.headers.set);
+    final response = await request.close();
+    return TransportResponse(
+      statusCode: response.statusCode,
+      location: response.headers.value(HttpHeaders.locationHeader),
+      body: response,
+    );
+  }
 }

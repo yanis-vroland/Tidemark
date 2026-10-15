@@ -188,7 +188,7 @@ class GuardEnv {
     settings: settings,
     dialer: dialer,
     clock: () => now,
-    downloader: FakeModelDownloader(),
+    downloader: FakeModelDownloader(readyModel),
   );
 
   /// Saisit une entrée par l'interface, à l'instant [at] (heure locale) : ouvre la

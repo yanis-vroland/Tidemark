@@ -59,3 +59,37 @@ Tests de la spec 003 par le subagent `test-writer`, committés seuls et rouges ;
 ### Prochaine étape
 
 Relire les tests, puis implémenter jusqu'au vert : `ModelSource.isAllowed` et formats, `HttpModelDownloader`, `IoModelTransport`, `ModelDownloadScreen`, section des Réglages, ouverture de la proposition après la saisie, `DriftSettingsRepository` et migration 3, permission `INTERNET`, jeton `progress-height`.
+
+## 2026-10-15 09:12
+
+### Fait
+
+- Implémentation de la spec 003 :
+  - `HttpModelDownloader` : redirections suivies et vérifiées (au plus 5, hôtes admis), écriture dans le fichier `.part` avec l'empreinte calculée au fil de l'eau, arrêt dès que la taille est dépassée, délai de 30 s sans octet, vérification puis renommage, annulation, démarrage, suppression, revérification après un échec de chargement ;
+  - `IoModelTransport` : sans redirection suivie, sans décompression, sans en-tête par défaut de `dart:io` ;
+  - `ModelDownloadScreen` dans ses cinq états et sa confirmation d'annulation ; section « Analyse sur le téléphone » des Réglages ; proposition après la première entrée « en attente » ;
+  - colonne `model_offer_shown` et schéma en version 3 ;
+  - permission `INTERNET` dans le manifeste Android principal.
+- Jeton `progress-height` (8) ajouté à la charte : `tokens.json`, `TidemarkSize` et l'artefact en ligne.
+- Architecture technique : modèle de données, contrats `ModelDownloader` et `ModelTransport`, section réseau.
+- 748 tests verts, en heure de Paris comme en UTC.
+- Contrôle par mutation sur 19 protections : 16 détectées d'emblée, et 2 après l'ajout d'un test chacune (`http` sur le port 443, réponse 404 avec les bons octets). La dernière, `userAgent = null`, est équivalente : l'en-tête `User-Agent: Tidemark` remplace de toute façon celui de `dart:io`.
+
+### Décisions
+
+- Un échec récent s'affiche dès l'ouverture de l'écran du modèle (CA19), y compris depuis les Réglages (agent).
+- La section « Analyse sur le téléphone » n'apparaît qu'une fois le degré lu, pour tenir CA22 de la spec 002 : pendant le chargement, le retour et le titre seulement (agent).
+- Boutons de l'écran du modèle fixés en bas de l'écran, comme sur la saisie (agent).
+
+### Corrections et limites
+
+- Tests modifiés, à signaler :
+  - `test/storage/distress_storage_test.dart` : « le schéma est en version 2 » devient « au moins en version 2 », la spec 003 passant à la version 3.
+  - `test/ui/settings_screen_test.dart` (spec 002) : défilement avant 8 touchers sur un degré, que la nouvelle section du modèle pousse sous l'écran.
+  - Tests des specs 001 et 002 : le faux téléchargeur y est « prêt » (`readyModel`), pour que la proposition du modèle (spec 003, CA1) ne s'ouvre pas. Ce sont les 35 appels ajoutés au squelette ; aucune vérification retirée.
+  - Ajoutés après le commit des tests : la réponse 404 avec les bons octets, et `http` sur le port 443.
+- Pas encore essayé sur un appareil : téléchargement réel à faire (émulateur Android, puis iPhone par Yanis).
+
+### Prochaine étape
+
+Revues `reviewer` et `security-reviewer`, téléchargement réel sur l'émulateur Android, puis PR.

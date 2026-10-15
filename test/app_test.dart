@@ -20,7 +20,7 @@ void main() {
             repository: FakeEntryRepository(),
             settings: FakeSettingsRepository(),
             clock: () => DateTime(2026, 10, 14, 21, 40),
-            downloader: FakeModelDownloader(),
+            downloader: FakeModelDownloader(readyModel),
           ),
         );
         await tester.pumpAndSettle();
