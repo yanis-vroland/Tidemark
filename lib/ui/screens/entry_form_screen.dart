@@ -129,7 +129,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   /// du réglage ne la montre pas : elle reste accessible par les Réglages.
   Future<bool> _shouldOfferModel(AnalysisStatus status) async {
     if (status != AnalysisStatus.pending) return false;
-    if (widget.downloader.current is! ModelAbsent) return false;
+    // Modèle absent et sans échec récent : sinon l'écran s'ouvrirait sur l'échec.
+    final model = widget.downloader.current;
+    if (model is! ModelAbsent || model.failure != null) return false;
     try {
       if (await widget.settings.readModelOfferShown()) return false;
       await widget.settings.setModelOfferShown();

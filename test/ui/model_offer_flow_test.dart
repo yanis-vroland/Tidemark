@@ -294,6 +294,26 @@ void main() {
   });
 
   group('proposition déjà affichée ou modèle déjà là (CA3)', () {
+    // Ajouté après la revue de code : un échec récent (téléchargement lancé
+    // depuis les Réglages) ne doit pas ouvrir l'écran sur cet échec à la place de
+    // la proposition.
+    testWidgets(
+      'CA3 : modèle absent après un échec : la liste s\'affiche, sans '
+      'écran du modèle',
+      (tester) async {
+        final env = await start(
+          tester,
+          model: const ModelAbsent(failure: DownloadFailure.network),
+        );
+
+        await env.save(tester, 3, calmText);
+
+        expectNoOffer(tester);
+        expectListShown(tester);
+        expect(env.fake.startCalls, 0);
+      },
+    );
+
     testWidgets('CA3 : proposition déjà affichée : la liste s\'affiche, sans '
         'proposition', (tester) async {
       final env = await start(tester, offerShown: true);
