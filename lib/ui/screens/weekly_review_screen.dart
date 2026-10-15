@@ -49,11 +49,18 @@ class _WeeklyReviewScreenState extends State<WeeklyReviewScreen> {
   _NarrationKey? _narrationKey;
   Narration? _narration;
 
+  /// Numéro de la dernière requête au rédacteur : seule sa réponse s'applique,
+  /// même si une requête plus ancienne portait la même clé (aller-retour).
+  int _request = 0;
+
+  /// Vrai tant que la requête [_request] attend sa réponse.
+  bool _writing = false;
+
   @override
   void dispose() {
     // La personne quitte l'écran : la génération est abandonnée, rien n'est
     // gardé (spec 006, « Cas limites »).
-    if (_narration is NarrationWriting) widget.narrator.cancel();
+    if (_writing) widget.narrator.cancel();
     super.dispose();
   }
 
@@ -76,17 +83,25 @@ class _WeeklyReviewScreenState extends State<WeeklyReviewScreen> {
     final now = widget.narrator.immediate(review);
     _narration = now;
     if (now is NarrationWriting) {
+      final request = ++_request;
+      _writing = true;
       widget.narrator.narrate(review).then((result) {
-        if (!mounted || _narrationKey != key) return;
-        setState(() => _narration = result);
+        if (!mounted || request != _request) return;
+        setState(() {
+          _writing = false;
+          _narration = result;
+        });
       });
     }
     return now;
   }
 
-  /// Abandonne la mise en mots en cours, s'il y en a une.
+  /// Abandonne la mise en mots en cours, s'il y en a une ; sa réponse, si elle
+  /// arrive, est ignorée.
   void _stopNarration() {
-    if (_narration is NarrationWriting) widget.narrator.cancel();
+    if (_writing) widget.narrator.cancel();
+    _writing = false;
+    _request++;
     _narration = null;
     _narrationKey = null;
   }
@@ -115,6 +130,7 @@ class _WeeklyReviewScreenState extends State<WeeklyReviewScreen> {
                 _Header(
                   week: _week,
                   current: _current,
+                  currentYear: widget.clock().year,
                   onPrevious: _week.compareTo(oldest) > 0
                       ? () => _showWeek(_week.previous)
                       : null,
@@ -216,12 +232,16 @@ class _Header extends StatelessWidget {
   const _Header({
     required this.week,
     required this.current,
+    required this.currentYear,
     required this.onPrevious,
     required this.onNext,
   });
 
   final LocalWeek week;
   final LocalWeek current;
+
+  /// Année du jour (CA4), pas celle du dimanche de la semaine en cours.
+  final int currentYear;
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
 
@@ -229,7 +249,7 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final caption = weekCaption(week, current: current);
-    final range = weekRangeLabel(week, currentYear: current.sunday.year);
+    final range = weekRangeLabel(week, currentYear: currentYear);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [

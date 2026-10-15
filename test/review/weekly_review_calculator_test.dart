@@ -695,4 +695,20 @@ void main() {
       expect(backward.moodCounts, forward.moodCounts);
     });
   });
+
+  // Revue de sécurité (défense en profondeur, RM51) : seuls les libellés de la
+  // liste fermée (RM19) peuvent atteindre le modèle, même si la base contenait
+  // autre chose.
+  test('une étiquette hors de la liste fermée ne compte pas et n\'est jamais '
+      'transmise au rédacteur', () {
+    final book = EntryBook()
+      ..add(1, 3, tags: [emotionTag('Mon texte libre')])
+      ..add(2, 3, tags: [emotionTag('Mon texte libre')])
+      ..add(3, 3, tags: [emotionTag('joie')]);
+
+    final review = book.computed();
+
+    expect(review.topTags.map((t) => t.tag.label), ['joie']);
+    expect(review.facts.topTagLabels, ['joie']);
+  });
 }

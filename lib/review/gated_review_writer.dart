@@ -31,6 +31,12 @@ class GatedReviewWriter implements ReviewWriter {
       _waiting.remove(abandon);
     }
     if (release == null) return const WriterFailed();
+    // Abandon arrivé après la transmission de l'accès, avant la reprise : rien
+    // n'est chargé, l'accès est rendu aussitôt (revue de sécurité).
+    if (abandon.isCompleted) {
+      release();
+      return const WriterFailed();
+    }
     _running++;
     try {
       return await inner.write(facts);

@@ -407,6 +407,24 @@ void main() {
       build: () => ReviewEnv(now: DateTime(2026, 1, 2, 10)),
     );
 
+    // Revue IA : l'année de référence est celle du jour, pas celle du dimanche
+    // de la semaine en cours.
+    envTest('CA4 : le lundi 28 décembre 2026, la semaine précédente (21 – 27 '
+        'décembre 2026) s\'affiche sans année', (tester, env) async {
+      await env.addAt(DateTime(2026, 12, 21, 9), 3);
+      await env.addAt(DateTime(2026, 12, 28, 9), 3);
+      await showReview(tester, env);
+
+      expect(
+        find.text('28 décembre 2026 $dash 3 janvier 2027'),
+        findsOneWidget,
+      );
+
+      await tapPreviousWeek(tester);
+
+      expect(find.text('21 $dash 27 décembre'), findsOneWidget);
+    }, build: () => ReviewEnv(now: DateTime(2026, 12, 28, 10)));
+
     envTest('CA5 : « Semaine précédente » et « Semaine suivante » changent '
         'la semaine ; « Semaine suivante » est désactivé sur la semaine en '
         'cours, « Semaine précédente » sur la semaine de l\'entrée la plus '
@@ -1292,6 +1310,37 @@ void main() {
       expect(env.writeCalls, 2, reason: 'rien n\'a été gardé');
       expect(find.text(writingText), findsOneWidget);
       expect(find.text(validReviewText), findsNothing);
+    }, build: () => ReviewEnv(writer: ControlledReviewWriter()));
+
+    // Revue IA : aller-retour entre deux semaines pendant une mise en mots. Le
+    // résultat de la première requête, arrivé en retard, ne s'applique pas à la
+    // nouvelle requête de la même semaine.
+    envTest('changement de semaine pendant la mise en mots : abandonnée ; au '
+        'retour, le résultat en retard de la première requête est ignoré, et '
+        'la sortie de l\'écran abandonne la requête en cours', (
+      tester,
+      env,
+    ) async {
+      await env.nominalWeek();
+      await env.nominalWeek(weeksBack: 1);
+      await showReview(tester, env);
+      expect(env.writeCalls, 1);
+
+      await tapPreviousWeek(tester);
+      expect(env.controlledWriter.cancelCalls, greaterThanOrEqualTo(1));
+      await tapNextWeek(tester);
+      expect(env.writeCalls, 3);
+      final cancelsBefore = env.controlledWriter.cancelCalls;
+
+      env.controlledWriter.completeAt(0, const WriterFailed());
+      await settle(tester);
+
+      expect(find.text(writingText), findsOneWidget);
+      expect(find.text(withheldText), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+      await settle(tester);
+      expect(env.controlledWriter.cancelCalls, greaterThan(cancelsBefore));
     }, build: () => ReviewEnv(writer: ControlledReviewWriter()));
   });
 

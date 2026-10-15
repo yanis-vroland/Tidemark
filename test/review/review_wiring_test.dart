@@ -121,9 +121,15 @@ void main() {
       expect(find.text('Ta semaine'), findsOneWidget);
       expect(find.text('Entrées'), findsOneWidget);
       // « 3 » est aussi le chiffre de la pastille « Neutre » de la répartition
-      // (charte : une pastille porte toujours son chiffre) : au moins un.
-      expect(find.text('3'), findsWidgets);
-      expect(find.text('Humeur moyenne'), findsOneWidget);
+      // (charte : une pastille porte toujours son chiffre) : le nombre d'entrées
+      // est lu dans l'annonce du bloc « Entrées » (1 ou 2 jours selon l'heure).
+      final semantics = tester.ensureSemantics();
+      await tester.pump();
+      expect(
+        find.bySemanticsLabel(RegExp(r'^Entrées : 3 sur [12] jours?$')),
+        findsOneWidget,
+      );
+      semantics.dispose();
       expect(find.text(validReviewText), findsNothing);
       expect(find.text(writingText), findsNothing);
       expect(tester.takeException(), isNull);
