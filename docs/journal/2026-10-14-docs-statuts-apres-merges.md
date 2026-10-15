@@ -22,3 +22,25 @@ Branche `docs/statuts-apres-merges`.
 ### Prochaine étape
 
 Lot G : implémentation de la spec 003 (téléchargement du modèle), puis de la spec 004 (étiquetage).
+
+## 2026-10-15 09:26
+
+### Fait
+
+- Suites de la revue IA de la PR #21 :
+  - RM1 renvoie à l'ADR-003 sans « proposé » ;
+  - la phrase sur les numéros RM non attribués n'est plus qu'à un seul endroit ;
+  - nouveau statut « implémentée » (mergée, test humain en attente), distinct de « livrée » (test humain positif). Le lot F y passe.
+
+### Décisions
+
+- Statut « implémentée » ajouté au cahier des charges : le merge n'est pas le « done » tant que le test humain n'a pas eu lieu (agent).
+- Spec 001 laissée telle quelle : la validation de CA31 à CA36 attend toujours Yanis.
+
+### Corrections et limites
+
+- L'historique de l'ADR-002 n'est pas modifié : c'est une entrée datée.
+
+### Prochaine étape
+
+Merge de la PR par Yanis.
