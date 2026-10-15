@@ -49,3 +49,25 @@ Couture `LocalEngine` et paramètre du cycle de vie (squelette, sans comportemen
 ### Prochaine étape
 
 Tests de non-régression des points 1 à 6, rouges, dans des fichiers neufs (pas ceux de la PR #24).
+
+## 2026-10-15 15:45
+
+### Fait
+
+- Tests de non-régression écrits par le subagent `test-writer` à partir de la spec complétée, dans des fichiers neufs (aucun des trois fichiers de la PR #24 touché) :
+  - `test/analysis/analysis_queue_lifecycle_test.dart` : CA32 (hidden, paused, detached ; analyseur qui ignore `cancel()` ; délai qui tombe en arrière-plan ; entrée enregistrée en arrière-plan ; reprise au retour ; `inactive` sans effet ; aller-retour rapide ; branchement `startApp` ; `appLifecycleStates()`), CA33, CA34, règle « Entrée en cours » ;
+  - `test/analysis/llama_mood_analyzer_cancel_test.dart` : CA35, sur un moteur factice (jamais de modèle) ;
+  - `test/entries/fake_entry_repository_test.dart` (par l'agent principal) : le faux dépôt n'écrit un résultat que sur une entrée « en attente », comme le vrai.
+- Résultat : 28 tests, 22 rouges pour la bonne raison, 6 verts. Rouges : `cancel()` jamais appelé à la mise en arrière-plan, `saveAnalysis` appelé avec `Untagged` après la mise en arrière-plan, entrée analysée en arrière-plan, `verifyAfterLoadFailure()` appelé après un chargement interrompu, erreur de `release()` qui bloque la file et `stop()`, analyse lancée après `stop()` pendant le chargement, `currentEntryId` nul pendant le chargement et l'écriture, `LlamaMoodAnalyzer.cancel()` qui rend la main avant la fin de la génération et n'attend jamais `cancelGrace`, `appLifecycleStates()` muet, faux dépôt qui écrase un statut déjà posé. Verts dès maintenant : `inactive` sans effet, `cancel()` sans génération ou avant chargement, `analyze()` par la couture (Tagged, Untagged), écriture du faux sur une entrée en attente.
+
+### Décisions
+
+- Pour CA34, le test accepte que `stop()` se termine normalement ou par l'erreur de `release()`, pourvu qu'il ne bloque pas (test-writer) ; l'implémentation avalera l'erreur (agent).
+
+### Corrections et limites
+
+- Suite des nouveaux fichiers : environ 28 s en rouge (attentes bornées), beaucoup moins une fois au vert.
+
+### Prochaine étape
+
+Correction de `AnalysisQueue`, `LlamaMoodAnalyzer`, `appLifecycleStates()` et du faux dépôt, jusqu'au vert.
