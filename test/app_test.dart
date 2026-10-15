@@ -4,6 +4,7 @@ import 'package:tidemark/main.dart';
 import 'package:tidemark/ui/theme/tidemark_colors.dart';
 
 import 'support/fake_entry_repository.dart';
+import 'support/fake_model_downloader.dart';
 import 'support/fake_settings_repository.dart';
 
 void main() {
@@ -19,6 +20,7 @@ void main() {
             repository: FakeEntryRepository(),
             settings: FakeSettingsRepository(),
             clock: () => DateTime(2026, 10, 14, 21, 40),
+            downloader: FakeModelDownloader(readyModel),
           ),
         );
         await tester.pumpAndSettle();

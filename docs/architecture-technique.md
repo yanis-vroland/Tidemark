@@ -25,7 +25,7 @@ flowchart LR
 - **`MoodAnalyzer`** : interface qui isole le modèle local. Une implémentation factice sert aux tests et à la CI ; l'implémentation réelle repose sur `llamadart` 0.12.0, version épinglée exactement ([ADR-001](adr/001-moteur-ia-local.md)).
 - **Sortie** : contrainte par un schéma JSON qui porte la liste fermée des étiquettes (RM19), puis validée par l'app (RM9).
 - **Accélération** : GPU (Metal) sur iOS ; processeur seul sur Android tant que le GPU n'est pas vérifié sur un appareil réel.
-- **Modèle** : environ 1,1 Go, téléchargé une fois (RM11, RM18), chargé en arrière-plan (jusqu'à 12 s au premier chargement sur iPhone 15 Pro).
+- **Modèle** : 1 117 320 736 octets (« 1,1 Go »), téléchargé une fois sur l'appui de la personne (RM11, RM18) par `HttpModelDownloader` dans `Application Support/tidemark/models/`, empreinte SHA-256 vérifiée avant le renommage du fichier ([spec 003](specs/003-telechargement-du-modele.md)) ; chargé en arrière-plan (jusqu'à 12 s au premier chargement sur iPhone 15 Pro).
 
 ## Modèle de données
 
@@ -44,15 +44,16 @@ erDiagram
   SETTINGS {
     int id PK "toujours 1"
     text low_mood_sensitivity "high, normal, low"
+    bool model_offer_shown "proposition du modèle déjà affichée"
   }
 ```
 
-Schéma en version 2 : la migration depuis la version 1 crée la table `settings` (spec 002).
+Schéma en version 3 : la version 2 crée la table `settings` (spec 002), la version 3 y ajoute `model_offer_shown` (spec 003).
 
 | Entité | Contraintes et invariants | Règle métier |
 | --- | --- | --- |
 | `Entry` (table `entries`) | `mood` entre 1 et 5 (contrainte `CHECK`) ; texte absent plutôt que vide ; date de saisie en UTC avec le décalage local, pour ranger l'entrée dans son jour local ; statut décidé par le garde-fou : `skipped` sans texte ou en détresse, `pending` sinon | RM3, RM13, RM16, RM17, RM24, RM27 ([spec 001](specs/001-saisie-et-liste-des-entrees.md), [spec 002](specs/002-garde-fou-detresse.md)) |
-| Réglages (table `settings`) | Une seule ligne (`CHECK id = 1`) ; degré stocké par son nom ; absent ou inconnu → `normal`, jamais désactivé | RM25, RM29 ([spec 002](specs/002-garde-fou-detresse.md)) |
+| Réglages (table `settings`) | Une seule ligne (`CHECK id = 1`) ; degré stocké par son nom ; absent ou inconnu → `normal`, jamais désactivé ; proposition du modèle affichée une seule fois | RM25, RM29, RM31 ([spec 002](specs/002-garde-fou-detresse.md), [spec 003](specs/003-telechargement-du-modele.md)) |
 
 La table des étiquettes, liée aux entrées par clé étrangère avec suppression en cascade, arrive au lot G.
 
@@ -75,6 +76,8 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 | `EntryRepository` | `DriftEntryRepository` ; `FakeEntryRepository` dans `test/support/` | Écrans, garde-fou (`saveEntryWithGuard`), vérification au démarrage | Interface Dart : `watchEntries`, `addEntry(mood, text, status)`, `deleteEntry`, `latestEntries(count)`, `pendingEntriesWithText`, `markSkipped(ids)` | `lib/entries/entry_repository.dart` |
 | `SettingsRepository` | `DriftSettingsRepository` ; `FakeSettingsRepository` dans `test/support/` | `SettingsScreen`, garde-fou | Interface Dart : `watchLowMoodSensitivity`, `readLowMoodSensitivity`, `setLowMoodSensitivity` | `lib/settings/settings_repository.dart` |
 | `DistressDetector` | Code Dart pur, liste de termes reprise de la spec 002 (vérifiée par un test) | Garde-fou à l'enregistrement, vérification au démarrage, analyse (lot G, juste avant chaque appel au modèle) | `detectInText(text)`, `detectLowMoodSeries(latest, sensitivity)` | `lib/distress/` |
+| `ModelDownloader` | `HttpModelDownloader` ; `FakeModelDownloader` dans `test/support/` | Écran du modèle, Réglages, saisie (proposition), démarrage, suppression totale (lot H), analyse (lot G) | Interface Dart : `watch`, `current`, `start`, `cancel`, `checkAtStartup`, `deleteModel`, `verifyAfterLoadFailure` ; état `ModelState` (`ModelAbsent`, `ModelDownloading`, `ModelReady`) | `lib/model/model_downloader.dart` |
+| `ModelTransport` | `IoModelTransport` (`dart:io`, seul code réseau de l'app) ; `FakeModelTransport` dans `test/support/` | `HttpModelDownloader` | `get(url, headers)` rend statut, `Location` et flux d'octets, sans suivre les redirections | `lib/model/model_transport.dart` |
 | `PhoneDialer` | `UrlLauncherDialer` (`url_launcher`, `tel:`) ; `FakePhoneDialer` dans `test/support/` | `HelpScreen` | Interface Dart : `dial(number)` rend vrai si le composeur s'est ouvert | `lib/ui/phone_dialer.dart` |
 | `MoodAnalyzer` | Implémentation `llamadart` (lot G) ; `FakeMoodAnalyzer` dans `test/support/` pour les tests | Écrans de saisie et de détail (lots E, G) | Interface Dart : `analyze(text)` rend `Tagged` ou `Untagged`, jamais d'exception | `lib/analysis/mood_analyzer.dart` |
 | Fichier d'export, version 1 (prévu, lot H) | `JournalExporter` | La personne, hors de l'app (lecture, archivage) | JSON versionné par `formatVersion` ; tout changement l'augmente | Section « Format » de la [spec 005](specs/005-export-et-suppression-totale.md) |
@@ -92,6 +95,8 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 - **Chiffrement** : base `drift` chiffrée par SQLite3MultipleCiphers, clé aléatoire de 256 bits dans le trousseau iOS ou le Keystore Android, base exclue des sauvegardes du système ([ADR-002](adr/002-stockage-local-chiffre.md)). Mis en œuvre par la spec 001 : `PRAGMA hexkey`, refus d'ouvrir sans SQLite3MultipleCiphers, `secure_delete`, clé `first_unlock_this_device` sur iOS et `resetOnError: false` sur Android, jamais de nouvelle clé si la base existe ; exclusion des sauvegardes par `allowBackup`, `fullBackupContent` et les règles d'extraction sur Android, `isExcludedFromBackup` sur le dossier de la base sur iOS. Le clavier n'apprend pas les mots du journal (`enableIMEPersonalizedLearning: false`).
 - **Garde-fou de détresse** : règles déterministes, sans modèle (RM6) ; une entrée en détresse est enregistrée `skipped` et ne sera jamais transmise au modèle (RM8) ; l'écran d'aide est fixe (RM7). Le composeur s'ouvre par `tel:` (`url_launcher`), sans aucune connexion réseau (RM1) ; aucune déclaration native, puisque `canLaunchUrl` n'est pas utilisé.
 - **Secrets** : aucun dans le dépôt ni dans l'app ; la seule clé est générée sur le téléphone. Seul `.env.example` serait versionné.
+- **Réseau** : un seul accès, le téléchargement du modèle local ([spec 003](specs/003-telechargement-du-modele.md), RM1, RM30). URL HTTPS épinglée sur la révision `91cad511…` de `Qwen/Qwen2.5-1.5B-Instruct-GGUF` ; redirections suivies par l'app, au plus 5, seulement vers `huggingface.co`, `*.huggingface.co` et `*.hf.co`, en HTTPS sur le port 443. Requête `GET` sans cookie, sans `Range`, avec `User-Agent: Tidemark` et `Accept-Encoding: identity` seulement. Empreinte et taille vérifiées avant usage. Tout le code réseau est dans `lib/model/` : un garde-fou de `test/guards/` refuse `HttpClient`, `Socket` et consorts ailleurs. Permission `INTERNET` dans le manifeste Android principal, pour ce seul usage ; dossier du modèle exclu des sauvegardes comme la base.
+- **Export (prévu, lot H)** : seule voie de sortie d'une donnée de la personne, en clair, par la feuille de partage et sur son appui seulement (RM1, RM23, RM41, [ADR-003](adr/003-export-par-la-feuille-de-partage.md), proposé). Fichier temporaire dans le cache, effacé après le partage ; dossiers temporaires purgés au démarrage et avant chaque export.
 - **Réseau** : aucun accès réseau dans l'app à ce jour. Le seul prévu est le téléchargement du modèle local, depuis Hugging Face, sans donnée de la personne ([spec 003](specs/003-telechargement-du-modele.md), RM30) ; il sera décrit ici avec son implémentation.
 - **Export (prévu, lot H)** : seule voie de sortie d'une donnée de la personne, en clair, par la feuille de partage et sur son appui seulement (RM1, RM23, RM41, [ADR-003](adr/003-export-par-la-feuille-de-partage.md)). Fichier temporaire dans le cache, effacé après le partage ; dossiers temporaires purgés au démarrage et avant chaque export.
 - **Suppression totale (prévue, lot H)** : base effacée avant la clé (`KeyStore.deleteAll`), jamais l'inverse ; marqueur `wipe-pending` et reprise au démarrage (RM43, [spec 005](specs/005-export-et-suppression-totale.md)).

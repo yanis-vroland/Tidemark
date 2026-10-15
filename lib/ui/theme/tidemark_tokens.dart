@@ -55,6 +55,9 @@ abstract final class TidemarkSize {
   /// Icône posée dans un bouton, devant son libellé.
   static const double iconButton = 18;
 
+  /// Hauteur de la barre de progression du téléchargement du modèle.
+  static const double progressHeight = 8;
+
   /// Anneau autour de la pastille choisie, et écart qui l'en sépare.
   static const double ringWidth = 3;
 
@@ -67,6 +70,7 @@ abstract final class TidemarkSize {
     'icon-sm': iconSm,
     'icon-md': iconMd,
     'icon-button': iconButton,
+    'progress-height': progressHeight,
     'ring-width': ringWidth,
   };
 }

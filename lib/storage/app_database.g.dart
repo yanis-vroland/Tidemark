@@ -443,8 +443,27 @@ class $SettingsTable extends Settings
         type: DriftSqlType.string,
         requiredDuringInsert: true,
       );
+  static const VerificationMeta _modelOfferShownMeta = const VerificationMeta(
+    'modelOfferShown',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, lowMoodSensitivity];
+  late final GeneratedColumn<bool> modelOfferShown = GeneratedColumn<bool>(
+    'model_offer_shown',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("model_offer_shown" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    lowMoodSensitivity,
+    modelOfferShown,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -471,6 +490,15 @@ class $SettingsTable extends Settings
     } else if (isInserting) {
       context.missing(_lowMoodSensitivityMeta);
     }
+    if (data.containsKey('model_offer_shown')) {
+      context.handle(
+        _modelOfferShownMeta,
+        modelOfferShown.isAcceptableOrUnknown(
+          data['model_offer_shown']!,
+          _modelOfferShownMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -488,6 +516,10 @@ class $SettingsTable extends Settings
         DriftSqlType.string,
         data['${effectivePrefix}low_mood_sensitivity'],
       )!,
+      modelOfferShown: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}model_offer_shown'],
+      )!,
     );
   }
 
@@ -502,12 +534,20 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
 
   /// Degré de sensibilité aux humeurs basses, par son nom (`LowMoodSensitivity`).
   final String lowMoodSensitivity;
-  const SettingsRow({required this.id, required this.lowMoodSensitivity});
+
+  /// Proposition du modèle déjà affichée (spec 003, RM31).
+  final bool modelOfferShown;
+  const SettingsRow({
+    required this.id,
+    required this.lowMoodSensitivity,
+    required this.modelOfferShown,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['low_mood_sensitivity'] = Variable<String>(lowMoodSensitivity);
+    map['model_offer_shown'] = Variable<bool>(modelOfferShown);
     return map;
   }
 
@@ -515,6 +555,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     return SettingsCompanion(
       id: Value(id),
       lowMoodSensitivity: Value(lowMoodSensitivity),
+      modelOfferShown: Value(modelOfferShown),
     );
   }
 
@@ -528,6 +569,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       lowMoodSensitivity: serializer.fromJson<String>(
         json['lowMoodSensitivity'],
       ),
+      modelOfferShown: serializer.fromJson<bool>(json['modelOfferShown']),
     );
   }
   @override
@@ -536,12 +578,18 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'lowMoodSensitivity': serializer.toJson<String>(lowMoodSensitivity),
+      'modelOfferShown': serializer.toJson<bool>(modelOfferShown),
     };
   }
 
-  SettingsRow copyWith({int? id, String? lowMoodSensitivity}) => SettingsRow(
+  SettingsRow copyWith({
+    int? id,
+    String? lowMoodSensitivity,
+    bool? modelOfferShown,
+  }) => SettingsRow(
     id: id ?? this.id,
     lowMoodSensitivity: lowMoodSensitivity ?? this.lowMoodSensitivity,
+    modelOfferShown: modelOfferShown ?? this.modelOfferShown,
   );
   SettingsRow copyWithCompanion(SettingsCompanion data) {
     return SettingsRow(
@@ -549,6 +597,9 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       lowMoodSensitivity: data.lowMoodSensitivity.present
           ? data.lowMoodSensitivity.value
           : this.lowMoodSensitivity,
+      modelOfferShown: data.modelOfferShown.present
+          ? data.modelOfferShown.value
+          : this.modelOfferShown,
     );
   }
 
@@ -556,50 +607,59 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
   String toString() {
     return (StringBuffer('SettingsRow(')
           ..write('id: $id, ')
-          ..write('lowMoodSensitivity: $lowMoodSensitivity')
+          ..write('lowMoodSensitivity: $lowMoodSensitivity, ')
+          ..write('modelOfferShown: $modelOfferShown')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, lowMoodSensitivity);
+  int get hashCode => Object.hash(id, lowMoodSensitivity, modelOfferShown);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is SettingsRow &&
           other.id == this.id &&
-          other.lowMoodSensitivity == this.lowMoodSensitivity);
+          other.lowMoodSensitivity == this.lowMoodSensitivity &&
+          other.modelOfferShown == this.modelOfferShown);
 }
 
 class SettingsCompanion extends UpdateCompanion<SettingsRow> {
   final Value<int> id;
   final Value<String> lowMoodSensitivity;
+  final Value<bool> modelOfferShown;
   const SettingsCompanion({
     this.id = const Value.absent(),
     this.lowMoodSensitivity = const Value.absent(),
+    this.modelOfferShown = const Value.absent(),
   });
   SettingsCompanion.insert({
     this.id = const Value.absent(),
     required String lowMoodSensitivity,
+    this.modelOfferShown = const Value.absent(),
   }) : lowMoodSensitivity = Value(lowMoodSensitivity);
   static Insertable<SettingsRow> custom({
     Expression<int>? id,
     Expression<String>? lowMoodSensitivity,
+    Expression<bool>? modelOfferShown,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (lowMoodSensitivity != null)
         'low_mood_sensitivity': lowMoodSensitivity,
+      if (modelOfferShown != null) 'model_offer_shown': modelOfferShown,
     });
   }
 
   SettingsCompanion copyWith({
     Value<int>? id,
     Value<String>? lowMoodSensitivity,
+    Value<bool>? modelOfferShown,
   }) {
     return SettingsCompanion(
       id: id ?? this.id,
       lowMoodSensitivity: lowMoodSensitivity ?? this.lowMoodSensitivity,
+      modelOfferShown: modelOfferShown ?? this.modelOfferShown,
     );
   }
 
@@ -612,6 +672,9 @@ class SettingsCompanion extends UpdateCompanion<SettingsRow> {
     if (lowMoodSensitivity.present) {
       map['low_mood_sensitivity'] = Variable<String>(lowMoodSensitivity.value);
     }
+    if (modelOfferShown.present) {
+      map['model_offer_shown'] = Variable<bool>(modelOfferShown.value);
+    }
     return map;
   }
 
@@ -619,7 +682,8 @@ class SettingsCompanion extends UpdateCompanion<SettingsRow> {
   String toString() {
     return (StringBuffer('SettingsCompanion(')
           ..write('id: $id, ')
-          ..write('lowMoodSensitivity: $lowMoodSensitivity')
+          ..write('lowMoodSensitivity: $lowMoodSensitivity, ')
+          ..write('modelOfferShown: $modelOfferShown')
           ..write(')'))
         .toString();
   }
@@ -860,10 +924,12 @@ typedef $$EntriesTableProcessedTableManager =
 typedef $$SettingsTableCreateCompanionBuilder = SettingsCompanion Function({
   Value<int> id,
   required String lowMoodSensitivity,
+  Value<bool> modelOfferShown,
 });
 typedef $$SettingsTableUpdateCompanionBuilder = SettingsCompanion Function({
   Value<int> id,
   Value<String> lowMoodSensitivity,
+  Value<bool> modelOfferShown,
 });
 
 class $$SettingsTableFilterComposer
@@ -882,6 +948,11 @@ class $$SettingsTableFilterComposer
 
   ColumnFilters<String> get lowMoodSensitivity => $composableBuilder(
     column: $table.lowMoodSensitivity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get modelOfferShown => $composableBuilder(
+    column: $table.modelOfferShown,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -904,6 +975,11 @@ class $$SettingsTableOrderingComposer
     column: $table.lowMoodSensitivity,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get modelOfferShown => $composableBuilder(
+    column: $table.modelOfferShown,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SettingsTableAnnotationComposer
@@ -920,6 +996,11 @@ class $$SettingsTableAnnotationComposer
 
   GeneratedColumn<String> get lowMoodSensitivity => $composableBuilder(
     column: $table.lowMoodSensitivity,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get modelOfferShown => $composableBuilder(
+    column: $table.modelOfferShown,
     builder: (column) => column,
   );
 }
@@ -957,17 +1038,21 @@ class $$SettingsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> lowMoodSensitivity = const Value.absent(),
+                Value<bool> modelOfferShown = const Value.absent(),
               }) => SettingsCompanion(
                 id: id,
                 lowMoodSensitivity: lowMoodSensitivity,
+                modelOfferShown: modelOfferShown,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 required String lowMoodSensitivity,
+                Value<bool> modelOfferShown = const Value.absent(),
               }) => SettingsCompanion.insert(
                 id: id,
                 lowMoodSensitivity: lowMoodSensitivity,
+                modelOfferShown: modelOfferShown,
               ),
           withReferenceMapper: (p0) => p0
               .map(

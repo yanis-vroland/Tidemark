@@ -4,6 +4,7 @@ import 'package:tidemark/ui/screens/entry_list_screen.dart';
 
 import '../support/fake_settings_repository.dart';
 
+import '../support/fake_model_downloader.dart';
 import '../support/ui_harness.dart';
 
 Widget listScreen(DbEnv env) => testApp(
@@ -11,6 +12,7 @@ Widget listScreen(DbEnv env) => testApp(
     repository: env.repo,
     settings: FakeSettingsRepository(),
     clock: () => env.now,
+    downloader: FakeModelDownloader(readyModel),
   ),
 );
 
