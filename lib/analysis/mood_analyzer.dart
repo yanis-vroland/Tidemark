@@ -41,8 +41,20 @@ final class Untagged extends AnalysisResult {
   const Untagged();
 }
 
+/// Analyseur (glossaire : `MoodAnalyzer`, spec 004). Le délai de 30 s est tenu par
+/// la file d'analyse, pas par l'analyseur.
 abstract interface class MoodAnalyzer {
-  /// Analyse le texte d'une entrée. Ne lève jamais d'exception : toute erreur du
-  /// modèle devient [Untagged].
+  /// Charge le modèle ; rend `false` s'il ne peut pas l'être (fichier altéré,
+  /// mémoire). Sans effet s'il est déjà chargé.
+  Future<bool> prepare();
+
+  /// Analyse le texte d'une entrée, et rien d'autre (RM36). Ne lève jamais
+  /// d'exception : toute erreur du modèle devient [Untagged].
   Future<AnalysisResult> analyze(String text);
+
+  /// Arrête la génération en cours ; ne rend la main qu'une fois le moteur libre.
+  Future<void> cancel();
+
+  /// Libère le modèle et sa mémoire ; [prepare] le rechargera.
+  Future<void> release();
 }
