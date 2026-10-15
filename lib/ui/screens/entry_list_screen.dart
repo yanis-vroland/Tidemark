@@ -4,6 +4,7 @@ import '../../entries/day_grouping.dart';
 import '../../entries/entry.dart';
 import '../../entries/entry_repository.dart';
 import '../../model/model_downloader.dart';
+import '../../review/review_narrator.dart';
 import '../../settings/settings_repository.dart';
 import '../phone_dialer.dart';
 import '../theme/tidemark_colors.dart';
@@ -27,6 +28,7 @@ class EntryListScreen extends StatefulWidget {
     required this.downloader,
     this.dialer = const UrlLauncherDialer(),
     required this.clock,
+    this.narrator,
   });
 
   final EntryRepository repository;
@@ -42,6 +44,10 @@ class EntryListScreen extends StatefulWidget {
 
   /// Date et heure locales, pour les intertitres « Aujourd'hui » et « Hier ».
   final DateTime Function() clock;
+
+  /// Mise en mots du bilan de la semaine (spec 006), partagée par toute l'app ;
+  /// `null` : bilan sans rédacteur (modèle absent).
+  final ReviewNarrator? narrator;
 
   @override
   State<EntryListScreen> createState() => _EntryListScreenState();

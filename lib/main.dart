@@ -11,6 +11,8 @@ import 'entries/entry_repository.dart';
 import 'model/model_downloader.dart';
 import 'model/model_source.dart';
 import 'model/model_transport.dart';
+import 'review/review_narrator.dart';
+import 'review/review_writer.dart';
 import 'settings/settings_repository.dart';
 import 'storage/app_database.dart';
 import 'storage/database_key.dart';
@@ -33,6 +35,7 @@ class Journal {
     required this.settings,
     required this.downloader,
     this.analyzer,
+    this.reviewWriter,
   });
 
   final EntryRepository entries;
@@ -40,6 +43,9 @@ class Journal {
 
   /// Analyseur du modèle local (spec 004) ; `null` : aucune analyse.
   final MoodAnalyzer? analyzer;
+
+  /// Rédacteur du bilan (spec 006) ; `null` : bilan sans texte.
+  final ReviewWriter? reviewWriter;
 
   /// Modèle local, dans le dossier `models/` à côté de la base (spec 003).
   final ModelDownloader downloader;
@@ -117,6 +123,7 @@ class TidemarkApp extends StatelessWidget {
     required this.downloader,
     this.dialer = const UrlLauncherDialer(),
     this.analysisQueue,
+    this.reviewNarrator,
     this.clock,
   });
 
@@ -128,6 +135,10 @@ class TidemarkApp extends StatelessWidget {
   /// File d'analyse (spec 004), visible des écrans par [AnalysisScope] ; `null` :
   /// aucune analyse affichée.
   final AnalysisQueue? analysisQueue;
+
+  /// Mise en mots du bilan de la semaine (spec 006) ; `null` : bilan sans
+  /// rédacteur.
+  final ReviewNarrator? reviewNarrator;
 
   /// Date et heure locales ; [DateTime.now] par défaut.
   final DateTime Function()? clock;
@@ -144,6 +155,7 @@ class TidemarkApp extends StatelessWidget {
         downloader: downloader,
         dialer: dialer,
         clock: clock ?? DateTime.now,
+        narrator: reviewNarrator,
       ),
     );
     final queue = analysisQueue;
