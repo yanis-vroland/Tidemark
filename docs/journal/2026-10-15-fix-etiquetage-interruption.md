@@ -28,3 +28,24 @@ Branche `fix/etiquetage-interruption`, partie de `main` après le merge de la PR
 ### Prochaine étape
 
 Couture `LocalEngine` et paramètre du cycle de vie (squelette, sans comportement), puis tests de non-régression rouges.
+
+## 2026-10-15 15:30
+
+### Fait
+
+- Squelette, sans changement de comportement :
+  - couture `LocalEngine` (`generate`, `cancelGeneration`, `dispose`) et `loadLlamadartEngine` dans `lib/analysis/llama_mood_analyzer.dart` ; `LlamaMoodAnalyzer` reçoit `loader` et `cancelGrace` (pas encore utilisé) ;
+  - `AnalysisQueue` reçoit `lifecycle` (pas encore observé) ; `startApp` le lui passe ; `appLifecycleStates()` rend pour l'instant un flux vide.
+- 968 tests verts, analyse sans remarque.
+
+### Décisions
+
+- Couture au niveau du moteur chargé, plutôt qu'un faux `llama.LlamaEngine` : `ChatSession` appelle des méthodes internes du moteur, qu'un faux devrait toutes imiter (agent).
+
+### Corrections et limites
+
+- L'adaptateur `_LlamadartEngine` n'est toujours exécuté que sur le téléphone, au test humain.
+
+### Prochaine étape
+
+Tests de non-régression des points 1 à 6, rouges, dans des fichiers neufs (pas ceux de la PR #24).

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show AppLifecycleState;
 
 import 'package:flutter/foundation.dart';
 
@@ -33,6 +34,7 @@ class AnalysisQueue extends ChangeNotifier {
     required this.downloader,
     this.detector = const DistressDetector(),
     this.timeout = const Duration(seconds: 30),
+    this.lifecycle,
   });
 
   final EntryRepository repository;
@@ -42,6 +44,9 @@ class AnalysisQueue extends ChangeNotifier {
 
   /// Durée maximale d'une analyse (CA9, CA14).
   final Duration timeout;
+
+  /// Cycle de vie de l'app (CA32, CA33) ; `null` : non observé.
+  final Stream<AppLifecycleState>? lifecycle;
 
   int? _current;
   AnalysisQueueState _state = AnalysisQueueState.idle;
