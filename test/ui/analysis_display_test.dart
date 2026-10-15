@@ -861,9 +861,13 @@ void main() {
       await show(tester, env.list(textScale: 2.0));
 
       expect(tester.takeException(), isNull);
-      expect(find.text(analysingText), findsOneWidget);
       expectChipsWrapped(tester, longTagLabels);
       expectNoTruncatedText(tester, find.byType(Scaffold), 'liste à 200 %');
+      // La liste ne construit que les cartes proches de l'écran : à 200 %, la
+      // deuxième carte est plus bas, on y défile.
+      await tester.scrollUntilVisible(find.text(analysingText), 200);
+      expect(find.text(analysingText), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('CA29 : le détail étiqueté, avec des puces longues, ne déborde '

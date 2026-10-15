@@ -57,10 +57,19 @@ Future<Widget> startApp({Future<Journal> Function() open = openJournal}) async {
     try {
       await journal.downloader.checkAtStartup();
     } catch (_) {}
+    final analyzer = journal.analyzer;
+    final queue = analyzer == null
+        ? null
+        : (AnalysisQueue(
+            repository: journal.entries,
+            analyzer: analyzer,
+            downloader: journal.downloader,
+          )..start());
     return TidemarkApp(
       repository: journal.entries,
       settings: journal.settings,
       downloader: journal.downloader,
+      analysisQueue: queue,
     );
   } on DatabaseKeyMissingError {
     // Aucune perte silencieuse : ni nouvelle clé, ni base recréée (spec 001).
