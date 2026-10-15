@@ -40,7 +40,9 @@ flutter:
         - asset: assets/fonts/Figtree-Variable.ttf
 
 # Base chiffrée par SQLite3MultipleCiphers (ADR-002) : le hook de sqlite3 télécharge
-# ce binaire au build, vérifié par empreinte. Aucun accès réseau de l'app (RM1).
+# ce binaire au build, vérifié par empreinte SHA-256. Le hook de llamadart, lui,
+# télécharge llama.cpp sans contrôle d'empreinte (ADR-004, proposé). Aucun accès
+# réseau de l'app (RM1).
 hooks:
   user_defines:
     sqlite3:
