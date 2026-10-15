@@ -121,3 +121,25 @@ Revues `reviewer` puis `security-reviewer`, puis PR.
 ### Prochaine étape
 
 Corrections jusqu'au vert, puis réponse aux revues dans la PR.
+
+## 2026-10-15 17:00
+
+### Fait
+
+- Corrections des revues :
+  - file : après un délai de 30 s dépassé, le modèle est libéré, et l'entrée suivante le recharge (bloquant) ;
+  - `LlamaMoodAnalyzer.cancel()` : seul le moteur annulé est libéré, la libération est attendue avant que l'analyse abandonnée rende la main, et cette attente est bornée à `cancelGrace` ; la génération est attendue même si le moteur vient d'être libéré.
+- `dart format`, `dart analyze --fatal-infos` sans remarque ; `flutter test` : 1001 tests verts, aussi avec `TZ=UTC`.
+- Contrôle par mutation des nouvelles protections : 5 mutations, 5 détectées (pas de libération après le délai, libération du moteur courant au lieu du moteur annulé, libération non bornée, abandon rendu avant la libération, pas d'attente sans moteur).
+
+### Décisions
+
+- Non suivis, avec leur raison dans la réponse à la revue de la PR (agent) : libération différée à la fin réelle de la génération (la documentation de `llamadart` 0.12.0 dit que `dispose` décharge le modèle en annulant les générations en cours ; à vérifier au test humain) ; borne côté file de l'attente après `cancel` (le contrat de `MoodAnalyzer` l'impose déjà à l'analyseur) ; traces des erreurs avalées ; état initial du cycle de vie (l'app n'a aucun mode d'arrière-plan et démarre toujours au premier plan) ; état `idle` entre deux entrées (garde la règle « en cours jusqu'à l'écriture », sans laisser un identifiant périmé sur une entrée déjà analysée) ; erreur GPU reçue avant l'événement `hidden` (à observer au test humain).
+
+### Corrections et limites
+
+- Test humain à faire par Yanis, non simulé : voir la PR.
+
+### Prochaine étape
+
+PR, puis commentaire « Réponse à la revue IA ».

@@ -160,21 +160,28 @@ class LlamaMoodAnalyzer implements MoodAnalyzer {
   @override
   Future<void> cancel() async {
     final generation = _generation;
+    final abandon = _abandon;
+    if (generation == null) return;
+    // Moteur déjà libéré : rien à arrêter, mais la génération est attendue.
     final engine = _engine;
-    if (generation == null || engine == null) return;
     try {
-      engine.cancelGeneration();
+      engine?.cancelGeneration();
     } catch (_) {}
     try {
       await generation.timeout(cancelGrace);
     } on TimeoutException {
-      final abandon = _abandon;
+      // Seul le moteur annulé est libéré, pas un moteur chargé entre-temps ; la
+      // libération est attendue avant que l'analyse rende la main (jamais deux
+      // modèles chargés), mais elle aussi au plus [cancelGrace].
+      if (engine != null) {
+        if (identical(_engine, engine)) _engine = null;
+        try {
+          await engine.dispose().timeout(cancelGrace);
+        } catch (_) {}
+      }
       if (abandon != null && !abandon.isCompleted) {
         abandon.complete(const Untagged());
       }
-      try {
-        await release();
-      } catch (_) {}
     }
   }
 
