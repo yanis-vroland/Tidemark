@@ -134,3 +134,30 @@ Revues `reviewer` et `security-reviewer`, téléchargement réel sur l'émulateu
 ### Prochaine étape
 
 PR, revue IA, puis spec 004 (étiquetage) sur une nouvelle branche après le merge.
+
+## 2026-10-15 09:29
+
+### Fait
+
+- Suites de la revue IA de la PR #22 (aucun point bloquant) :
+  - écriture qui échoue en cours de transfert, et renommage impossible : tous deux affichés « place », désormais testés. L'ouverture du `.part` est injectable (`openPart`) pour simuler un stockage plein ;
+  - une annulation confirmée après le début de la vérification est ignorée : le fichier complet n'est pas jeté (CA14) ;
+  - garde-fou réseau élargi à toute classe `*Socket`, à `HttpServer` et aux paquets `http2`, `web_socket_channel` et `grpc` ;
+  - CA3 complété : pas de proposition automatique après un échec récent ;
+  - épaisseur de l'indicateur de vérification sur le jeton `ring-width` ;
+  - connexions inactives du client HTTP refermées au bout de 1 s ;
+  - ligne de la spec 003 du cahier des charges, alignée sur la PR #21.
+- Contrôle par mutation des trois nouvelles protections : toutes détectées. 759 tests verts.
+
+### Décisions
+
+- `openPart` injectable, marqué `@visibleForTesting` : seul moyen simple de simuler un disque plein en cours de route (agent).
+
+### Corrections et limites
+
+- Test ajouté au garde-fou existant `test/guards/no_network_outside_model_test.dart` : des motifs en plus, aucune vérification retirée.
+- Test humain sur l'iPhone toujours attendu de Yanis, annulation comprise.
+
+### Prochaine étape
+
+Merge de la PR par Yanis après son test humain ; rebase de `feat/etiquetage` sur `main`.

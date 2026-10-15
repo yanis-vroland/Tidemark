@@ -722,6 +722,42 @@ void main() {
   });
 
   group('échecs (CA17, CA18, CA20)', () {
+    // Ajoutés après la revue IA de la PR #22 : stockage plein en cours de route,
+    // et renommage impossible.
+    test('CA18 : une écriture qui échoue en cours de transfert est un échec '
+        '« place », sans fichier laissé', () async {
+      final transport = FakeModelTransport([
+        FakeModelTransport.ok(chunksOf(modelBytes, 100)),
+      ]);
+      final downloader = HttpModelDownloader(
+        transport: transport,
+        folder: models,
+        source: testSource,
+        idleTimeout: const Duration(seconds: 5),
+        openPart: (file) async =>
+            _FullDisk(await file.open(mode: FileMode.write), failAfter: 3),
+      );
+
+      final log = await download(downloader);
+
+      expectFailure(log, DownloadFailure.storage);
+      expect(filesIn(models), isEmpty);
+    });
+
+    test('CA18 : un renommage impossible est un échec « place »', () async {
+      // Le nom définitif est déjà pris par un dossier : le renommage échoue.
+      Directory('${models.path}/${testSource.fileName}')
+          .createSync(recursive: true);
+      final transport = FakeModelTransport([
+        FakeModelTransport.ok(chunksOf(modelBytes, 100)),
+      ]);
+
+      final log = await download(build(transport));
+
+      expectFailure(log, DownloadFailure.storage);
+      expect(filesIn(models), isNot(contains(partName)));
+    });
+
     test('CA17 : la connexion échoue : échec « réseau »', () async {
       final transport = FakeModelTransport([
         const SocketException('Connection refused'),
@@ -1247,4 +1283,32 @@ class _PendingTransport implements ModelTransport {
     calls++;
     return response;
   }
+}
+
+/// Fichier qui refuse d'écrire après [failAfter] écritures : stockage plein.
+class _FullDisk implements RandomAccessFile {
+  _FullDisk(this._inner, {required this.failAfter});
+
+  final RandomAccessFile _inner;
+  final int failAfter;
+  int _writes = 0;
+
+  @override
+  Future<RandomAccessFile> writeFrom(
+    List<int> buffer, [
+    int start = 0,
+    int? end,
+  ]) async {
+    if (++_writes > failAfter) {
+      throw const FileSystemException('No space left on device');
+    }
+    await _inner.writeFrom(buffer, start, end);
+    return this;
+  }
+
+  @override
+  Future<void> close() => _inner.close();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

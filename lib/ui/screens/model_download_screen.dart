@@ -51,6 +51,10 @@ class _ModelDownloadScreenState extends State<ModelDownloadScreen> {
       ),
     );
     if (confirmed != true || !mounted) return;
+    // Confirmation arrivée après la fin du transfert : le fichier est complet,
+    // et la vérification n'est pas annulable (CA14).
+    final state = widget.downloader.current;
+    if (state is! ModelDownloading || state.verifying) return;
     await widget.downloader.cancel();
     if (mounted) _close();
   }
@@ -276,7 +280,7 @@ class _Transfer extends StatelessWidget {
                 SizedBox.square(
                   dimension: TidemarkSize.iconSm,
                   child: CircularProgressIndicator(
-                    strokeWidth: 2,
+                    strokeWidth: TidemarkSize.ringWidth,
                     color: colors.tide,
                   ),
                 ),
