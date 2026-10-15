@@ -159,7 +159,7 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 | --- | --- | --- | --- |
 | MVP (lot E) | Saisie d'une entrée et liste des entrées, stockage local chiffré | [001](specs/001-saisie-et-liste-des-entrees.md) | spec validée (CA31 à CA36 en attente de validation) |
 | MVP (lot F) | Détection de détresse et écran d'aide, réglage de la sensibilité | [002](specs/002-garde-fou-detresse.md) | spec validée |
-| MVP (lot G) | Téléchargement du modèle local | — | à spécifier |
+| MVP (lot G) | Téléchargement du modèle local | [003](specs/003-telechargement-du-modele.md) | spec validée |
 | MVP (lot G) | Étiquetage automatique | — | à spécifier |
 | MVP (lot H) | Export et suppression totale | [005](specs/005-export-et-suppression-totale.md) | spec brouillon (à valider par Yanis, avec la maquette et l'ADR-003) |
 | Si le temps le permet (lot I) | Bilan de la semaine | — | à spécifier |

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import 'model_source.dart';
 import 'model_state.dart';
@@ -71,7 +72,9 @@ class HttpModelDownloader implements ModelDownloader {
     required this.folder,
     ModelSource? source,
     this.idleTimeout = const Duration(seconds: 30),
-  }) : source = source ?? qwenModelSource;
+    @visibleForTesting Future<RandomAccessFile> Function(File file)? openPart,
+  }) : source = source ?? qwenModelSource,
+       _openPart = openPart ?? ((file) => file.open(mode: FileMode.write));
 
   final ModelTransport transport;
   final Directory folder;
@@ -79,6 +82,9 @@ class HttpModelDownloader implements ModelDownloader {
 
   /// Délai sans octet reçu qui vaut échec réseau (CA17).
   final Duration idleTimeout;
+
+  /// Ouverture du fichier `.part` ; injectable pour simuler un stockage plein.
+  final Future<RandomAccessFile> Function(File file) _openPart;
 
   ModelState _state = const ModelAbsent();
   final _changes = StreamController<ModelState>.broadcast();
@@ -132,7 +138,7 @@ class HttpModelDownloader implements ModelDownloader {
       _throwIfCancelled();
       try {
         await folder.create(recursive: true);
-        file = await _partFile.open(mode: FileMode.write);
+        file = await _openPart(_partFile);
       } on FileSystemException {
         throw const _Failure(DownloadFailure.storage);
       }

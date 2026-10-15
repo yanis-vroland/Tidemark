@@ -34,7 +34,9 @@ class IoModelTransport implements ModelTransport {
     : _client = HttpClient()
         ..autoUncompress = false
         ..userAgent = null
-        ..connectionTimeout = const Duration(seconds: 30);
+        ..connectionTimeout = const Duration(seconds: 30)
+        // Seul accès réseau de l'app : aucune connexion gardée ouverte après.
+        ..idleTimeout = const Duration(seconds: 1);
 
   final HttpClient _client;
 

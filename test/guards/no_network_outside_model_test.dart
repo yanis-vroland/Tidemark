@@ -16,6 +16,14 @@ final forbidden = <String, RegExp>{
   'SecureSocket': RegExp(r'\bSecureSocket\b'),
   'WebSocket': RegExp(r'\bWebSocket\b'),
   'InternetAddress': RegExp(r'\bInternetAddress\b'),
+  // Ajoutés après la revue IA de la PR #22 : toute classe réseau de `dart:io`
+  // (UDP, serveurs, sockets sécurisés bruts) et les paquets réseau courants.
+  'classes *Socket': RegExp(r'\b\w*Socket\b'),
+  'HttpServer': RegExp(r'\bHttpServer\b'),
+  'RawDatagramSocket': RegExp(r'\bRawDatagramSocket\b'),
+  'package:http2': RegExp(r'package:http2\b'),
+  'package:web_socket_channel': RegExp(r'package:web_socket_channel\b'),
+  'package:grpc': RegExp(r'package:grpc\b'),
   'Image.network': RegExp(r'\bImage\s*\.\s*network\b'),
   'NetworkImage': RegExp(r'\bNetworkImage\b'),
   'package:http': RegExp(r'package:http\b'),
