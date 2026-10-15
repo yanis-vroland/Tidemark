@@ -41,6 +41,14 @@ erDiagram
     int utc_offset_minutes "décalage local à la saisie"
     text analysis_status "pending, tagged, untagged, skipped"
   }
+  TAGS {
+    int id PK
+    int entry_id FK "ON DELETE CASCADE"
+    text label "liste fermée"
+    text kind "emotion, theme"
+    int position
+  }
+  ENTRIES ||--o{ TAGS : "a"
   SETTINGS {
     int id PK "toujours 1"
     text low_mood_sensitivity "high, normal, low"
@@ -48,7 +56,7 @@ erDiagram
   }
 ```
 
-Schéma en version 3 : la version 2 crée la table `settings` (spec 002), la version 3 y ajoute `model_offer_shown` (spec 003).
+Schéma en version 4 : la version 2 crée la table `settings` (spec 002), la version 3 y ajoute `model_offer_shown` (spec 003), la version 4 crée la table `tags` (spec 004). `PRAGMA foreign_keys = ON` à chaque ouverture, pour la suppression en cascade des étiquettes.
 
 | Entité | Contraintes et invariants | Règle métier |
 | --- | --- | --- |
@@ -79,7 +87,7 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 | `ModelDownloader` | `HttpModelDownloader` ; `FakeModelDownloader` dans `test/support/` | Écran du modèle, Réglages, saisie (proposition), démarrage, suppression totale (lot H), analyse (lot G) | Interface Dart : `watch`, `current`, `start`, `cancel`, `checkAtStartup`, `deleteModel`, `verifyAfterLoadFailure` ; état `ModelState` (`ModelAbsent`, `ModelDownloading`, `ModelReady`) | `lib/model/model_downloader.dart` |
 | `ModelTransport` | `IoModelTransport` (`dart:io`, seul code réseau de l'app) ; `FakeModelTransport` dans `test/support/` | `HttpModelDownloader` | `get(url, headers)` rend statut, `Location` et flux d'octets, sans suivre les redirections | `lib/model/model_transport.dart` |
 | `PhoneDialer` | `UrlLauncherDialer` (`url_launcher`, `tel:`) ; `FakePhoneDialer` dans `test/support/` | `HelpScreen` | Interface Dart : `dial(number)` rend vrai si le composeur s'est ouvert | `lib/ui/phone_dialer.dart` |
-| `MoodAnalyzer` | Implémentation `llamadart` (lot G) ; `FakeMoodAnalyzer` dans `test/support/` pour les tests | Écrans de saisie et de détail (lots E, G) | Interface Dart : `analyze(text)` rend `Tagged` ou `Untagged`, jamais d'exception | `lib/analysis/mood_analyzer.dart` |
+| `MoodAnalyzer` | `LlamaMoodAnalyzer` (`llamadart` 0.12.0) ; `FakeMoodAnalyzer` dans `test/support/` pour les tests | `AnalysisQueue` (spec 004) | Interface Dart : `prepare`, `analyze(text)` (rend `Tagged` ou `Untagged`, jamais d'exception), `cancel`, `release` | `lib/analysis/mood_analyzer.dart` |
 | Fichier d'export, version 1 (prévu, lot H) | `JournalExporter` | La personne, hors de l'app (lecture, archivage) | JSON versionné par `formatVersion` ; tout changement l'augmente | Section « Format » de la [spec 005](specs/005-export-et-suppression-totale.md) |
 | `ShareSheet` (prévu, lot H) | Implémentation sur `share_plus` (ADR-003) ; implémentation factice pour les tests | Réglages (export) | Interface Dart : `shareFile(file, mimeType)` ouvre la feuille de partage du système | [spec 005](specs/005-export-et-suppression-totale.md), « Données » |
 

@@ -54,3 +54,42 @@ Tests de la spec 004 par le subagent `test-writer`, committés seuls et rouges ;
 ### Prochaine étape
 
 Relecture des tests, puis implémentation jusqu'au vert (parseur et vocabulaire, stockage et migration 4, file, écrans, branchement dans `startApp`).
+
+## 2026-10-15 09:52
+
+### Fait
+
+- Implémentation de la spec 004 :
+  - `TagVocabulary` (12 émotions, 12 thèmes, schéma tiré des listes) ;
+  - `TagOutputParser` ;
+  - `LlamaMoodAnalyzer` sur `llamadart` : session neuve par entrée, consigne en message système, température 0,2, 128 jetons, sortie contrainte par le schéma puis revalidée, GPU sur iOS et processeur seul ailleurs ;
+  - `AnalysisQueue` : observe les entrées et l'état du modèle ; une analyse à la fois, la plus récente d'abord ; `detectInText` juste avant chaque analyse ; délai de 30 s, puis `cancel` et attente ; modèle libéré quand la file est vide ; `verifyAfterLoadFailure` si le chargement échoue ;
+  - table `tags` (cascade, unicité), schéma en version 4, `PRAGMA foreign_keys = ON` à l'ouverture ;
+  - `saveAnalysis` en transaction, sans effet si l'entrée n'est plus « en attente » ;
+  - puces et mention « Analyse en cours… » dans la liste ; section « Étiquettes » du détail, mise à jour en direct ;
+  - file démarrée dans `startApp`.
+- 964 tests verts, en heure de Paris comme en UTC.
+- Contrôle par mutation sur 19 protections : 16 détectées. 3 ne le sont pas encore (voir ci-dessous).
+
+### Décisions
+
+- Pas de construction complète de la liste à 200 % : un journal peut compter des centaines d'entrées. Le test de CA29 défile jusqu'à la carte (agent).
+
+### Corrections et limites
+
+- Tests modifiés, à signaler :
+  - `test/ui/analysis_display_test.dart` (CA29, liste) : défilement jusqu'à la deuxième carte ;
+  - `test/storage/model_offer_storage_test.dart` : version du schéma « au moins 3 », le schéma passant en version 4.
+- Mutations non détectées, tests à ajouter :
+  - l'attente de la fin de l'analyse après `cancel` ;
+  - « aucune analyse si le modèle n'est pas prêt » : un modèle absent puis prêt, sans relance du flux ;
+  - `saveAnalysis` limité aux entrées « en attente ».
+- Pas encore faits : revues `reviewer` et `security-reviewer`, et essai du vrai modèle. Le modèle est déjà téléchargé sur l'émulateur Android `tidemark_api35`.
+
+### Prochaine étape
+
+1. Ajouter les 3 tests manquants.
+2. Revues `reviewer` et `security-reviewer`.
+3. Essai du vrai modèle sur l'émulateur Android, puis test humain de Yanis sur l'iPhone : 20 entrées fictives du spike, taux de JSON valide et rappel à consigner (spec 004).
+4. Traiter la revue IA de la PR.
+5. Ensuite : lot H (spec 005, export et suppression totale), puis lot I (spec 006), puis lot J.
