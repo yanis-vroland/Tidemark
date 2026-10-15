@@ -75,7 +75,7 @@ Implémentation jusqu'au vert, ADR-005 (proposé), documents de référence.
 
 ### Corrections et limites
 
-- Deux tests du test-writer modifiés, sans changer ce qu'ils vérifient :
+- Trois tests du test-writer modifiés, sans changer ce qu'ils vérifient :
   - `review_wiring_test` : `find.text('3')` trouvait aussi le chiffre de la pastille « Neutre » de la répartition. Remplacé par « au moins un » et la présence de « Humeur moyenne ».
   - `weekly_review_screen_test`, CA27 : le test interdisait tout `TextButton`, donc aussi le retour « Journal » exigé par CA4. Il exige maintenant que ce retour soit le seul.
   - `weekly_review_screen_test`, CA22 : le fragment cherché « 3 jours » figurait aussi dans les chiffres de l'app (« sur 3 jours »). Il cherche maintenant « 3 jours notés », la phrase de la sortie brute.
@@ -85,3 +85,41 @@ Implémentation jusqu'au vert, ADR-005 (proposé), documents de référence.
 ### Prochaine étape
 
 Revues `reviewer` et `security-reviewer`, corrections, puis PR.
+
+## 2026-10-15 16:11
+
+### Fait
+
+- Revue de sécurité (`security-reviewer`) : aucun point bloquant.
+  - « À corriger » n°1, corrigé : course d'annulation dans `GatedReviewWriter`. Si un abandon arrivait juste après la transmission du verrou, le modèle était chargé et la génération menée jusqu'au bout. Test ajouté dans `model_gate_test`, rouge avant la correction.
+  - Suggestion n°3, appliquée : seules les étiquettes de la liste fermée atteignent les faits du bilan (défense en profondeur, RM51). Test rouge avant.
+  - Suggestion n°4 : limite consignée dans l'ADR-005 (incertitudes).
+  - Suggestion n°2 (caractères invisibles et variantes Unicode de « % ») : reportée, la spec ne prévoit pas ce cas (voir « Corrections et limites »).
+- Revue IA (`reviewer`) : aucun point bloquant.
+  - Corrigé : un résultat périmé était appliqué après un aller-retour entre deux semaines. Ajout d'un compteur de requêtes, et l'annulation à la sortie de l'écran ne dépend plus de l'état affiché. Test rouge avant.
+  - Corrigé : année de référence des dates, celle du jour et non celle du dimanche de la semaine en cours. Test au passage d'année, rouge avant.
+  - Corrigé : l'assouplissement du test de câblage, devenu vide, est remplacé par l'annonce du bloc « Entrées : 3 sur 1 jour ».
+  - Corrigé : affirmation de l'ADR-005 sur l'attente de la file.
+  - Corrigé : `ReviewWriter.cancel()` ajouté à la section « Données » de la spec.
+  - Corrigé : cahier des charges, statut « implémentée », glossaire du bilan, question ouverte « 1er » du mois.
+- Contrôle par mutation relancé : 28 mutations, toutes détectées, dont les 3 nouvelles protections (abandon après transmission, réponse périmée, étiquette hors liste fermée).
+- `flutter test` : 1 316 tests au vert, et aussi avec `TZ=UTC`. `dart format` et `dart analyze --fatal-infos` sans remarque.
+
+### Décisions
+
+- Suggestions de la revue IA non suivies, chacune motivée dans la PR (agent) :
+  - mise en mots déclenchée pendant `build` ;
+  - `FontWeight.w600` de la maquette ;
+  - narrateur de secours sans rédacteur ;
+  - `days` et `containsDay`, utilisés par les tests ;
+  - « Semaine en cours » figée à l'ouverture de l'écran.
+
+### Corrections et limites
+
+- Caractères invisibles (U+200B, U+00AD) et pourcents ％ et ٪ non rejetés par le validateur : contournement possible seulement par une sortie aberrante du modèle, dont l'entrée est fixe. À trancher dans la spec avant d'ajouter des rejets.
+- Intégration avec `fix/etiquetage-interruption` : `main.dart` entrera en conflit. Après son merge, rebaser cette branche, garder les décorateurs de `openJournal` et relancer les tests du verrou.
+- Test humain en attente, à faire par Yanis (scénarios dans la PR).
+
+### Prochaine étape
+
+Ouvrir la PR, puis attendre la validation de l'ADR-005 et le test humain de Yanis.

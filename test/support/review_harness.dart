@@ -171,6 +171,7 @@ class ControlledReviewWriter implements ReviewWriter {
   final List<ReviewFacts> received = [];
   int cancelCalls = 0;
   final List<Completer<ReviewDraft>> _pending = [];
+  final List<Completer<ReviewDraft>> _all = [];
 
   int get writeCalls => received.length;
 
@@ -179,6 +180,7 @@ class ControlledReviewWriter implements ReviewWriter {
     received.add(facts);
     final completer = Completer<ReviewDraft>();
     _pending.add(completer);
+    _all.add(completer);
     return completer.future;
   }
 
@@ -191,6 +193,13 @@ class ControlledReviewWriter implements ReviewWriter {
       if (!pending.isCompleted) pending.complete(draft);
     }
     _pending.clear();
+  }
+
+  /// Termine la [index]-ième mise en mots reçue (à partir de 0) avec [draft], si
+  /// elle est encore en attente.
+  void completeAt(int index, ReviewDraft draft) {
+    final pending = _all[index];
+    if (!pending.isCompleted) pending.complete(draft);
   }
 
   /// Termine toutes les mises en mots en attente avec la sortie [text], conforme

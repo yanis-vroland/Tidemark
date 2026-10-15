@@ -1,4 +1,5 @@
 import '../analysis/mood_analyzer.dart';
+import '../analysis/tag_vocabulary.dart';
 import '../distress/distress_detector.dart';
 import '../entries/entry.dart';
 import 'local_week.dart';
@@ -124,6 +125,8 @@ List<TagCount> _topTags(List<Entry> entries, Map<int, List<Tag>> tagsByEntry) {
     if (e.analysisStatus != AnalysisStatus.tagged) continue;
     // Une étiquette compte une fois par entrée.
     for (final tag in {...?tagsByEntry[e.id]}) {
+      // Défense en profondeur (RM51) : seule la liste fermée atteint le modèle.
+      if (!_vocabulary.contains(tag.label)) continue;
       counts[tag] = (counts[tag] ?? 0) + 1;
     }
   }
@@ -142,6 +145,8 @@ List<TagCount> _topTags(List<Entry> entries, Map<int, List<Tag>> tagsByEntry) {
       });
   return sorted.take(maxTopTags).toList();
 }
+
+final _vocabulary = {...TagVocabulary.emotions, ...TagVocabulary.themes};
 
 /// Semaine du jour local de saisie de [entry] (spec 001), pas du jour actuel.
 LocalWeek weekOfEntry(Entry entry) =>

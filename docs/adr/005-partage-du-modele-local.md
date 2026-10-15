@@ -32,10 +32,11 @@ Proposition de l'agent (2026-10-15), à accepter par Yanis : **un verrou d'accè
 - **Mémoire** : une seule copie du modèle à la fois, vérifiée en CI avec les faux (le rédacteur n'est appelé qu'après la libération de l'analyseur).
 - **Attente du bilan** : juste après l'enregistrement de plusieurs entrées, la file peut garder le modèle plus de 30 s ; le bilan s'affiche alors sans texte, et revenir sur l'écran relance la mise en mots. Limite assumée, conforme à la spec 006 (« Modèle occupé par l'étiquetage »).
 - **Temps de chargement** : chaque mise en mots charge le modèle (jusqu'à 12 s sur iPhone 15 Pro au premier chargement), puis le libère. À mesurer au test humain.
-- **File bloquée par le bilan** : la file attend le verrou au plus le temps d'une mise en mots (30 s). Elle ne voit pas ce délai : son chargement (`prepare`) prend simplement plus longtemps.
+- **File bloquée par le bilan** : la file attend le verrou le temps d'une mise en mots, soit au plus 30 s, plus la fin du chargement du modèle si l'abandon arrive pendant ce chargement (`cancelGeneration` ne l'interrompt pas : jusqu'à 12 s mesurées sur iPhone 15 Pro). Elle ne voit pas ce délai : son chargement (`prepare`) prend simplement plus longtemps.
 - **Contre-argument** : le moteur partagé serait plus rapide au bilan et plus économe en chargements. Il reste possible plus tard, derrière les mêmes interfaces `MoodAnalyzer` et `ReviewWriter`.
 
 ### Incertitudes
 
 - Durée réelle d'un lot d'étiquetage sur les téléphones visés : non mesurée, donc fréquence réelle du bilan sans texte pour cause d'attente inconnue.
+- Verrou sans limite de temps de détention : `cancelGeneration` n'interrompt pas le chargement du modèle (`setModel`). Si le chargement ou la libération ne revenait jamais, le verrou ne serait jamais rendu et l'étiquetage resterait bloqué jusqu'au redémarrage de l'app (échec fermé, sans fuite de données). Non observé, à vérifier au test humain ; une limite de détention côté rédacteur serait la parade.
 - Comportement de `llamadart` quand deux `LlamaEngine` sont créés l'un après l'autre dans le même processus : prévu par l'API (`dispose`), non vérifié sur appareil. À vérifier au test humain.

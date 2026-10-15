@@ -385,6 +385,28 @@ void main() {
       expect(inner.cancelCalls, 1);
       expect(gate.isHeld, isFalse);
     });
+
+    // Revue de sécurité : cancel() arrive juste après que l'accès a été transmis
+    // à la demande, mais avant qu'elle reprenne. Elle ne doit ni charger le
+    // modèle ni générer.
+    test('cancel() entre la transmission de l\'accès et la reprise de write : '
+        'aucune mise en mots, accès rendu', () async {
+      final gate = ModelGate();
+      final inner = FakeReviewWriter();
+      final writer = GatedReviewWriter(inner, gate);
+      final holder = (await gate.acquire())!;
+
+      final writing = writer.write(defaultFacts);
+      await wait(const Duration(milliseconds: 20));
+      // Libération puis abandon dans le même tour de boucle.
+      holder();
+      await writer.cancel();
+      final draft = await writing.timeout(const Duration(seconds: 2));
+
+      expect(draft, isA<WriterFailed>());
+      expect(inner.writeCalls, 0);
+      expect(gate.isHeld, isFalse);
+    });
   });
 
   group('analyseur et rédacteur partagent un même ModelGate', () {
