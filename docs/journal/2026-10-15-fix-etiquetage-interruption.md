@@ -71,3 +71,33 @@ Tests de non-régression des points 1 à 6, rouges, dans des fichiers neufs (pas
 ### Prochaine étape
 
 Correction de `AnalysisQueue`, `LlamaMoodAnalyzer`, `appLifecycleStates()` et du faux dépôt, jusqu'au vert.
+
+## 2026-10-15 16:10
+
+### Fait
+
+- `AnalysisQueue` :
+  - observe le cycle de vie injecté : `hidden`, `paused`, `detached` mettent la file en arrière-plan (annulation de l'analyse en cours, aucun résultat écrit, modèle libéré après la fin de l'analyse, aucune analyse lancée) ; `resumed` la relance ; `inactive` ne change rien ;
+  - « interrompue » distinguée de « sans étiquette » : un compteur de mises en arrière-plan, relevé avant le chargement et l'analyse, fait ignorer tout résultat obtenu pendant une mise en arrière-plan, y compris un délai de 30 s qui tombe au retour ;
+  - un chargement interrompu (arrière-plan ou `stop()`) n'est ni un échec de chargement (`verifyAfterLoadFailure()`, « indisponible ») ni suivi d'une analyse ; un chargement réussi est libéré ;
+  - `release()` qui lève est avalé, et l'état de la file est remis dans un `finally` interne (CA34) ;
+  - l'entrée est « en cours » du chargement du modèle à l'écriture de son résultat ;
+  - `whenIdle` annoté `@visibleForTesting`.
+- `LlamaMoodAnalyzer.cancel()` garde la génération en cours, demande l'arrêt au moteur, l'attend `cancelGrace` (5 s) au plus, puis rend `Untagged` à l'analyse et libère le moteur (CA35).
+- `appLifecycleStates()` (dans `lib/main.dart`) : flux d'un `AppLifecycleListener`, créé au premier abonné ; `main` le passe à `startApp`.
+- `FakeEntryRepository.saveAnalysis` n'écrit plus que sur une entrée « en attente », comme le vrai dépôt (modification d'un faux de test, signalée dans la PR).
+- `dart format`, `dart analyze --fatal-infos` sans remarque ; `flutter test` : 996 tests verts, aussi avec `TZ=UTC`.
+- Contrôle par mutation, chaque protection désactivée une fois, sur `test/analysis/` et le test du faux dépôt : 15 mutations, 15 détectées (cycle de vie non écouté, pas d'annulation en arrière-plan, résultat interrompu enregistré, chargement interrompu traité en échec, analyse en arrière-plan, pas de relance au retour, erreur de `release()` non avalée, `stop()` non vu après le chargement, `inactive` qui interrompt, « en cours » seulement après le chargement, retour au repos avant l'écriture, `cancel()` sans attente, abandon non rendu, moteur non libéré au délai, faux dépôt qui écrase le statut).
+
+### Décisions
+
+- `stop()` avale l'erreur de `release()` : l'arrêt doit toujours se terminer (agent).
+- Une analyse dont la mise en arrière-plan est suivie d'un retour rapide n'est pas gardée : la file la relance (agent).
+
+### Corrections et limites
+
+- Le comportement réel d'iOS (GPU refusé, suspension) n'est pas reproductible en test : à vérifier au test humain.
+
+### Prochaine étape
+
+Revues `reviewer` puis `security-reviewer`, puis PR.

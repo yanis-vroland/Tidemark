@@ -28,7 +28,17 @@ Future<void> main() async {
 }
 
 /// Cycle de vie de l'app, observé par la file d'analyse (spec 004, CA32, CA33).
-Stream<AppLifecycleState> appLifecycleStates() => const Stream.empty();
+/// L'écoute commence avec le premier abonné et s'arrête avec lui.
+Stream<AppLifecycleState> appLifecycleStates() {
+  AppLifecycleListener? listener;
+  late final StreamController<AppLifecycleState> controller;
+  controller = StreamController<AppLifecycleState>(
+    onListen: () =>
+        listener = AppLifecycleListener(onStateChange: controller.add),
+    onCancel: () => listener?.dispose(),
+  );
+  return controller.stream;
+}
 
 /// Journal ouvert : ses entrées et les réglages, sur la même base chiffrée.
 class Journal {
