@@ -93,3 +93,30 @@ Relecture des tests, puis implémentation jusqu'au vert (parseur et vocabulaire,
 3. Essai du vrai modèle sur l'émulateur Android, puis test humain de Yanis sur l'iPhone : 20 entrées fictives du spike, taux de JSON valide et rappel à consigner (spec 004).
 4. Traiter la revue IA de la PR.
 5. Ensuite : lot H (spec 005, export et suppression totale), puis lot I (spec 006), puis lot J.
+
+## 2026-10-15 14:49
+
+### Fait
+
+- Les 3 mutations non détectées ont été rejouées :
+  - attente de la fin de l'analyse après `cancel` : nouveau test CA14, avec `DetachedCancelAnalyzer` (un `cancel()` qui rend la main tout de suite pendant que la génération continue). La mutation est maintenant détectée ;
+  - `saveAnalysis` limité aux entrées « en attente » : 3 tests de stockage (entrée non analysée, étiquetée, sans étiquette). Mutation détectée ;
+  - garde `!_modelReady` dans `_kick` : mutant équivalent. La boucle de `_run` vérifie la même condition avant toute lecture ou analyse, donc aucun comportement observable ne change. Le cas « modèle retiré pendant la file » est couvert par la garde de la boucle, et sa mutation est détectée.
+- 972 tests verts, en heure de Paris comme en UTC ; lint et format au vert.
+
+### Décisions
+
+- Pas de test artificiel pour le mutant équivalent : la garde de `_kick` est gardée comme protection en amont (agent).
+- Yanis a validé la charte (lot C) le 2026-10-15. La case du plan sera cochée dans une PR `docs` séparée, après celle-ci.
+
+### Corrections et limites
+
+- Aucun test existant modifié.
+- Contrôle par mutation : 18 protections sur 19 sont détectées, la 19ᵉ est le mutant équivalent ci-dessus.
+
+### Prochaine étape
+
+1. Revues `reviewer` et `security-reviewer`.
+2. Essai du vrai modèle sur l'émulateur Android, puis test humain de Yanis sur l'iPhone (20 entrées fictives du spike).
+3. Traiter la revue IA de la PR.
+4. PR `docs` sur le plan : cases de validation et reports du lot C (icônes, captures).
