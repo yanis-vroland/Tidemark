@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:llamadart/llamadart.dart' as llama;
@@ -30,8 +31,10 @@ abstract interface class LocalEngine {
 
 /// Charge le modèle de [modelFile] avec [gpuLayers] couches sur le GPU ; lève s'il
 /// ne peut pas l'être.
-typedef LocalEngineLoader =
-    Future<LocalEngine> Function(File modelFile, int gpuLayers);
+typedef LocalEngineLoader = Future<LocalEngine> Function(
+  File modelFile,
+  int gpuLayers,
+);
 
 /// [LocalEngineLoader] sur `llamadart` 0.12.0 (ADR-001). Jamais exécuté par les tests
 /// ni par la CI : vérifié au test humain.
@@ -106,6 +109,11 @@ class LlamaMoodAnalyzer implements MoodAnalyzer {
 
   LocalEngine? _engine;
 
+  /// Génération en cours, et son abandon par [cancel] quand le moteur ne rend pas
+  /// la main à temps (CA35).
+  Future<AnalysisResult>? _generation;
+  Completer<AnalysisResult>? _abandon;
+
   int get _layers => gpuLayers ?? (Platform.isIOS ? 99 : 0);
 
   @override
@@ -123,6 +131,21 @@ class LlamaMoodAnalyzer implements MoodAnalyzer {
   Future<AnalysisResult> analyze(String text) async {
     final engine = _engine;
     if (engine == null) return const Untagged();
+    final generation = _generate(engine, text);
+    final abandon = Completer<AnalysisResult>();
+    _generation = generation;
+    _abandon = abandon;
+    try {
+      return await Future.any([generation, abandon.future]);
+    } finally {
+      if (identical(_generation, generation)) {
+        _generation = null;
+        _abandon = null;
+      }
+    }
+  }
+
+  Future<AnalysisResult> _generate(LocalEngine engine, String text) async {
     try {
       // La sortie brute n'est ni gardée, ni affichée, ni journalisée (RM9).
       return TagOutputParser.parse(await engine.generate(text));
@@ -131,8 +154,29 @@ class LlamaMoodAnalyzer implements MoodAnalyzer {
     }
   }
 
+  /// Demande l'arrêt au moteur et attend la fin de la génération, [cancelGrace] au
+  /// plus ; au-delà, le moteur est libéré, l'analyse rend [Untagged], et
+  /// [prepare] le rechargera (spec 004, « Délai », CA35).
   @override
-  Future<void> cancel() async => _engine?.cancelGeneration();
+  Future<void> cancel() async {
+    final generation = _generation;
+    final engine = _engine;
+    if (generation == null || engine == null) return;
+    try {
+      engine.cancelGeneration();
+    } catch (_) {}
+    try {
+      await generation.timeout(cancelGrace);
+    } on TimeoutException {
+      final abandon = _abandon;
+      if (abandon != null && !abandon.isCompleted) {
+        abandon.complete(const Untagged());
+      }
+      try {
+        await release();
+      } catch (_) {}
+    }
+  }
 
   @override
   Future<void> release() async {

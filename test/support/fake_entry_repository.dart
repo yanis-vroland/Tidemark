@@ -164,8 +164,11 @@ class FakeEntryRepository implements EntryRepository {
     saveAnalysisCalls.add((entryId: entryId, result: result));
     if (saveAnalysisError != null) throw saveAnalysisError!;
     final i = _entries.indexWhere((e) => e.id == entryId);
+    // Comme le vrai dépôt : supprimée, ou plus « en attente », rien à écrire
+    // (CA16).
     if (i < 0) return;
     final e = _entries[i];
+    if (e.analysisStatus != AnalysisStatus.pending) return;
     _entries[i] = Entry(
       id: e.id,
       mood: e.mood,
