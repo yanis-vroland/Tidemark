@@ -1,10 +1,14 @@
 import 'dart:io';
 
+import 'package:llamadart/llamadart.dart' as llama;
+
 import 'review_writer.dart';
 import 'weekly_review.dart';
 
 /// [ReviewWriter] sur `llamadart` 0.12.0 (ADR-001), même modèle que l'étiquetage.
-/// Jamais exécuté par les tests ni par la CI : vérifié au test humain.
+/// Charge le modèle pour une mise en mots et le libère aussitôt après : l'accès
+/// exclusif au modèle est tenu par `GatedReviewWriter` (ADR-005). Jamais exécuté
+/// par les tests ni par la CI : vérifié au test humain.
 class LlamaReviewWriter implements ReviewWriter {
   LlamaReviewWriter({required this.modelFile, this.gpuLayers});
 
@@ -14,9 +18,58 @@ class LlamaReviewWriter implements ReviewWriter {
   /// Couches sur le GPU ; `null` : GPU sur iOS, processeur seul ailleurs (ADR-001).
   final int? gpuLayers;
 
-  @override
-  Future<ReviewDraft> write(ReviewFacts facts) => throw UnimplementedError();
+  llama.LlamaEngine? _engine;
+  bool _cancelled = false;
+
+  int get _layers => gpuLayers ?? (Platform.isIOS ? 99 : 0);
 
   @override
-  Future<void> cancel() => throw UnimplementedError();
+  Future<ReviewDraft> write(ReviewFacts facts) async {
+    _cancelled = false;
+    if (!modelFile.existsSync()) return const ModelMissing();
+    final engine = llama.LlamaEngine(llama.LlamaBackend());
+    _engine = engine;
+    try {
+      // Chemin local seulement : `llamadart` n'ouvre aucune connexion (ADR-001).
+      await engine.setModel(
+        llama.LlamaModel(llama.ModelSource.path(modelFile.path)),
+        params: llama.ModelParams(gpuLayers: _layers),
+      );
+      if (_cancelled) return const WriterFailed();
+      // Une session neuve à chaque bilan : aucun historique, aucune entrée.
+      final session = llama.ChatSession(
+        engine,
+        systemPrompt: reviewInstruction,
+      );
+      final completion = await session.send(
+        facts.toPrompt(),
+        params: const llama.GenerationParams(
+          maxTokens: reviewMaxTokens,
+          temp: reviewTemperature,
+        ),
+        enableThinking: false,
+        responseFormat: {
+          'type': 'json_schema',
+          'json_schema': {'schema': reviewOutputSchema},
+        },
+      );
+      if (_cancelled) return const WriterFailed();
+      // Sortie brute, validée par l'appelant ; jamais journalisée (RM53).
+      return RawReview(completion.text);
+    } catch (_) {
+      return const WriterFailed();
+    } finally {
+      _engine = null;
+      await engine.dispose();
+    }
+  }
+
+  /// Arrête la génération ; [write] rend alors [WriterFailed] une fois le moteur
+  /// libéré. Le chargement du modèle, lui, ne s'interrompt pas : l'abandon prend
+  /// effet juste après.
+  @override
+  Future<void> cancel() async {
+    _cancelled = true;
+    _engine?.cancelGeneration();
+  }
 }

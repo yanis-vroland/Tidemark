@@ -52,10 +52,23 @@ class NoReviewWriter implements ReviewWriter {
 }
 
 /// Consigne fixe passée au modèle (spec 006, « Ce que reçoit le modèle », RM22).
-const reviewInstruction = '';
+const reviewInstruction =
+    'Tu rédiges le bilan d\'une semaine de journal d\'humeur, en français, pour '
+    'la personne qui tient ce journal. Écris une ou deux phrases courtes, en la '
+    'tutoyant, sur un ton descriptif et calme. Décris seulement les faits donnés, '
+    'rien d\'autre. N\'écris aucun chiffre et aucun nombre, même en lettres. Ne '
+    'donne aucun conseil, ne porte aucun jugement, n\'emploie aucun vocabulaire '
+    'médical. Réponds seulement par l\'objet JSON demandé.';
 
 /// Schéma JSON de la sortie : `{"text": string}` (ADR-001).
-const reviewOutputSchema = <String, Object?>{};
+const reviewOutputSchema = <String, Object?>{
+  'type': 'object',
+  'properties': {
+    'text': {'type': 'string'},
+  },
+  'required': ['text'],
+  'additionalProperties': false,
+};
 
 /// Nombre maximal de jetons générés (spec 006).
 const reviewMaxTokens = 160;

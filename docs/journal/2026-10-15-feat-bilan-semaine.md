@@ -48,3 +48,40 @@ Tests de la spec 006 par le subagent `test-writer`, committés seuls et rouges ;
 ### Prochaine étape
 
 Implémentation jusqu'au vert, ADR-005 (proposé), documents de référence.
+
+## 2026-10-15 15:53
+
+### Fait
+
+- Implémentation de la spec 006 :
+  - `LocalWeek` en dates civiles (changement d'heure sans effet) et libellés de semaine ;
+  - `WeeklyReviewCalculator` : toutes les moyennes en entiers, libellé transmis depuis la moyenne exacte (CA35), sensibilité aux trois critères, étiquettes des seules entrées « étiquetées » ;
+  - `ReviewTextValidator` (règles 1 à 5) et listes reprises des blocs de la spec ;
+  - `ReviewNarrator` : sensibilité évaluée avant la mémoire (CA34), modèle absent, délai de 30 s avec abandon, texte gardé en mémoire seulement, rien gardé après un abandon ;
+  - `ModelGate`, `GatedMoodAnalyzer`, `GatedReviewWriter`, `LlamaReviewWriter` (consigne fixe, schéma `{"text": string}`, 160 jetons, température 0,2), branchés dans `openJournal` et `startApp` ;
+  - `WeeklyReviewScreen` (états chargement, erreur avec « Réessayer », moins de 3 entrées, mise en mots, texte, sans texte, modèle absent ; flèches de semaine) et carte « Bilan de la semaine » en tête de la liste.
+- Jetons `bar-thickness` (8) et `day-cell` (40) ajoutés à `tokens.json`, à `TidemarkSize` et à la charte ; usage de `line` étendu aux flèches désactivées.
+- ADR-005 « Partage du modèle local entre l'étiquetage et le bilan », statut **proposé**. Architecture technique : contrats `ReviewWriter` et `ModelGate`, index des ADR.
+- Vérifications : `dart format` sans changement, `dart analyze --fatal-infos` sans remarque, `flutter test` 1 312 tests au vert, et aussi avec `TZ=UTC`.
+- Contrôle par mutation : 25 mutations, toutes détectées par au moins un test. Sensibilité : chacun des 3 critères désactivé seul. Narrateur : semaine sensible ignorée, mémoire lue avant la sensibilité, texte gardé non effacé, validation contournée, délai supprimé, résultat abandonné gardé, modèle absent ignoré. Validateur : JSON, champ en plus, texte vide, longueur, longueur en unités UTF-16, caractères numériques, chiffres ASCII seulement, mots de nombre, expressions interdites, sous-chaînes au lieu de mots entiers, détresse. Verrou : rédacteur ou analyseur sans verrou, verrou rendu avant la fin de la génération, verrou non exclusif.
+
+### Décisions
+
+- Dates d'une autre année sur l'écran : jour, mois et année aux deux bornes (« 5 octobre 2025 – 11 octobre 2025 »), lecture de « l'année à chaque borne » (agent).
+- Tri des étiquettes à égalité : ordre alphabétique sans tenir compte des accents (« études » avant « famille ») (agent).
+- Semaine sensible et modèle absent : la sensibilité prime (`Withheld`), dans l'ordre de vérification de la spec (agent).
+- Changement de semaine pendant une mise en mots : la mise en mots en cours est abandonnée, comme à la sortie de l'écran ; elle reprend au retour sur la semaine (agent).
+- « Analysé sur ton téléphone » gardé sous « Aucune étiquette cette semaine. », comme le décrit le README de la maquette (même carte, phrase à la place des puces) (agent).
+
+### Corrections et limites
+
+- Deux tests du test-writer modifiés, sans changer ce qu'ils vérifient :
+  - `review_wiring_test` : `find.text('3')` trouvait aussi le chiffre de la pastille « Neutre » de la répartition. Remplacé par « au moins un » et la présence de « Humeur moyenne ».
+  - `weekly_review_screen_test`, CA27 : le test interdisait tout `TextButton`, donc aussi le retour « Journal » exigé par CA4. Il exige maintenant que ce retour soit le seul.
+  - `weekly_review_screen_test`, CA22 : le fragment cherché « 3 jours » figurait aussi dans les chiffres de l'app (« sur 3 jours »). Il cherche maintenant « 3 jours notés », la phrase de la sortie brute.
+- `LlamaReviewWriter` n'est exécuté ni par les tests ni par la CI : à vérifier au test humain, comme `LlamaMoodAnalyzer`.
+- Test humain : impossible pour l'agent, à faire par Yanis (scénarios dans la PR).
+
+### Prochaine étape
+
+Revues `reviewer` et `security-reviewer`, corrections, puis PR.
