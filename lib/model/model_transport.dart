@@ -6,9 +6,13 @@ class TransportResponse {
     required this.statusCode,
     required this.body,
     this.location,
+    this.contentLength,
   });
 
   final int statusCode;
+
+  /// Taille annoncée par `Content-Length`, ou `null` si elle est inconnue.
+  final int? contentLength;
 
   /// En-tête `Location` d'une redirection, tel quel (relatif ou absolu).
   final String? location;
@@ -29,7 +33,8 @@ class IoModelTransport implements ModelTransport {
   IoModelTransport()
     : _client = HttpClient()
         ..autoUncompress = false
-        ..userAgent = null;
+        ..userAgent = null
+        ..connectionTimeout = const Duration(seconds: 30);
 
   final HttpClient _client;
 
@@ -43,6 +48,9 @@ class IoModelTransport implements ModelTransport {
     return TransportResponse(
       statusCode: response.statusCode,
       location: response.headers.value(HttpHeaders.locationHeader),
+      contentLength: response.contentLength >= 0
+          ? response.contentLength
+          : null,
       body: response,
     );
   }

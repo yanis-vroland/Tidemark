@@ -93,3 +93,44 @@ Relire les tests, puis implémenter jusqu'au vert : `ModelSource.isAllowed` et f
 ### Prochaine étape
 
 Revues `reviewer` et `security-reviewer`, téléchargement réel sur l'émulateur Android, puis PR.
+
+## 2026-10-15 09:21
+
+### Fait
+
+- Suites des revues `reviewer` (1 point bloquant) et `security-reviewer` (1 point à corriger), même défaut : une annulation pendant la connexion ou les redirections était ignorée, et les 1,1 Go étaient reçus avant d'être effacés. Corrections :
+  - annulation immédiate à toute étape : l'attente du transport, les redirections, l'ouverture du fichier, chaque morceau reçu, et juste avant le renommage ;
+  - réponses non lues (redirections, erreurs, réponse arrivée après une annulation) refermées sans être lues ;
+  - `Content-Length` différent de la taille attendue refusé d'emblée (« Le fichier reçu n'est pas le bon ») ;
+  - délai de connexion de 30 s sur le client HTTP ;
+  - un échec du renommage s'affiche comme un manque de place ;
+  - `watch()` sans perte d'événement (`Stream.multi`) ;
+  - proposition automatique seulement si le modèle est absent sans échec récent ;
+  - `crypto` épinglé exactement (3.0.7).
+- 7 tests ajoutés. 3 échouent avec l'ancien code du téléchargeur (annulation avant la réponse, annulation pendant une redirection, `Content-Length`).
+- Essai réel sur l'émulateur Android (Pixel 7, API 35, Wi-Fi du Mac), avant ces corrections :
+  - Réglages, puis « Télécharger le modèle (1,1 Go) », proposition, puis téléchargement ;
+  - progression affichée (6 % au bout de 15 s, « 67 Mo sur 1,1 Go ») ;
+  - « Le modèle est prêt » au bout de 4 minutes environ ;
+  - fichier de 1 117 320 736 octets sur l'appareil, `sha256sum` identique à `ModelSource` ;
+  - après un arrêt forcé et une relance, les Réglages affichent « Prêt · 1,1 Go sur ton téléphone » (CA22).
+  - Aucune boucle négative.
+- Chaîne de redirections réelle : `huggingface.co/…/resolve/91cad511…/…` répond `302` vers `us.aws.cdn.hf.co/xet-bridge-us/…`, qui sert le fichier en `200`. Hôte admis par le suffixe `.hf.co`.
+- 755 tests verts, en heure de Paris comme en UTC.
+
+### Décisions
+
+- Non suivis (revue de sécurité) :
+  - Restreindre les hôtes aux CDN observés : l'hôte réel (`us.aws.cdn.hf.co`) n'est pas dans la liste proposée, et Hugging Face change de stockage sans prévenir. L'empreinte protège l'intégrité ; la spec garde les suffixes (agent).
+  - Recalculer l'empreinte avant chaque premier chargement : décision 5 de la spec (plusieurs secondes à chaque lancement). Le fichier est dans le bac à sable de l'app ; CA32 revérifie après un échec de chargement. À revoir au lot G si llama.cpp lit un fichier altéré sans échouer (agent).
+- `ErrorBanner` reste en `liveRegion` : Flutter refuse un nœud à la fois `alert` et `liveRegion`, et les tests de CA28 acceptent l'annonce en zone vivante (agent).
+
+### Corrections et limites
+
+- Le téléchargement réel sur l'émulateur a précédé les corrections d'annulation ; elles ne touchent pas au chemin nominal, que les tests couvrent.
+- La ligne du cahier des charges sur le téléchargement du modèle est corrigée par la PR #21, encore ouverte.
+- Les textes de l'état « Prêt » annoncent l'analyse de la spec 004, livrée dans la PR suivante du lot G.
+
+### Prochaine étape
+
+PR, revue IA, puis spec 004 (étiquetage) sur une nouvelle branche après le merge.

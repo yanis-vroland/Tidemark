@@ -417,6 +417,83 @@ void main() {
   });
 
   group('annulation (CA13)', () {
+    // Ajoutés après les revues de code et de sécurité : l'annulation doit arrêter
+    // le téléchargement à toute étape, sans attendre la fin du transfert.
+    test(
+      'CA13 : annuler avant la réponse du serveur n\'attend pas la réponse et '
+      'ne lit rien',
+      () async {
+        final pending = Completer<TransportResponse>();
+        final transport = _PendingTransport(pending.future);
+        final downloader = build(transport);
+        final log = StateLog(downloader);
+        addTearDown(log.close);
+        unawaited(downloader.start());
+        await eventually(() => transport.calls > 0, reason: 'requête');
+
+        await downloader.cancel().timeout(const Duration(seconds: 2));
+
+        expect(downloader.current, isA<ModelAbsent>());
+        expect((downloader.current as ModelAbsent).failure, isNull);
+        expect(filesIn(models), isEmpty);
+        // La réponse tardive est refermée sans être lue.
+        final gate = GatedResponse();
+        pending.complete(gate.response);
+        await eventually(() => gate.cancelled, reason: 'réponse refermée');
+        expect(filesIn(models), isEmpty);
+      },
+    );
+
+    test(
+      'CA13 : annuler pendant une redirection ne suit pas la redirection',
+      () async {
+        final pending = Completer<TransportResponse>();
+        final transport = _PendingTransport(pending.future);
+        final downloader = build(transport);
+        unawaited(downloader.start());
+        await eventually(() => transport.calls > 0, reason: 'requête');
+        final cancelling = downloader.cancel();
+
+        pending.complete(
+          FakeModelTransport.redirect('https://cdn-lfs.huggingface.co/x'),
+        );
+        await cancelling;
+
+        expect(transport.calls, 1);
+        expect(downloader.current, isA<ModelAbsent>());
+        expect((downloader.current as ModelAbsent).failure, isNull);
+      },
+    );
+
+    test('cancel() sans téléchargement en cours ne change rien', () async {
+      final downloader = build(FakeModelTransport());
+
+      await downloader.cancel();
+
+      expect(downloader.current, isA<ModelAbsent>());
+      expect((downloader.current as ModelAbsent).failure, isNull);
+    });
+
+    test('deleteModel() pendant un téléchargement l\'arrête et ne laisse aucun '
+        'fichier', () async {
+      final gate = GatedResponse();
+      final transport = FakeModelTransport([gate.response]);
+      final downloader = build(transport);
+      unawaited(downloader.start());
+      await eventually(() => transport.calls.isNotEmpty, reason: 'requête');
+      gate.controller.add(modelBytes.sublist(0, 300));
+      await eventually(
+        () => filesIn(models).contains(partName),
+        reason: 'fichier temporaire écrit',
+      );
+
+      await downloader.deleteModel();
+
+      expect(downloader.current, isA<ModelAbsent>());
+      expect(filesIn(models), isEmpty);
+      expect(gate.cancelled, isTrue);
+    });
+
     test('CA13 : cancel() arrête le transfert, efface le fichier temporaire et '
         'ramène à « absent » sans cause d\'échec', () async {
       final gate = GatedResponse();
@@ -696,6 +773,43 @@ void main() {
 
         expectFailure(log, DownloadFailure.network);
         expect(filesIn(models), isEmpty);
+      },
+    );
+
+    // Ajouté après la revue de sécurité : une taille annoncée différente arrête
+    // tout de suite, sans consommer le forfait.
+    test('CA16 : un Content-Length différent de la taille attendue est refusé '
+        'sans lire le corps', () async {
+      final body = CountingBody(chunkCount: 10, chunkSize: 100);
+      final transport = FakeModelTransport([
+        TransportResponse(
+          statusCode: 200,
+          contentLength: modelBytes.length * 2,
+          body: body.stream,
+        ),
+      ]);
+
+      final log = await download(build(transport));
+
+      expectFailure(log, DownloadFailure.checksum);
+      expect(body.produced, lessThanOrEqualTo(1));
+      expect(filesIn(models), isEmpty);
+    });
+
+    test(
+      'CA16 : un Content-Length égal à la taille attendue est accepté',
+      () async {
+        final transport = FakeModelTransport([
+          TransportResponse(
+            statusCode: 200,
+            contentLength: modelBytes.length,
+            body: Stream.fromIterable(goodBody()),
+          ),
+        ]);
+
+        final log = await download(build(transport));
+
+        expect(log.last, isA<ModelReady>());
       },
     );
 
@@ -1119,4 +1233,18 @@ void main() {
       expect(filesIn(models), isEmpty);
     });
   });
+}
+
+/// Transport dont la réponse arrive quand le test le décide.
+class _PendingTransport implements ModelTransport {
+  _PendingTransport(this.response);
+
+  final Future<TransportResponse> response;
+  int calls = 0;
+
+  @override
+  Future<TransportResponse> get(Uri url, Map<String, String> headers) {
+    calls++;
+    return response;
+  }
 }

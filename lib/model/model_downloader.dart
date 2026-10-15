@@ -41,6 +41,11 @@ const _maxRedirects = 5;
 /// Seuls en-têtes demandés au transport (spec 003, « Requête », CA7).
 const _headers = {'User-Agent': 'Tidemark', 'Accept-Encoding': 'identity'};
 
+/// Téléchargement annulé par la personne, à n'importe quelle étape.
+class _Cancelled implements Exception {
+  const _Cancelled();
+}
+
 /// Échec d'une étape du téléchargement, avec sa cause.
 class _Failure implements Exception {
   const _Failure(this.cause);
@@ -81,6 +86,9 @@ class HttpModelDownloader implements ModelDownloader {
   StreamIterator<List<int>>? _body;
   bool _cancelled = false;
 
+  /// Complété par [cancel] : interrompt l'attente d'une réponse du transport.
+  Completer<void> _cancelSignal = Completer<void>();
+
   File get _finalFile => File('${folder.path}/${source.fileName}');
   File get _partFile => File('${folder.path}/${source.fileName}.part');
 
@@ -93,10 +101,15 @@ class HttpModelDownloader implements ModelDownloader {
   ModelState get current => _state;
 
   @override
-  Stream<ModelState> watch() async* {
-    yield _state;
-    yield* _changes.stream;
-  }
+  Stream<ModelState> watch() => Stream.multi((controller) {
+    // Abonnement et état courant dans le même tour : aucun changement perdu.
+    controller.add(_state);
+    final changes = _changes.stream.listen(
+      controller.add,
+      onError: controller.addError,
+    );
+    controller.onCancel = changes.cancel;
+  });
 
   @override
   Future<void> start() {
@@ -105,6 +118,7 @@ class HttpModelDownloader implements ModelDownloader {
     if (running != null) return running;
     if (_state is ModelReady) return Future.value();
     _cancelled = false;
+    _cancelSignal = Completer<void>();
     _set(ModelDownloading(receivedBytes: 0, totalBytes: source.sizeBytes));
     final run = _download().whenComplete(() => _running = null);
     _running = run;
@@ -115,12 +129,14 @@ class HttpModelDownloader implements ModelDownloader {
     RandomAccessFile? file;
     try {
       final response = await _follow();
+      _throwIfCancelled();
       try {
         await folder.create(recursive: true);
         file = await _partFile.open(mode: FileMode.write);
       } on FileSystemException {
         throw const _Failure(DownloadFailure.storage);
       }
+      _throwIfCancelled();
       final digest = _DigestSink();
       final hasher = sha256.startChunkedConversion(digest);
       var received = 0;
@@ -129,6 +145,7 @@ class HttpModelDownloader implements ModelDownloader {
       _body = body;
       try {
         while (await body.moveNext()) {
+          if (_cancelled) break;
           final chunk = body.current;
           received += chunk.length;
           // Plus d'octets qu'annoncé : ce n'est pas le bon fichier (CA16).
@@ -161,13 +178,7 @@ class HttpModelDownloader implements ModelDownloader {
         await body.cancel();
         _body = null;
       }
-      if (_cancelled) {
-        await file.close();
-        file = null;
-        await _deletePart();
-        _set(const ModelAbsent());
-        return;
-      }
+      _throwIfCancelled();
       // Moins d'octets qu'annoncé : connexion fermée trop tôt (CA16).
       if (received != source.sizeBytes) {
         throw const _Failure(DownloadFailure.network);
@@ -185,8 +196,18 @@ class HttpModelDownloader implements ModelDownloader {
       if (digest.value.toString() != source.sha256) {
         throw const _Failure(DownloadFailure.checksum);
       }
-      await _partFile.rename(_finalFile.path);
+      // Annulation confirmée pendant la vérification : rien n'est gardé (CA13).
+      _throwIfCancelled();
+      try {
+        await _partFile.rename(_finalFile.path);
+      } on FileSystemException {
+        throw const _Failure(DownloadFailure.storage);
+      }
       _set(ModelReady(path: _finalFile.path));
+    } on _Cancelled {
+      await file?.close();
+      await _deletePart();
+      _set(const ModelAbsent());
     } on _Failure catch (failure) {
       await file?.close();
       await _deletePart();
@@ -198,17 +219,45 @@ class HttpModelDownloader implements ModelDownloader {
     }
   }
 
+  void _throwIfCancelled() {
+    if (_cancelled) throw const _Cancelled();
+  }
+
+  /// Une requête au transport, interrompue par [cancel] ou par le délai.
+  Future<TransportResponse> _get(Uri url) async {
+    final request = transport.get(url, _headers);
+    try {
+      return await Future.any([
+        request,
+        _cancelSignal.future.then<TransportResponse>(
+          (_) => throw const _Cancelled(),
+        ),
+      ]).timeout(idleTimeout);
+    } on _Cancelled {
+      // Réponse arrivée trop tard : sa connexion est refermée sans être lue.
+      unawaited(request.then((r) => _discard(r)).catchError((Object _) {}));
+      rethrow;
+    } catch (_) {
+      unawaited(request.then((r) => _discard(r)).catchError((Object _) {}));
+      throw const _Failure(DownloadFailure.network);
+    }
+  }
+
+  /// Referme la connexion d'une réponse qui ne sera pas lue.
+  Future<void> _discard(TransportResponse response) =>
+      response.body.listen(null).cancel();
+
   /// Suit les redirections, en ne contactant que les hôtes admis (CA8, RM30).
   Future<TransportResponse> _follow() async {
     var url = source.url;
     for (var hops = 0; ; hops++) {
-      final TransportResponse response;
-      try {
-        response = await transport.get(url, _headers).timeout(idleTimeout);
-      } catch (_) {
-        throw const _Failure(DownloadFailure.network);
+      final response = await _get(url);
+      if (_cancelled) {
+        await _discard(response);
+        throw const _Cancelled();
       }
       if (_redirects.contains(response.statusCode)) {
+        await _discard(response);
         final location = response.location;
         if (hops >= _maxRedirects || location == null) {
           throw const _Failure(DownloadFailure.network);
@@ -222,7 +271,15 @@ class HttpModelDownloader implements ModelDownloader {
         continue;
       }
       if (response.statusCode != 200) {
+        await _discard(response);
         throw const _Failure(DownloadFailure.network);
+      }
+      // Taille annoncée différente : ce n'est pas le bon fichier, inutile de
+      // consommer le forfait pour le découvrir.
+      final length = response.contentLength;
+      if (length != null && length != source.sizeBytes) {
+        await _discard(response);
+        throw const _Failure(DownloadFailure.checksum);
       }
       return response;
     }
@@ -241,6 +298,7 @@ class HttpModelDownloader implements ModelDownloader {
     final running = _running;
     if (running == null) return;
     _cancelled = true;
+    if (!_cancelSignal.isCompleted) _cancelSignal.complete();
     await _body?.cancel();
     await running;
   }
