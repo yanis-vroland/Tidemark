@@ -151,3 +151,21 @@ Critères : F1 appel de `sha256OfFile` avec `{path}` ; F2 empreinte native égal
 ### Prochaine étape
 
 - Inchangée : voir l'entrée précédente.
+
+## 2026-10-16 15:59
+
+### Fait
+
+- `main` fusionné dans la branche après le merge de la PR #42 (agent principal). Conflit dans `docs/architecture-technique.md` (« Sécurité ») : paragraphe « Noms exclus » de `main` gardé, suivi de la ligne « Réseau » de cette branche (options E et F). Commit de merge testé avant le push : analyse sans remarque, `flutter test` au vert (1835 tests).
+
+### Décisions
+
+- Aucune nouvelle.
+
+### Corrections et limites
+
+- Aucune nouvelle.
+
+### Prochaine étape
+
+- Inchangée : voir l'entrée précédente.
