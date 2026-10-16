@@ -27,3 +27,22 @@
 ### Prochaine étape
 
 PR prête (docs), relecture et merge par Yanis.
+
+## 2026-10-16 12:45
+
+### Fait
+
+- `main` fusionné dans la branche après le merge de la PR #41 (agent principal). Un conflit dans le cahier des charges, sur RM57 à RM61 : texte de cette branche gardé (mentions « À mettre en œuvre » retirées), avec les numéros de critères de la PR #41 (RM57 : CA39 au lieu de CA36 ; RM61 : CA38 au lieu de CA37).
+- Commit de merge testé avant le push : `dart analyze --fatal-infos` sans remarque, `flutter test` 1 776 tests au vert, aucun numéro de critère en double dans les specs. Le test CA34 qui échouait sur `main` passe.
+
+### Décisions
+
+- Fusion de `main` plutôt que rebase : le force-push est interdit (agent, par délégation de Yanis du 2026-10-16).
+
+### Corrections et limites
+
+- Les chiffres du README (PR mergées, nombre de tests) seront remis à jour dans la PR de clôture finale, après les derniers merges.
+
+### Prochaine étape
+
+- Yanis merge ; l'agent vérifie que le dernier commit est sur `main`.

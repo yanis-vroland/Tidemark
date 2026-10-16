@@ -218,6 +218,62 @@ class _CancelCountingSubscription implements StreamSubscription<List<Entry>> {
   Future<E> asFuture<E>([E? futureValue]) => _inner.asFuture(futureValue);
 }
 
+/// Flux dont le désabonnement lève : un abonnement en échec placé avant celui
+/// du journal ne doit pas empêcher les suivants (CA34).
+class _ThrowingCancelStream<T> extends Stream<T> {
+  _ThrowingCancelStream(this._inner);
+
+  final Stream<T> _inner;
+
+  @override
+  StreamSubscription<T> listen(
+    void Function(T event)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) => _ThrowingCancelSubscription(
+    _inner.listen(
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    ),
+  );
+}
+
+class _ThrowingCancelSubscription<T> implements StreamSubscription<T> {
+  _ThrowingCancelSubscription(this._inner);
+
+  final StreamSubscription<T> _inner;
+
+  @override
+  Future<void> cancel() {
+    unawaited(_inner.cancel());
+    throw StateError('désabonnement impossible');
+  }
+
+  @override
+  void onData(void Function(T data)? handleData) => _inner.onData(handleData);
+
+  @override
+  void onError(Function? handleError) => _inner.onError(handleError);
+
+  @override
+  void onDone(void Function()? handleDone) => _inner.onDone(handleDone);
+
+  @override
+  void pause([Future<void>? resumeSignal]) => _inner.pause(resumeSignal);
+
+  @override
+  void resume() => _inner.resume();
+
+  @override
+  bool get isPaused => _inner.isPaused;
+
+  @override
+  Future<E> asFuture<E>([E? futureValue]) => _inner.asFuture(futureValue);
+}
+
 // ---------------------------------------------------------------------------
 // Environnement
 // ---------------------------------------------------------------------------
@@ -227,6 +283,7 @@ class LifeEnv {
     FakeEntryRepository? repo,
     required this.analyzer,
     Duration timeout = const Duration(seconds: 30),
+    bool lifecycleCancelThrows = false,
   }) : repo = repo ?? FakeEntryRepository(),
        downloader = FakeModelDownloader(readyModel) {
     queue = AnalysisQueue(
@@ -234,7 +291,9 @@ class LifeEnv {
       analyzer: analyzer,
       downloader: downloader,
       timeout: timeout,
-      lifecycle: lifecycle.stream,
+      lifecycle: lifecycleCancelThrows
+          ? _ThrowingCancelStream(lifecycle.stream)
+          : lifecycle.stream,
     );
     addTearDown(() async {
       try {
@@ -669,6 +728,35 @@ void main() {
 
       expect(s.analyzer.cancelCalls, greaterThanOrEqualTo(1));
       expect(s.analyzer.releaseCalls, greaterThanOrEqualTo(1));
+    });
+
+    test('CA34 : le désabonnement du cycle de vie lève : celui du journal est '
+        'quand même fait, la génération annulée, le modèle libéré', () async {
+      final repo = CancelCountingRepository();
+      final analyzer = LoggingAnalyzer(delays: {textA: null});
+      final env = LifeEnv(
+        repo: repo,
+        analyzer: analyzer,
+        lifecycleCancelThrows: true,
+      );
+      addTearDown(() => repo.hangLaterCancels = false);
+      repo.seed(mood: 3, text: textA, createdAt: oct10);
+      await env.start();
+      await eventually(
+        () => analyzer.received.length == 1,
+        'l\'analyse doit démarrer',
+      );
+
+      await env.queue.stop().timeout(const Duration(seconds: 2));
+
+      expect(
+        repo.cancelCalls,
+        1,
+        reason:
+            'l\'abonnement au journal est annulé malgré l\'échec du premier',
+      );
+      expect(analyzer.cancelCalls, greaterThanOrEqualTo(1));
+      expect(analyzer.releaseCalls, greaterThanOrEqualTo(1));
     });
   });
 
