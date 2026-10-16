@@ -166,7 +166,7 @@ Branche : `docs/readme-final`.
 - [ ] README lisible en 2 minutes : démo (GIF sur l'iPhone), schéma, notions IA, maquette et écran réel côte à côte, lancement en 3 commandes, mesures du spike, limites. Fait le 2026-10-16, sauf le GIF (**[Yanis]**) et la maquette côte à côte, faute de captures PNG des maquettes (issue #20).
 - [x] Vérification : aucune donnée réelle, aucun secret dans l'historique (gitleaks), licences du modèle, des polices et des dépendances ([`licences.md`](licences.md)), aucune référence à l'espace de travail privé (`docs/projets/`) restée sans explication (2026-10-16, journal de `docs/readme-final`).
 - [x] Frictions de la chaîne remontées en issues dans `agentic-dev-workflow`.
-- [ ] `docs/projets/tidemark.md` de l'espace de travail mis à jour : bilan et retour à P2.
+- [x] `docs/projets/tidemark.md` de l'espace de travail mis à jour : bilan et retour à P2 (2026-10-16).
 
 ## Décisions
 
