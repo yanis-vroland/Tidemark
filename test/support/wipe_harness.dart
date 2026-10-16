@@ -64,11 +64,16 @@ class RecordingWipeFiles implements WipeFiles {
   final Set<String> failOn = {};
   static const _io = IoWipeFiles();
 
+  /// Appelé à chaque opération, avant qu'elle ait lieu, pour observer l'état de
+  /// l'app à ce moment (spec 005, étape « Modèle local »).
+  void Function(String call)? onCall;
+
   String _relative(String path) => path.substring(root.path.length + 1);
 
   void _record(String operation, String path) {
     final call = '$operation ${_relative(path)}';
     log.add(call);
+    onCall?.call(call);
     if (failOn.contains(call)) {
       throw FileSystemException('échec simulé', path);
     }
