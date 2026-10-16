@@ -18,7 +18,7 @@ Le 2026-11-03, le projet s'arrête où il en est : README à jour, limites écri
 - Les cases sont cochées dans la PR qui réalise la tâche.
 - Les tâches **[Yanis]** sont à lui : l'agent vérifie seulement qu'elles sont faites.
 - Toute friction de la chaîne P1 est notée dans « Frictions de la chaîne », puis remontée en issue dans `agentic-dev-workflow` avec l'accord de Yanis.
-- Écart au plan, choix structurant ou ambiguïté : s'arrêter et demander.
+- Écart au plan, choix structurant ou ambiguïté : s'arrêter et demander. Depuis le 2026-10-16, l'agent tranche lui-même par délégation de Yanis, dans les limites de la décision 5.
 
 ## Périmètre
 
@@ -66,10 +66,10 @@ Point d'arrêt le **2026-10-24** : si le lot D n'est pas mergé, Yanis décide e
 - [x] **[Yanis]** Merger la PR #3 (nettoyage des workflows).
 - [x] **[Yanis]** Accord pour créer le label `agent-corrigé` (2026-10-14).
 - [x] **[Yanis]** Répondre aux questions de cadrage avant le lot B (2026-10-14).
-- [ ] **[Yanis]** Valider la charte (lot C) en commentant l'artefact.
+- [x] **[Yanis]** Valider la charte (lot C) en commentant l'artefact (validée le 2026-10-16).
 - [x] **[Yanis]** Valider l'ADR-001 (accepté le 2026-10-14 ; l'ADR-002 et l'ADR-003 aussi).
 - [x] **[Yanis]** Valider les specs 001 à 006 et leurs maquettes (merges des PR #12, #15, #16, #17 et #18). Reste : CA31 à CA36 de la spec 001, ajoutés après les revues de code.
-- [ ] **[Yanis]** Valider ou refuser l'ADR-004 (intégrité du moteur natif et du modèle, proposé le 2026-10-15).
+- [x] **[Yanis]** Valider ou refuser l'ADR-004 (intégrité du moteur natif et du modèle, proposé le 2026-10-15) : accepté le 2026-10-16 avec l'option recommandée, comme l'ADR-005 (partage du modèle local).
 - [ ] **[Yanis]** Test humain de chaque fonctionnalité sur l'iPhone 15 Pro et sur l'émulateur Android, maquette à côté.
 - [ ] **[Yanis]** Passer le dépôt en public (lot J).
 
@@ -117,8 +117,8 @@ Une première version existe : l'artefact « Design System » Tidemark, créé l
 - [x] Inventaire des écrans du MVP : liste des entrées (avec état vide), saisie, détail d'une entrée et ses étiquettes, écran d'aide (3114), téléchargement du modèle, réglages (export, suppression totale), bilan de la semaine.
 - [x] Artefact « Design System » Tidemark : ton visuel (calme, sans infantiliser, adapté à un sujet sensible), jetons clair et sombre, échelle typographique, composants communs (sélecteur d'humeur, carte d'entrée, puce d'étiquette, boutons, champ de texte, bandeau d'erreur, indicateur de chargement).
 - [x] Contraste AA vérifié pour chaque paire texte et fond, dans les deux thèmes.
-- [ ] Polices et icônes choisies parmi celles qu'on peut embarquer, licence compatible avec un dépôt public. Polices faites (OFL). Icônes : non tranché. Le lot D ne l'a pas fait ; de fait, l'app utilise les Material Icons de Flutter (police embarquée par `uses-material-design`, licence Apache-2.0, aucun téléchargement), mais la charte (`docs/maquettes/000-charte/charte.md`, « Iconographie ») dit encore « pas encore de jeu d'icônes choisi ». À confirmer par Yanis, puis à reporter dans la charte.
-- [ ] Source et captures versionnées dans `docs/maquettes/000-charte/`. Source faite ; captures reportées au lot E, toujours absentes (aucun PNG dans le dossier au 2026-10-15) alors que le lot E est mergé.
+- [x] Polices et icônes choisies parmi celles qu'on peut embarquer, licence compatible avec un dépôt public. Polices : Bricolage Grotesque et Figtree (OFL). Icônes : Material Icons de Flutter, police embarquée par `uses-material-design`, licence Apache-2.0, aucun téléchargement (choix confirmé par Yanis le 2026-10-16 ; reporté dans `docs/maquettes/000-charte/charte.md`, « Iconographie »).
+- [x] Source et captures versionnées dans `docs/maquettes/000-charte/`. Captures des 8 aperçus, en clair et en sombre, dans `captures/` (2026-10-16, Chrome headless sur le poste, sans réseau ; méthode dans le README de la charte).
 
 ## Lot D : socle Flutter
 
@@ -144,11 +144,20 @@ Chaque lot suit la même séquence, en PR séparées si la spec est longue à va
 
 | Lot | Branche | Points de vigilance |
 | --- | --- | --- |
-| E | `feat/saisie-entree` | Données chiffrées au repos ; aucune permission réseau utilisée par le code de l'app. Écran de lancement natif aux couleurs de la charte (aujourd'hui blanc ou noir sur Android, hors de portée du garde-fou des couleurs). |
+| E | `feat/saisie-entree` | Données chiffrées au repos ; aucune permission réseau utilisée par le code de l'app. Écran de lancement natif aux couleurs de la charte (fait : `launch_background.xml` sur `@color/tidemark_surface`, clair et sombre). |
 | F | `feat/garde-fou-detresse` | Avant le lot G : aucune entrée en détresse n'atteint le modèle. Écran d'aide fixe, jamais généré, et soigné comme les autres : sobre, lisible, numéro appelable d'un geste. Contrôle par mutation sur chaque règle. Liste de termes rédigée pour le projet et validée par Yanis. |
 | G | `feat/modele-local` puis `feat/etiquetage` | Deux specs. Téléchargement : consentement, taille annoncée, progression, échec réseau et reprise, empreinte du fichier vérifiée, état « modèle absent » ; un seul fournisseur contacté (Hugging Face, qui redirige vers son stockage : hôtes admis fixés par la spec 003, décision de l'agent par délégation de Yanis, 2026-10-14), aucune donnée de l'utilisateur dans la requête. Étiquetage : sortie JSON validée contre un schéma ; sortie invalide → entrée sans étiquette, jamais de plantage. Tests sur l'implémentation factice uniquement. |
 | H | `feat/export-suppression` | Suppression totale : base, clé, modèle téléchargé. Format d'export à trancher dans la spec. |
 | I | `feat/bilan-semaine` | Chiffres calculés en Dart, le modèle ne fait que les mettre en mots ; aucun chiffre du bilan ne vient du modèle. |
+
+État au 2026-10-16, d'après les PR mergées. Pour chaque lot, spec, tests d'abord, implémentation et revues sont faits ; le test humain (étape 4) reste à faire partout. L'avancement par fonctionnalité est suivi dans le [cahier des charges](cahier-des-charges-fonctionnel.md#fonctionnalités).
+
+- [x] Lot E : saisie, liste et détail des entrées (PR #13).
+- [x] Lot F : garde-fou de détresse et écran d'aide (PR #19).
+- [x] Lot G : téléchargement du modèle (PR #22) et étiquetage (PR #23, complétée par les PR #24 et #26).
+- [x] Lot H : export et suppression totale (PR #28).
+- [x] Lot I : bilan de la semaine (PR #27).
+- [ ] Test humain de chaque lot sur l'iPhone et l'émulateur, maquette à côté, captures côte à côte (voir « Tâches de Yanis »).
 
 ## Lot J : publication
 
@@ -156,7 +165,7 @@ Branche : `docs/readme-final`.
 
 - [ ] README lisible en 2 minutes : démo (GIF sur l'iPhone), schéma, notions IA, maquette et écran réel côte à côte, lancement en 3 commandes, mesures du spike, limites. Fait le 2026-10-16, sauf le GIF (**[Yanis]**) et la maquette côte à côte, faute de captures PNG des maquettes (issue #20).
 - [x] Vérification : aucune donnée réelle, aucun secret dans l'historique (gitleaks), licences du modèle, des polices et des dépendances ([`licences.md`](licences.md)), aucune référence à l'espace de travail privé (`docs/projets/`) restée sans explication (2026-10-16, journal de `docs/readme-final`).
-- [ ] Frictions de la chaîne remontées en issues dans `agentic-dev-workflow`.
+- [x] Frictions de la chaîne remontées en issues dans `agentic-dev-workflow`.
 - [ ] `docs/projets/tidemark.md` de l'espace de travail mis à jour : bilan et retour à P2.
 
 ## Décisions
@@ -167,13 +176,14 @@ Décisions de cadrage de Yanis (2026-10-14). Leurs effets sur le produit (hors p
 2. **Détection de détresse par règles seules.** Pas de classifieur : un modèle ajoute des faux négatifs difficiles à tester. Le classifieur est une piste d'amélioration, documentée dans le README.
 3. **Appareils : iPhone 15 Pro physique, émulateur Android et simulateurs iOS sur le Mac.** Aucun Android physique : les mesures de performance ne valent que pour l'iPhone, Android n'est vérifié qu'en fonctionnement. Cette limite figure dans l'ADR-001 et dans le README.
 4. **Écrans soignés, maquettés en artefacts Claude** puis transcrits en Flutter : voir « Exigence de finition » et « Maquettes en artefacts Claude ».
+5. **Délégation des décisions à l'agent (Yanis, 2026-10-16).** « Oui à tout, fonce, sois autonome sur les décisions » : l'agent tranche lui-même une ambiguïté de spec ou un choix d'implémentation, de la façon la plus simple et la plus sûre compatible avec le `CLAUDE.md`, et le consigne dans le journal et la PR (« agent, par délégation de Yanis du 2026-10-16 ») ; un choix structurant donne quand même un ADR. Limite : restent à Yanis le merge, la mise en public du dépôt, le test humain, le push sur `main` et le force-push. Restent aussi soumis à lui les interdits du `CLAUDE.md` (issues et labels sans son accord, dépendance non justifiée). Un ADR peut passer « accepté (agent, par délégation de Yanis) », mais Yanis le valide en mergeant sa PR (ADR-002 de la chaîne).
 
 ## Frictions de la chaîne
 
-À remonter en issues dans `agentic-dev-workflow`, avec l'accord de Yanis.
+Remontées en issues dans `agentic-dev-workflow`, avec l'accord de Yanis.
 
-- `/install-github-app` ajoute deux workflows qui doublent `ai-review.yml` ; le guide d'adoption pourrait prévenir de les supprimer, ou de configurer le secret à la main.
-- Le `plan.md` du template est local et non versionné, ce qui contredit la spec 004 (le dépôt est la seule mémoire). Ce dépôt le versionne dans `docs/plan.md`.
-- La skill `/spec` ne prévoit pas d'étape de maquette, alors que la règle « Maquettes dans la spec » l'exige pour un projet avec écrans. Ce dépôt la décrit dans son plan.
-- Rien n'empêche de merger une PR dont la description dit « Ne pas merger » : la PR #23 l'a été le 2026-10-15, avant ses tests manquants (repris par la PR #24), ses revues `reviewer` et `security-reviewer` et l'essai du vrai modèle. Proposition pour la chaîne P1 : l'agent ouvre une PR inachevée en brouillon (`gh pr create --draft`), que GitHub refuse de merger, et ne la passe prête (`gh pr ready`) qu'une fois sa « Prochaine étape » vide ; une vérification de CI peut aussi échouer tant que la description contient « Ne pas merger ».
-- Une affirmation sur une dépendance a passé la revue sans preuve : le journal et la PR #23 disaient le moteur natif de `llamadart` téléchargé « avec une empreinte SHA-256 épinglée », ce qui est faux ([ADR-004](adr/004-integrite-du-moteur-et-du-modele.md)). Proposition pour la chaîne P1 : toute affirmation de sécurité sur une dépendance cite le fichier et les lignes lus, et le subagent `security-reviewer` la vérifie.
+- `/install-github-app` ajoute deux workflows qui doublent `ai-review.yml` ; le guide d'adoption pourrait prévenir de les supprimer, ou de configurer le secret à la main. Issue : [agentic-dev-workflow#53](https://github.com/yanis-vroland/agentic-dev-workflow/issues/53).
+- Le `plan.md` du template est local et non versionné, ce qui contredit la spec 004 (le dépôt est la seule mémoire). Ce dépôt le versionne dans `docs/plan.md`. Issue : [agentic-dev-workflow#54](https://github.com/yanis-vroland/agentic-dev-workflow/issues/54).
+- La skill `/spec` ne prévoit pas d'étape de maquette, alors que la règle « Maquettes dans la spec » l'exige pour un projet avec écrans. Ce dépôt la décrit dans son plan. Issue : [agentic-dev-workflow#55](https://github.com/yanis-vroland/agentic-dev-workflow/issues/55).
+- Rien n'empêche de merger une PR dont la description dit « Ne pas merger » : la PR #23 l'a été le 2026-10-15, avant ses tests manquants (repris par la PR #24), ses revues `reviewer` et `security-reviewer` et l'essai du vrai modèle. Proposition pour la chaîne P1 : l'agent ouvre une PR inachevée en brouillon (`gh pr create --draft`), que GitHub refuse de merger, et ne la passe prête (`gh pr ready`) qu'une fois sa « Prochaine étape » vide ; une vérification de CI peut aussi échouer tant que la description contient « Ne pas merger ». Issue : [agentic-dev-workflow#56](https://github.com/yanis-vroland/agentic-dev-workflow/issues/56).
+- Une affirmation sur une dépendance a passé la revue sans preuve : le journal et la PR #23 disaient le moteur natif de `llamadart` téléchargé « avec une empreinte SHA-256 épinglée », ce qui est faux ([ADR-004](adr/004-integrite-du-moteur-et-du-modele.md)). Proposition pour la chaîne P1 : toute affirmation de sécurité sur une dépendance cite le fichier et les lignes lus, et le subagent `security-reviewer` la vérifie. Issue : [agentic-dev-workflow#57](https://github.com/yanis-vroland/agentic-dev-workflow/issues/57).
