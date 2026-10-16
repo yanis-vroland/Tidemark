@@ -18,7 +18,7 @@ Règles propres au projet :
 
 Flutter 3.47.7 (Dart 3.13.5), iOS 16.4+ et Android.
 
-- Installer : `flutter pub get`
+- Installer : `scripts/setup.sh` (`flutter pub get`, puis `scripts/fetch-llama-native.sh`, moteur llama.cpp vérifié par SHA-256 ; à relancer après chaque clonage et avant toute construction à installer)
 - Lancer : `flutter run`
 - Tests : `flutter test` (jamais de vrai modèle d'IA : seulement `FakeMoodAnalyzer`)
 - Lint : `dart analyze --fatal-infos` ; format : `dart format lib test`

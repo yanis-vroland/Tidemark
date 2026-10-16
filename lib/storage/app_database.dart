@@ -193,6 +193,22 @@ class DriftEntryRepository implements EntryRepository {
     return query.watch().map(_withTags);
   }
 
+  @override
+  Stream<Entry?> watchEntry(int id) {
+    final query =
+        db.select(db.entries).join([
+            leftOuterJoin(db.tags, db.tags.entryId.equalsExp(db.entries.id)),
+          ])
+          ..where(db.entries.id.equals(id))
+          ..orderBy([OrderingTerm.asc(db.tags.position)]);
+    // Drift relance la requête à chaque écriture des tables observées, même pour
+    // une autre entrée : seule une entrée changée est réémise.
+    return query
+        .watch()
+        .map((rows) => _withTags(rows).firstOrNull)
+        .distinct(sameEntry);
+  }
+
   /// Regroupe les lignes de la jointure : une entrée et ses étiquettes, dans
   /// l'ordre enregistré.
   List<Entry> _withTags(List<TypedResult> rows) {
