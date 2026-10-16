@@ -181,3 +181,22 @@ Contrôle par mutation, version finale (script restauré ensuite : 0 échec) :
 ### Prochaine étape
 
 - Inchangée : voir l'entrée précédente.
+
+## 2026-10-16 13:10
+
+### Fait
+
+- `main` fusionné dans la branche après le merge des PR #40 et #45 (agent principal). Conflit dans `docs/architecture-technique.md` (section « Sécurité ») résolu : texte de `main` (PR #40) gardé, complété par l'apport de cette branche.
+- Commit de merge testé avant le push : analyse et format sans remarque, `flutter test` au vert (1800 tests).
+
+### Décisions
+
+- Fusion de `main` plutôt que rebase, le force-push étant interdit (agent, par délégation de Yanis du 2026-10-16).
+
+### Corrections et limites
+
+- Aucune nouvelle.
+
+### Prochaine étape
+
+- Inchangée : voir l'entrée précédente.

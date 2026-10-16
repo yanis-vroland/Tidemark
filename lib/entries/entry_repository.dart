@@ -7,6 +7,11 @@ abstract interface class EntryRepository {
   /// ajout ou suppression.
   Stream<List<Entry>> watchEntries();
 
+  /// L'entrée [id] et ses étiquettes, dans l'ordre enregistré, mise à jour à
+  /// chaque changement de cette entrée ; `null` si elle n'existe pas ou plus.
+  /// N'émet rien quand seules d'autres entrées changent (détail, issue #39).
+  Stream<Entry?> watchEntry(int id);
+
   /// Enregistre une entrée saisie maintenant. Un [text] vide ou fait seulement
   /// d'espaces est enregistré comme absent (null) ; au-delà de [maxTextLength]
   /// caractères visibles, il est refusé par une [ArgumentError]. [status] est décidé

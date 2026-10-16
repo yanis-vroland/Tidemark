@@ -48,11 +48,11 @@ Prérequis : Flutter 3.47.7, Xcode (iOS 16.4+) ou Android SDK, un appareil ou un
 
 ```sh
 git clone https://github.com/yanis-vroland/Tidemark.git && cd Tidemark
-flutter pub get
+scripts/setup.sh   # flutter pub get, puis moteur llama.cpp vérifié par SHA-256
 flutter run
 ```
 
-Le premier build télécharge les moteurs natifs de SQLite3MultipleCiphers et de llama.cpp. Dans l'app, le modèle se télécharge depuis les Réglages. Tests : `flutter test` (aucun modèle requis).
+`scripts/setup.sh` enchaîne `flutter pub get` et `scripts/fetch-llama-native.sh`, qui télécharge les archives de llama.cpp utilisées par `llamadart` et les compare aux empreintes épinglées dans `scripts/llama-native.sha256` ; sans ces archives, la construction échoue. Le script revérifie les archives à chaque lancement et efface la sortie gardée du hook, pour que la construction suivante extraie l'archive qu'il vient de vérifier : le relancer après chaque clonage et avant toute construction destinée à être installée ou distribuée ; une construction lancée sans lui reprend le dossier tel qu'il est ([ADR-004](docs/adr/004-integrite-du-moteur-et-du-modele.md)). SQLite3MultipleCiphers est téléchargé au premier build par le hook de `sqlite3`, qui vérifie lui-même son empreinte. Dans l'app, le modèle se télécharge depuis les Réglages. Tests : `flutter test` (aucun modèle requis, moteur natif préparé par `scripts/setup.sh`).
 
 ## Mesures
 
@@ -72,7 +72,7 @@ Spike du moteur d'IA, 20 entrées fictives en français par configuration ([ADR-
 
 - **Aucun Android physique** : Android n'est vérifié qu'en fonctionnement, sur émulateur, en processeur seul. Les performances ne valent que pour l'iPhone 15 Pro.
 - **Tests humains en attente** : les six fonctionnalités sont implémentées et mergées, mais leur test humain sur l'iPhone et l'émulateur, maquette à côté, reste à faire ([cahier des charges](docs/cahier-des-charges-fonctionnel.md), statuts).
-- **Binaire natif non vérifié** : le build télécharge llama.cpp sans contrôle d'empreinte, depuis une release GitHub modifiable ; au démarrage, le modèle n'est vérifié que par sa taille ([ADR-004](docs/adr/004-integrite-du-moteur-et-du-modele.md), proposé, en attente de décision).
+- **Intégrité du moteur et du modèle, et son coût** : llama.cpp est épinglé par SHA-256 (`scripts/fetch-llama-native.sh`) ; le hook de `llamadart` ne télécharge plus rien lui-même. Le modèle est revérifié par SHA-256 une fois par lancement, avant son premier chargement : 9,4 à 14,8 s mesurés sur un Mac M3, non mesuré sur l'iPhone, qui retardent d'autant la première analyse ou le premier bilan d'un lancement. Un fichier remplacé entre cette vérification et le chargement passerait. Le garde-fou réseau ne lit que le Dart : pour le code natif (llama.cpp, SQLite3MultipleCiphers), seule la provenance est contrôlée ([ADR-004](docs/adr/004-integrite-du-moteur-et-du-modele.md)).
 - **Qualité de l'étiquetage** limitée par un modèle de 1,5 milliard de paramètres (voir « Mesures »).
 - **Détection de détresse par règles seules** : une liste de termes rate les formulations qu'elle ne prévoit pas. Un classifieur local est une piste d'amélioration, écartée pour l'instant parce que ses faux négatifs seraient difficiles à tester.
 - **Français seulement**, pas de dictée dans l'app (la reconnaissance vocale du système peut envoyer l'audio à un serveur). Le micro du clavier du système reste disponible dans le champ de texte et ne dépend pas de l'app.
@@ -83,21 +83,11 @@ Spike du moteur d'IA, 20 entrées fictives en français par configuration ([ADR-
 
 Construit avec la chaîne [agentic-dev-workflow](https://github.com/yanis-vroland/agentic-dev-workflow) : un agent de code (Claude Code) exécute, l'humain cadre, valide et merge.
 
-- **Cadrage écrit** : [plan](docs/plan.md), [cahier des charges](docs/cahier-des-charges-fonctionnel.md), 6 [specs](docs/specs/) (204 critères d'acceptation), chacune avec sa maquette, et 5 [ADR](docs/adr/) (3 acceptés, 2 proposés).
-- **Test-first** : les tests sont écrits à partir des critères d'acceptation et committés rouges avant l'implémentation. 1 658 tests (70 fichiers), aucun ne charge le vrai modèle.
+- **Cadrage écrit** : [plan](docs/plan.md), [cahier des charges](docs/cahier-des-charges-fonctionnel.md), 6 [specs](docs/specs/) (204 critères d'acceptation), chacune avec sa maquette, et 5 [ADR](docs/adr/), tous acceptés.
+- **Test-first** : les tests sont écrits à partir des critères d'acceptation et committés rouges avant l'implémentation. 1 775 tests (77 fichiers), aucun ne charge le vrai modèle.
 - **Garde-fous testés par mutation** : une protection (aucune couleur en dur, aucun code réseau hors du téléchargeur, partage seulement sur un appui, file d'analyse…) est désactivée une fois pour vérifier qu'un test échoue. Des mutations ont survécu (trois sur l'étiquetage, une sur 31 pour l'export et la suppression) : des tests ont été ajoutés pour les tuer. Résultats dans les journaux.
 - **Revues IA** : revue IA en CI à l'ouverture de chaque PR depuis la #2, subagents `reviewer` et `security-reviewer` avant les PR de fonctionnalité, et un commentaire « Réponse à la revue IA » qui donne une suite à chaque point. Une PR (#23) a été mergée avant ses revues : rattrapées par les PR #24 et #26.
-- **Traçabilité** : 27 PR mergées, un journal par branche dans [`docs/journal/`](docs/journal/) ; le dépôt est la seule mémoire de l'agent. Certaines entrées renvoient à `docs/projets/`, notes privées de l'espace de travail de l'auteur, hors de ce dépôt.
-
-## Lancement
-
-```sh
-flutter pub get
-scripts/fetch-llama-native.sh   # moteur llama.cpp, vérifié par empreinte SHA-256 (ADR-004)
-flutter run
-```
-
-Le script télécharge les archives de llama.cpp utilisées par `llamadart` et les compare aux empreintes écrites dans `scripts/llama-native.sha256` ; sans lui, la construction échoue. Il revérifie les archives à chaque lancement et efface la sortie gardée du hook, pour que la construction suivante extraie l'archive qu'il vient de vérifier : le relancer après chaque clonage et avant toute construction destinée à être installée ou distribuée. Une construction lancée sans lui reprend le dossier tel qu'il est. Détail : [ADR-004](docs/adr/004-integrite-du-moteur-et-du-modele.md).
+- **Traçabilité** : 31 PR mergées, un journal par branche dans [`docs/journal/`](docs/journal/) ; le dépôt est la seule mémoire de l'agent. Certaines entrées renvoient à `docs/projets/`, notes privées de l'espace de travail de l'auteur, hors de ce dépôt.
 
 ## Licence
 
