@@ -105,3 +105,23 @@ Contrôle par mutation des garde-fous, revues `reviewer` et `security-reviewer`,
 ### Prochaine étape
 
 Correction : la fermeture du journal arrête la file, oublie le bilan, annule le téléchargement, prend le verrou du modèle (et le garde), puis ferme la base.
+
+## 2026-10-16 10:05
+
+### Fait
+
+- Fermeture du journal par la suppression, dans l'ordre : file d'analyse arrêtée une fois (modèle libéré), `ReviewNarrator.forget` (mise en mots abandonnée, textes gardés oubliés), téléchargement annulé, verrou `ModelGate` pris et gardé (attente de 10 s au plus, sinon l'étape échoue et « Réessayer » la rejoue), base fermée.
+- Mutations des nouvelles protections, toutes tuées : file non arrêtée (1 test en échec), bilan non oublié (2), verrou non pris (1), `forget` qui garde les textes (2) ou n'annule pas le rédacteur (2).
+- `flutter test` : 1 655 verts (aussi avec `TZ=UTC`) ; analyse et format propres.
+
+### Décisions
+
+- Le verrou du modèle reste pris par la suppression : l'app effacée ne peut plus recharger le modèle avant d'être remplacée par `AppHost` (agent).
+
+### Corrections et limites
+
+- Délai de 10 s du verrou non couvert par un test (il ralentirait la suite) ; le chemin « verrou encore pris » passe par `WipeIncompleteError`, déjà couvert pour les autres étapes.
+
+### Prochaine étape
+
+Revues `reviewer` et `security-reviewer` sur `git diff origin/main...HEAD`, documents de référence, PR.
