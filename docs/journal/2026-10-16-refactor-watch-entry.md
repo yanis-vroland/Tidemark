@@ -89,3 +89,29 @@ Issue #39 : l'écran de détail observe une seule entrée (`EntryRepository.watc
 ### Prochaine étape
 
 - Ouvrir la PR prête et publier la réponse à la revue IA.
+
+## 2026-10-16 19:00
+
+### Fait
+
+- **Test existant modifié** : le test #32 de `test/ui/entry_detail_subscriptions_test.dart` est recentré sur `watchEntry`, sans être supprimé.
+  - Il vérifie maintenant que l'écran de détail, reconstruit plusieurs fois, s'abonne une seule fois à `watchEntry(id)`, pour l'entrée affichée, et jamais à `watchEntries()`. Il garde son contrôle sur `watch()` du modèle.
+  - L'appel interne du faux à `watchEntries()`, fait depuis `watchEntry`, n'est pas compté.
+  - Le titre et l'en-tête du fichier sont mis à jour.
+- Contrôle par mutation sur ce test, 3 mutations, toutes détectées :
+  - écran revenu à `watchEntries()` : rouge (`watchEntry` attendu `[1]`, obtenu `[]`) ;
+  - réabonnement à chaque reconstruction : rouge (`[1, 1]`) ;
+  - appel à `watchEntries()` en plus de `watchEntry` : rouge (`watchEntries` attendu 0, obtenu 1).
+- `dart format`, `dart analyze --fatal-infos` : propres ; le test est vert.
+
+### Décisions
+
+- Recentrer le test #32 dans cette PR plutôt que de le laisser intact : décision de l'agent principal, par délégation de Yanis du 2026-10-16. Elle remplace la décision de 18:30 de ne pas toucher à ce test.
+
+### Corrections et limites
+
+- La consigne de départ, garder les tests existants du détail sans modification, ne vaut plus pour ce test-là. Les autres tests du détail restent inchangés.
+
+### Prochaine étape
+
+- Mettre à jour la description de la PR et la réponse à la revue IA.
