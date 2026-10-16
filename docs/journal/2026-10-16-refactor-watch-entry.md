@@ -2,7 +2,7 @@
 
 Issue #39 : l'écran de détail observe une seule entrée (`EntryRepository.watchEntry(id)`) au lieu de tout le journal. Refactor sans changement de comportement observable.
 
-## 2026-10-16 17:00
+## 2026-10-16 12:09
 
 ### Fait
 
@@ -23,7 +23,7 @@ Issue #39 : l'écran de détail observe une seule entrée (`EntryRepository.watc
 
 - Implémenter `watchEntry` (drift et faux), puis brancher l'écran de détail.
 
-## 2026-10-16 17:45
+## 2026-10-16 12:22
 
 ### Fait
 
@@ -60,7 +60,7 @@ Issue #39 : l'écran de détail observe une seule entrée (`EntryRepository.watc
 
 - Revues `reviewer` et `security-reviewer`, puis PR prête (sans brouillon).
 
-## 2026-10-16 18:30
+## 2026-10-16 12:32
 
 ### Fait
 
@@ -90,7 +90,7 @@ Issue #39 : l'écran de détail observe une seule entrée (`EntryRepository.watc
 
 - Ouvrir la PR prête et publier la réponse à la revue IA.
 
-## 2026-10-16 19:00
+## 2026-10-16 12:34
 
 ### Fait
 
@@ -116,7 +116,7 @@ Issue #39 : l'écran de détail observe une seule entrée (`EntryRepository.watc
 
 - Mettre à jour la description de la PR et la réponse à la revue IA.
 
-## 2026-10-16 12:51
+## 2026-10-16 12:53
 
 ### Fait
 
@@ -129,7 +129,7 @@ Issue #39 : l'écran de détail observe une seule entrée (`EntryRepository.watc
 
 ### Corrections et limites
 
-- Aucune nouvelle.
+- Les heures des entrées de ce journal ne correspondaient pas à l'heure réelle (heures estimées par l'agent, parfois dans le futur) : la CI refusait l'ordre chronologique. Chaque titre d'entrée reprend désormais l'heure du commit qui l'a créée (agent principal). Le contenu des entrées n'a pas changé.
 
 ### Prochaine étape
 
