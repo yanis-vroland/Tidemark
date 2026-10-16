@@ -191,6 +191,9 @@ class _EntryDetailScreenState extends State<EntryDetailScreen> {
                                 .firstOrNull ??
                             entry,
                         downloader: widget.downloader,
+                        // L'entrée vient du journal, pas de la liste : seule une
+                        // transition vue ici est une fin d'analyse (CA28).
+                        live: snapshot.hasData,
                       ),
                     ),
                   ],

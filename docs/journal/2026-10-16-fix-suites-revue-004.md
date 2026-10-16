@@ -141,3 +141,29 @@ Suites des revues IA de la spec 004 (issues #29 à #33), défaut de la file d'an
 ### Prochaine étape
 
 - Corriger : ordre des entrées en échec, libellé de la région vive, pas d'annonce à l'ouverture.
+
+## 2026-10-16 09:52
+
+### Fait
+
+- Suites de la revue `reviewer` :
+  - entrées en échec reprises chacune à son tour : `_saveFailed` garde l'ordre des échecs (un nouvel échec place l'entrée en fin), la plus anciennement en échec d'abord ;
+  - région vive Android : libellé « Analyse terminée. … » (TalkBack ne lit une région vive que si son libellé change), `explicitChildNodes` pour garder les lignes « Émotions » et « Thèmes » séparées ;
+  - aucune annonce à l'ouverture : `EntryTagsSection.live` (l'entrée vient du journal, pas de la liste) ; seule une transition vue entre deux lectures du journal est une fin d'analyse ;
+  - architecture technique : règles du garde-fou llamadart à jour.
+- `flutter test` : 1 720 verts, 0 rouge, aussi avec `TZ=UTC` ; `dart analyze --fatal-infos` et `dart format` propres.
+- Contrôle par mutation relancé sur tout le lot : 28 mutations, 28 détectées (dont, nouvelles : réexport, `part`, mention de llamadart non exigée, chaînes ignorées par `withoutComments`, méthodes à adresse, désabonnement non protégé, écran couvert, app pas au premier plan, libellé de la région vive, lignes fusionnées, entrée transmise par la liste, ordre des échecs non mis à jour). Deux mutations du réexport et de `part` mal écrites au premier passage (message remplacé, condition gardée) ont survécu, puis ont été réécrites et détectées.
+
+### Décisions
+
+- Non suivi : continuer le passage après un échec d'écriture (suggestion de la revue) ; la règle décidée (RM57, CA36) arrête la file jusqu'au prochain événement. Une entrée enregistrée pendant le passage en échec attend donc l'événement suivant ; limite écrite dans la PR (agent, par délégation de Yanis du 2026-10-16).
+- Reportés, à proposer en issues avec l'accord de Yanis : boucle analogue après un échec de `markSkipped` (défaut antérieur) ; détail qui observe tout le journal pour une seule entrée (`watchEntry(id)`, second volet de #32) (agent).
+- Les specs renvoient à RM57, RM60 et RM61, créées par la PR #35 encore ouverte : la PR se rebasera après le merge de la #35 et retirera alors leur mention « À mettre en œuvre » du cahier (agent).
+
+### Corrections et limites
+
+- Test humain : à faire par Yanis.
+
+### Prochaine étape
+
+- Ouvrir la PR en brouillon, puis publier la réponse aux revues IA.
