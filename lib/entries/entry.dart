@@ -63,3 +63,24 @@ class Entry {
   /// Date et heure locales de la saisie (heure murale, marquée UTC par convention).
   DateTime get localCreatedAt => createdAt.toUtc().add(utcOffset);
 }
+
+/// Vrai si [a] et [b] décrivent la même entrée dans le même état, étiquettes
+/// comprises (dans le même ordre), ou sont toutes deux absentes. Sert à ne pas
+/// réémettre une entrée inchangée (`EntryRepository.watchEntry`).
+bool sameEntry(Entry? a, Entry? b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
+  if (a.id != b.id ||
+      a.mood != b.mood ||
+      a.text != b.text ||
+      a.createdAt != b.createdAt ||
+      a.utcOffset != b.utcOffset ||
+      a.analysisStatus != b.analysisStatus ||
+      a.tags.length != b.tags.length) {
+    return false;
+  }
+  for (var i = 0; i < a.tags.length; i++) {
+    if (a.tags[i] != b.tags[i]) return false;
+  }
+  return true;
+}
