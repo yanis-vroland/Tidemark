@@ -431,6 +431,37 @@ void main() {
       });
     });
 
+    test('CA36 : deux entrées dont l\'écriture échoue toujours sont reprises '
+        'chacune à son tour, la plus anciennement en échec d\'abord', () async {
+      final repo = FailSaveForRepository();
+      final y = repo.seed(mood: 2, text: 'TY', createdAt: oct11);
+      final x = repo.seed(mood: 4, text: 'TX', createdAt: oct12);
+      repo.failSaveFor.addAll([x.id, y.id]);
+      final env = QueueEnv(repo: repo);
+
+      // Première série : X (la plus récente) est essayée, échoue, arrêt.
+      await env.run();
+      expect(env.analyzer.received, ['TX']);
+
+      // Événements successifs, chacun une fois la file au repos : une entrée
+      // sans texte (« sans analyse ») ne génère aucune analyse nouvelle.
+      for (var day = 1; day <= 3; day++) {
+        repo.seed(mood: 3, text: null, createdAt: DateTime(2026, 10, day, 9));
+        await env.idle();
+        await wait();
+      }
+
+      expect(env.analyzer.received, [
+        'TX',
+        'TY',
+        'TX',
+        'TY',
+      ], reason: 'à tour de rôle, la plus anciennement en échec d\'abord');
+      expect(env.status(x), AnalysisStatus.pending);
+      expect(env.status(y), AnalysisStatus.pending);
+      expect(env.queue.currentEntryId, isNull);
+    });
+
     test('le statut n\'est écrit qu\'avec le résultat : pendant l\'analyse, '
         'rien n\'est écrit', () async {
       final repo = FakeEntryRepository();

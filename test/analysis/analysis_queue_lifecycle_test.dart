@@ -664,10 +664,8 @@ void main() {
       s.repo.throwOnCancel = true;
       addTearDown(() => s.repo.throwOnCancel = false);
 
-      await s.env.queue
-          .stop()
-          .then<void>((_) {}, onError: (Object _) {})
-          .timeout(const Duration(seconds: 2));
+      // `stop()` se termine normalement : aucune erreur ne remonte.
+      await s.env.queue.stop().timeout(const Duration(seconds: 2));
 
       expect(s.analyzer.cancelCalls, greaterThanOrEqualTo(1));
       expect(s.analyzer.releaseCalls, greaterThanOrEqualTo(1));
