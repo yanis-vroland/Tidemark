@@ -48,7 +48,7 @@ Relevé : `flutter pub deps --json`, puis le fichier `LICENSE` de chaque paquet 
 
 | Licence | Paquets |
 | --- | --- |
-| BSD-3-Clause | 91, dont les SDK `flutter_web_plugins` et `sky_engine` |
+| BSD-3-Clause | 91, dont les SDK `flutter_web_plugins` et `sky_engine` (ce dernier regroupe aussi les licences permissives des composants du moteur Flutter) |
 | MIT | `archive`, `dinja`, `posix`, `sqlparser`, `uuid`, `yaml` |
 | Apache-2.0 | `clock`, `fake_async`, `material_color_utilities` |
 | BSD-2-Clause | `recase` |
