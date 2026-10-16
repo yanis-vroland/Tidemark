@@ -33,6 +33,10 @@ abstract interface class EntryRepository {
   /// Sans effet si l'entrée n'existe plus (CA16).
   Future<void> saveAnalysis(int entryId, AnalysisResult result);
 
+  /// Toutes les entrées et leurs étiquettes, de la plus ancienne à la plus récente
+  /// (instant de saisie, puis identifiant), pour l'export (spec 005).
+  Future<List<Entry>> allEntriesWithTags();
+
   /// Supprime définitivement l'entrée [id] (RM15, RM28).
   Future<void> deleteEntry(int id);
 }
