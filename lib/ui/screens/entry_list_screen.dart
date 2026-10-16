@@ -115,7 +115,10 @@ class _EntryListScreenState extends State<EntryListScreen> {
                       : entries == null
                       ? _Loading(onOpenSettings: _openSettings)
                       : entries.isEmpty
-                      ? _EmptyState(onOpenSettings: _openSettings)
+                      ? _EmptyState(
+                          onOpenSettings: _openSettings,
+                          wiped: widget.wiped,
+                        )
                       : _EntryList(
                           onOpenSettings: _openSettings,
                           groups: groupByDay(entries, widget.clock()),
@@ -233,23 +236,61 @@ class _ReadError extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.onOpenSettings});
+  const _EmptyState({required this.onOpenSettings, this.wiped = false});
 
   final VoidCallback onOpenSettings;
+
+  /// Message de fin d'une suppression totale au-dessus de l'état vide (CA18).
+  final bool wiped;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final colors = context.colors;
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: TidemarkSpacing.space4),
       children: [
         _Title(onOpenSettings: onOpenSettings),
+        if (wiped) ...[
+          const SizedBox(height: TidemarkSpacing.space2),
+          // Annoncé dès son apparition (CA33).
+          Semantics(
+            liveRegion: true,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: colors.tideSoft,
+                borderRadius: BorderRadius.circular(TidemarkRadius.radiusMd),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(TidemarkSpacing.space4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Toutes tes données ont été supprimées',
+                      style: TidemarkTypography.headline.copyWith(
+                        color: colors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: TidemarkSpacing.space1),
+                    Text(
+                      'Ton journal repart de zéro, sur ce téléphone.',
+                      style: TidemarkTypography.body.copyWith(
+                        color: colors.ink,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
         const SizedBox(height: TidemarkSpacing.space8),
         Text('Ta première entrée apparaîtra ici', style: text.titleLarge),
         const SizedBox(height: TidemarkSpacing.space2),
         Text(
           'Note ton humeur en quelques secondes. Tout reste sur ton téléphone.',
-          style: text.bodyLarge?.copyWith(color: context.colors.inkMuted),
+          style: text.bodyLarge?.copyWith(color: colors.inkMuted),
         ),
       ],
     );

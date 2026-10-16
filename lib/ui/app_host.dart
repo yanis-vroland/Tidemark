@@ -21,9 +21,23 @@ class AppHost extends StatefulWidget {
 }
 
 class AppHostState extends State<AppHost> {
+  late Widget _child = widget.initial;
+
+  /// Nouvelle clé à chaque remplacement : l'app suivante repart d'un état neuf
+  /// (navigation, écrans), même si elle est du même type que la précédente.
+  int _generation = 0;
+
   /// Remplace l'app affichée par celle que rend [AppHost.restart].
-  Future<void> restart({bool wiped = false}) => throw UnimplementedError();
+  Future<void> restart({bool wiped = false}) async {
+    final next = await widget.restart(wiped: wiped);
+    if (!mounted) return;
+    setState(() {
+      _child = next;
+      _generation++;
+    });
+  }
 
   @override
-  Widget build(BuildContext context) => widget.initial;
+  Widget build(BuildContext context) =>
+      KeyedSubtree(key: ValueKey(_generation), child: _child);
 }

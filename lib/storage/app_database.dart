@@ -107,6 +107,14 @@ class AppDatabase extends _$AppDatabase {
     return AppDatabase._(executor);
   }
 
+  Future<void>? _closing;
+
+  /// Ferme la base une seule fois : un second appel attend la même fermeture
+  /// (suppression totale puis fermeture par l'appelant), au lieu de rester
+  /// bloqué sur un isolat déjà arrêté.
+  @override
+  Future<void> close() => _closing ??= super.close();
+
   @override
   int get schemaVersion => 4;
 
@@ -240,7 +248,17 @@ class DriftEntryRepository implements EntryRepository {
   }
 
   @override
-  Future<List<Entry>> allEntriesWithTags() => throw UnimplementedError();
+  Future<List<Entry>> allEntriesWithTags() async {
+    final query =
+        db.select(db.entries).join([
+          leftOuterJoin(db.tags, db.tags.entryId.equalsExp(db.entries.id)),
+        ])..orderBy([
+          OrderingTerm.asc(db.entries.createdAt),
+          OrderingTerm.asc(db.entries.id),
+          OrderingTerm.asc(db.tags.position),
+        ]);
+    return _withTags(await query.get());
+  }
 
   @override
   Future<void> deleteEntry(int id) =>

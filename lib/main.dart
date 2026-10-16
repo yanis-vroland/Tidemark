@@ -11,6 +11,7 @@ import 'entries/entry_repository.dart';
 import 'model/model_downloader.dart';
 import 'model/model_source.dart';
 import 'model/model_transport.dart';
+import 'export/journal_export.dart';
 import 'export/share_sheet.dart';
 import 'settings/settings_repository.dart';
 import 'storage/app_database.dart';
@@ -23,7 +24,11 @@ import 'ui/screens/entry_list_screen.dart';
 import 'ui/theme/tidemark_colors.dart';
 import 'ui/theme/tidemark_theme.dart';
 import 'ui/theme/tidemark_tokens.dart';
+import 'ui/screens/wipe_confirmation_screen.dart';
+import 'ui/theme/tidemark_typography.dart';
+import 'ui/widgets/action_buttons.dart';
 import 'ui/widgets/my_data_section.dart';
+import 'wipe/install_marker.dart';
 import 'wipe/journal_wiper.dart';
 
 Future<void> main() async {
@@ -78,9 +83,34 @@ Future<Widget> startApp({
     storage = await AppStorage.system();
   }
   final store = storage;
-  open ??= () => openJournal(folder: store!.folder, keyStore: store.keyStore);
+  final openNow =
+      open ??
+      () => openJournal(folder: store!.folder, keyStore: store.keyStore);
+  if (store != null) {
+    // Fichier d'export resté d'un partage interrompu (CA10).
+    try {
+      await purgeExportTemporaryFiles(store.cacheFolder);
+    } catch (_) {}
+    // Suppression interrompue : reprise avant toute ouverture de la base, jamais
+    // ouverte tant que `wipe-pending` existe (RM43, CA22, CA23).
+    final wiper = _wiperFor(store);
+    if (wiper.isPending) {
+      try {
+        await wiper.resume();
+      } catch (_) {
+        return const StartupErrorApp(keyMissing: false, wipeIncomplete: true);
+      }
+      wiped = true;
+    }
+    // Nouvelle installation : clé orpheline effacée ; n'échoue jamais (RM45).
+    await checkInstallMarker(
+      folder: store.folder,
+      keyStore: store.keyStore,
+      files: store.files,
+    );
+  }
   try {
-    final journal = await open();
+    final journal = await openNow();
     // Avant tout affichage ; n'échoue jamais (CA16).
     await screenPendingEntries(journal.entries);
     // État du modèle déduit des fichiers ; une erreur laisse le modèle absent
@@ -96,19 +126,68 @@ Future<Widget> startApp({
             analyzer: analyzer,
             downloader: journal.downloader,
           )..start());
+    var queueStopped = false;
     return TidemarkApp(
       repository: journal.entries,
       settings: journal.settings,
       downloader: journal.downloader,
       analysisQueue: queue,
+      wiped: wiped,
+      data: store == null
+          ? null
+          : DataActions(
+              export: JournalExport(
+                entries: journal.entries,
+                settings: journal.settings,
+                shareSheet: shareSheet,
+                cacheFolder: store.cacheFolder,
+              ),
+              wiper: _wiperFor(
+                store,
+                // Plus rien n'écrit la base ni ne lit le modèle pendant
+                // l'effacement : file arrêtée et modèle libéré, téléchargement
+                // annulé, base fermée.
+                closeJournal: () async {
+                  // Une seule fois, même si la fermeture de la base échoue et
+                  // que la suppression est reprise : `AnalysisQueue.stop` n'est
+                  // pas prévu pour être appelé deux fois.
+                  if (!queueStopped) {
+                    queueStopped = true;
+                    try {
+                      await queue?.stop();
+                    } catch (_) {}
+                  }
+                  try {
+                    await journal.downloader.cancel();
+                  } catch (_) {}
+                  await journal.close?.call();
+                },
+              ),
+            ),
     );
   } on DatabaseKeyMissingError {
-    // Aucune perte silencieuse : ni nouvelle clé, ni base recréée (spec 001).
-    return const StartupErrorApp(keyMissing: true);
+    // Aucune perte silencieuse : ni nouvelle clé, ni base recréée (spec 001) ;
+    // la suppression est proposée, jamais lancée d'elle-même (RM44, CA28).
+    return StartupErrorApp(
+      keyMissing: true,
+      wiper: store == null ? null : _wiperFor(store),
+    );
   } catch (_) {
     return const StartupErrorApp(keyMissing: false);
   }
 }
+
+/// Suppression totale sur les emplacements de [storage].
+JournalWiper _wiperFor(
+  AppStorage storage, {
+  Future<void> Function()? closeJournal,
+}) => JournalWiper(
+  folder: storage.folder,
+  cacheFolder: storage.cacheFolder,
+  keyStore: storage.keyStore,
+  files: storage.files,
+  closeJournal: closeJournal,
+);
 
 /// Ouvre la base chiffrée `journal.db` dans [folder] (par défaut
 /// Application Support/tidemark, exclu des sauvegardes : AppDelegate sur iOS,
@@ -221,33 +300,105 @@ class StartupErrorApp extends StatelessWidget {
       title: 'Tidemark',
       theme: buildTidemarkTheme(Brightness.light),
       darkTheme: buildTidemarkTheme(Brightness.dark),
-      home: Builder(
-        builder: (context) => Scaffold(
-          body: SafeArea(
-            child: Padding(
+      home: Builder(builder: _screen),
+    );
+  }
+
+  Widget _screen(BuildContext context) {
+    final wiper = this.wiper;
+    final offerWipe = keyMissing && wiper != null;
+    return Scaffold(
+      body: SafeArea(
+        // L'écran défile à 200 % : le bouton reste atteignable (CA34).
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
               padding: const EdgeInsets.all(TidemarkSpacing.space4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: TidemarkSpacing.space8),
-                  Text(
-                    "Ton journal n'a pas pu être ouvert",
-                    style: Theme.of(context).textTheme.titleLarge
-                        ?.copyWith(color: context.colors.danger),
-                  ),
-                  const SizedBox(height: TidemarkSpacing.space2),
-                  Text(
-                    keyMissing
-                        ? "Tes entrées sont toujours sur le téléphone, mais la clé "
-                              "qui les protège est introuvable. Rien n'a été effacé."
-                        : "Rien n'a été effacé. Ferme l'app, puis rouvre-la.",
-                  ),
-                ],
+              sliver: SliverFillRemaining(
+                hasScrollBody: false,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: TidemarkSpacing.space8),
+                    Semantics(
+                      header: true,
+                      child: Text(
+                        wipeIncomplete
+                            ? "La suppression n'est pas terminée"
+                            : "Ton journal n'a pas pu être ouvert",
+                        style: Theme.of(context).textTheme.titleLarge
+                            ?.copyWith(color: context.colors.danger),
+                      ),
+                    ),
+                    const SizedBox(height: TidemarkSpacing.space2),
+                    Text(
+                      wipeIncomplete
+                          ? wipeIncompleteMessage
+                          : keyMissing
+                          ? "Tes entrées sont toujours sur le téléphone, mais la clé "
+                                "qui les protège est introuvable. Rien n'a été effacé."
+                          : "Rien n'a été effacé. Ferme l'app, puis rouvre-la.",
+                    ),
+                    if (offerWipe) ...[
+                      const SizedBox(height: TidemarkSpacing.space3),
+                      Text(
+                        'Sans cette clé, elles ne pourront plus être lues. Tu '
+                        'peux tout supprimer et commencer un nouveau journal.',
+                        style: TidemarkTypography.body.copyWith(
+                          color: context.colors.inkMuted,
+                        ),
+                      ),
+                    ],
+                    const Spacer(),
+                    const SizedBox(height: TidemarkSpacing.space6),
+                    if (offerWipe)
+                      DangerButton(
+                        label: 'Tout supprimer et repartir de zéro',
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => WipeConfirmationScreen(
+                              wiper: wiper,
+                              keyMissing: true,
+                            ),
+                          ),
+                        ),
+                      ),
+                    if (wipeIncomplete) const _RetryWipeButton(),
+                  ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
+}
+
+/// « Réessayer » de l'écran « La suppression n'est pas terminée » (CA23) : rouvre
+/// l'app, qui reprend la suppression avant toute ouverture de la base.
+class _RetryWipeButton extends StatefulWidget {
+  const _RetryWipeButton();
+
+  @override
+  State<_RetryWipeButton> createState() => _RetryWipeButtonState();
+}
+
+class _RetryWipeButtonState extends State<_RetryWipeButton> {
+  bool _busy = false;
+
+  Future<void> _retry() async {
+    setState(() => _busy = true);
+    try {
+      await AppHost.maybeOf(context)?.restart(wiped: true);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => FilledButton(
+    onPressed: _busy ? null : _retry,
+    child: const Text('Réessayer'),
+  );
 }
