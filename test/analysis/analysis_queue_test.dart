@@ -681,6 +681,29 @@ void main() {
       expect(env.status(next), AnalysisStatus.untagged);
     });
 
+    test('CA14 : après le délai, la file attend la fin de la génération, pas '
+        'seulement le retour de cancel(), avant l\'analyse suivante', () async {
+      final repo = FakeEntryRepository();
+      final old = repo.seed(mood: 3, text: 'Ancien', createdAt: oct10);
+      final recent = repo.seed(mood: 3, text: 'Récent', createdAt: oct11);
+      final analyzer = DetachedCancelAnalyzer(
+        duration: const Duration(milliseconds: 300),
+      );
+      final env = QueueEnv(
+        repo: repo,
+        analyzer: analyzer,
+        timeout: const Duration(milliseconds: 50),
+      );
+
+      await env.run();
+
+      expect(analyzer.received, ['Récent', 'Ancien']);
+      expect(analyzer.cancelCalls, 2);
+      expect(analyzer.maxConcurrent, 1);
+      expect(env.status(recent), AnalysisStatus.untagged);
+      expect(env.status(old), AnalysisStatus.untagged);
+    });
+
     test('CA14 : le délai est mesuré pour chaque analyse, pas une fois pour '
         'toute la file', () async {
       final repo = FakeEntryRepository()

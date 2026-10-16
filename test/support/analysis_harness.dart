@@ -126,6 +126,31 @@ class LateAnalyzer extends FakeMoodAnalyzer {
   }
 }
 
+/// Analyseur dont `cancel()` rend la main tout de suite, alors que le moteur
+/// continue sa génération pendant [duration] : la file doit attendre la fin de
+/// l'analyse, pas seulement celle de `cancel()`, avant de lancer la suivante (CA14).
+class DetachedCancelAnalyzer extends FakeMoodAnalyzer {
+  DetachedCancelAnalyzer({required this.duration});
+
+  final Duration duration;
+
+  @override
+  Future<AnalysisResult> analyze(String text) async {
+    received.add(text);
+    running++;
+    if (running > maxConcurrent) maxConcurrent = running;
+    try {
+      await Future<void>.delayed(duration);
+      return const Untagged();
+    } finally {
+      running--;
+    }
+  }
+
+  @override
+  Future<void> cancel() async => cancelCalls++;
+}
+
 /// Dépôt dont `pendingEntriesWithText` et `watchEntries` rendent les entrées de la
 /// plus ancienne à la plus récente (l'ordre naturel de la base) : la file doit
 /// trier elle-même, de la plus récente à la plus ancienne.
