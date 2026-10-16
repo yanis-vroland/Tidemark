@@ -72,6 +72,30 @@ class FailMarkForRepository extends FakeEntryRepository {
   }
 }
 
+/// Dépôt dont `markSkipped` lève pour [failMarkFor] et `saveAnalysis` pour
+/// [failSaveFor] (CA40, rang commun) ; [attempts] liste les écritures tentées
+/// (marquages et résultats), dans l'ordre.
+class FailMarkAndSaveRepository extends FailMarkForRepository {
+  final Set<int> failSaveFor = {};
+  final List<int> attempts = [];
+
+  @override
+  Future<void> markSkipped(Iterable<int> ids) {
+    attempts.addAll(ids);
+    return super.markSkipped(ids);
+  }
+
+  @override
+  Future<void> saveAnalysis(int entryId, AnalysisResult result) async {
+    attempts.add(entryId);
+    if (failSaveFor.contains(entryId)) {
+      saveAnalysisCalls.add((entryId: entryId, result: result));
+      throw StateError('écriture impossible pour $entryId');
+    }
+    return super.saveAnalysis(entryId, result);
+  }
+}
+
 /// File et faux, avec l'arrêt de la file en fin de test.
 class QueueEnv {
   QueueEnv({
@@ -451,6 +475,45 @@ void main() {
         s.repo.saveAnalysisCalls.map((c) => c.entryId),
         isNot(contains(s.distress.id)),
       );
+      // Un seul marquage réussi : un échec, puis une réussite.
+      expect(s.repo.markCallsFor(s.distress.id), 2);
+      await wait(const Duration(milliseconds: 300));
+      expect(s.repo.markCallsFor(s.distress.id), 2);
+    });
+
+    test('CA40 : une entrée en détresse au marquage en échec et une entrée '
+        'ordinaire à l\'écriture en échec partagent le même rang : reprises '
+        'chacune à son tour, la plus anciennement en échec d\'abord', () async {
+      final repo = FailMarkAndSaveRepository();
+      final distress = repo.seed(mood: 1, text: distressText, createdAt: oct11);
+      final ordinary = repo.seed(mood: 4, text: 'TX', createdAt: oct12);
+      repo.failMarkFor.add(distress.id);
+      repo.failSaveFor.add(ordinary.id);
+      final env = QueueEnv(repo: repo);
+
+      // Première série : l'entrée ordinaire, la plus récente, échoue.
+      await env.start();
+      await wait(const Duration(milliseconds: 300));
+      expect(repo.attempts, [ordinary.id]);
+
+      // Événements successifs, chacun une fois la file au repos : une entrée
+      // sans texte ne génère aucune analyse nouvelle.
+      for (var day = 1; day <= 4; day++) {
+        repo.seed(mood: 3, text: null, createdAt: DateTime(2026, 10, day, 9));
+        await wait(const Duration(milliseconds: 300));
+      }
+
+      expect(repo.attempts, [
+        ordinary.id,
+        distress.id,
+        ordinary.id,
+        distress.id,
+        ordinary.id,
+      ], reason: 'à tour de rôle, la plus anciennement en échec d\'abord');
+      expect(env.analyzer.received, isNot(contains(distressText)));
+      expect(env.analyzer.received, ['TX', 'TX', 'TX']);
+      expect(env.status(distress), AnalysisStatus.pending);
+      expect(env.status(ordinary), AnalysisStatus.pending);
     });
 
     test('RM8 : quel que soit le nombre d\'événements, avec un marquage qui '
