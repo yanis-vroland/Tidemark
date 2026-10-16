@@ -54,6 +54,13 @@ class FakeEntryRepository implements EntryRepository {
     yield* _changes.stream;
   }
 
+  /// Comme le vrai dépôt : l'entrée [id] ou `null`, réémise seulement quand elle
+  /// change.
+  @override
+  Stream<Entry?> watchEntry(int id) => watchEntries()
+      .map((entries) => entries.where((e) => e.id == id).firstOrNull)
+      .distinct(sameEntry);
+
   @override
   Future<Entry> addEntry({
     required int mood,

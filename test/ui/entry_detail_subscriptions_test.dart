@@ -1,8 +1,9 @@
-// Abonnements du détail d'une entrée (issue #32, refactor sans changement de
-// comportement) : reconstruire l'écran ne doit pas réabonner les flux du dépôt
-// (`watchEntries()`) ni du modèle (`watch()`) tant que la section reste sur « En
-// attente d'analyse ». Les faux comptent les abonnements ; aucun modèle, aucun
-// réseau.
+// Abonnements du détail d'une entrée (issues #32 et #39, refactors sans
+// changement de comportement) : le détail observe sa seule entrée
+// (`watchEntry(id)`), jamais tout le journal (`watchEntries()`), et reconstruire
+// l'écran ne réabonne ni ce flux ni celui du modèle (`watch()`) tant que la
+// section reste sur « En attente d'analyse ». Les faux comptent les abonnements ;
+// aucun modèle, aucun réseau.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tidemark/entries/entry.dart';
@@ -16,23 +17,40 @@ import '../support/ui_harness.dart';
 
 const queuedText = "En attente d'analyse sur ton téléphone.";
 
-/// Dépôt qui compte les observations du journal.
+/// Dépôt qui compte les observations : d'une entrée ([watchEntryIds]) et du
+/// journal entier par l'appelant ([watchEntriesCalls]). Le faux `watchEntry`
+/// s'appuie sur `watchEntries()` : cet appel interne n'est pas compté.
 class WatchCountingRepository extends FakeEntryRepository {
   WatchCountingRepository({super.clock});
 
-  int watchCalls = 0;
+  final List<int> watchEntryIds = [];
+  int watchEntriesCalls = 0;
+  bool _inWatchEntry = false;
+
+  @override
+  Stream<Entry?> watchEntry(int id) {
+    watchEntryIds.add(id);
+    _inWatchEntry = true;
+    try {
+      return super.watchEntry(id);
+    } finally {
+      _inWatchEntry = false;
+    }
+  }
 
   @override
   Stream<List<Entry>> watchEntries() {
-    watchCalls++;
+    if (!_inWatchEntry) watchEntriesCalls++;
     return super.watchEntries();
   }
 }
 
 void main() {
-  testWidgets('issue #32 : le détail d\'une entrée en attente, modèle prêt, '
-      'reconstruit plusieurs fois, ne s\'abonne qu\'une fois au journal et '
-      'une fois au modèle', (tester) async {
+  testWidgets('issues #32 et #39 : le détail d\'une entrée en attente, modèle '
+      'prêt, reconstruit plusieurs fois, ne s\'abonne qu\'une fois à son '
+      'entrée (jamais au journal entier) et une fois au modèle', (
+    tester,
+  ) async {
     usePhoneScreen(tester);
     final repo = WatchCountingRepository(clock: () => fixedNow);
     final downloader = WatchCountingDownloader(readyModel);
@@ -80,9 +98,16 @@ void main() {
     expect(find.text(queuedText), findsOneWidget);
 
     expect(
-      repo.watchCalls,
-      1,
-      reason: 'watchEntries() ne doit pas être rappelé à chaque reconstruction',
+      repo.watchEntryIds,
+      [entry.id],
+      reason:
+          'watchEntry(id) une seule fois, pour l\'entrée affichée, malgré les '
+          'reconstructions',
+    );
+    expect(
+      repo.watchEntriesCalls,
+      0,
+      reason: 'le détail n\'observe jamais tout le journal (issue #39)',
     );
     expect(
       downloader.watchCalls,
