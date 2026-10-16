@@ -49,4 +49,4 @@ Peu d'animations, toutes utiles : la pastille choisie grossit légèrement, les 
 
 ## Iconographie
 
-Pas encore de jeu d'icônes choisi. Il devra être embarquable et sous licence compatible avec un dépôt public (Material Symbols ou Lucide, par exemple). Pas de logo pour l'instant : le nom s'écrit en `display`.
+Jeu d'icônes : **Material Icons** de Flutter (`Icons.*`), police embarquée dans l'app par `uses-material-design: true` (`pubspec.yaml`), licence Apache-2.0, compatible avec un dépôt public ; aucune icône chargée depuis le réseau (choix confirmé par Yanis le 2026-10-16). Couleur et taille viennent des jetons (couleurs de texte, `icon-sm`, `icon-md`). Pas de logo pour l'instant : le nom s'écrit en `display`.
