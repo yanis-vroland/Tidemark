@@ -31,6 +31,17 @@ abstract interface class ModelDownloader {
 
   /// Recalcule l'empreinte d'un modèle `ready` qui n'a pas pu être chargé (CA32).
   Future<void> verifyAfterLoadFailure();
+
+  /// Vérifie l'empreinte du modèle avant sa première lecture par le moteur, une
+  /// fois par lancement (spec 003, CA34 à CA36, ADR-004) : `true` si le
+  /// chargement peut avoir lieu.
+  Future<bool> verifyBeforeFirstLoad();
+}
+
+/// SHA-256 du fichier [path], en hexadécimal (spec 003, CA36).
+Future<String> sha256OfFile(String path) async {
+  // Squelette : à remplacer par un calcul dans un isolat.
+  return sha256.convert(File(path).readAsBytesSync()).toString();
 }
 
 /// Statuts HTTP de redirection suivis par le téléchargeur (CA8).
@@ -73,6 +84,7 @@ class HttpModelDownloader implements ModelDownloader {
     ModelSource? source,
     this.idleTimeout = const Duration(seconds: 30),
     @visibleForTesting Future<RandomAccessFile> Function(File file)? openPart,
+    this.hashFile = sha256OfFile,
   }) : source = source ?? qwenModelSource,
        _openPart = openPart ?? ((file) => file.open(mode: FileMode.write));
 
@@ -82,6 +94,10 @@ class HttpModelDownloader implements ModelDownloader {
 
   /// Délai sans octet reçu qui vaut échec réseau (CA17).
   final Duration idleTimeout;
+
+  /// Calcul du SHA-256 d'un fichier, en hexadécimal ; [sha256OfFile] par défaut,
+  /// remplacé dans les tests pour compter les calculs ou simuler une erreur.
+  final Future<String> Function(String path) hashFile;
 
   /// Ouverture du fichier `.part` ; injectable pour simuler un stockage plein.
   final Future<RandomAccessFile> Function(File file) _openPart;
@@ -356,5 +372,11 @@ class HttpModelDownloader implements ModelDownloader {
       }
     }
     _set(const ModelAbsent());
+  }
+
+  @override
+  Future<bool> verifyBeforeFirstLoad() async {
+    // Squelette : comportement d'avant l'ADR-004, la taille seule.
+    return _state is ModelReady;
   }
 }

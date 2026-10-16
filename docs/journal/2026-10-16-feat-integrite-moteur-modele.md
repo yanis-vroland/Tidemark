@@ -28,3 +28,32 @@ Branche `feat/integrite-moteur-modele`, partie de `main` (`15b4486`, après le m
 ### Prochaine étape
 
 Tests rouges : `HttpModelDownloader.verifyBeforeFirstLoad` et `sha256OfFile`, file d'analyse, bilan, journaux de `llamadart`, script de récupération du moteur.
+
+## 2026-10-16 09:45
+
+### Fait
+
+- Squelette sans comportement : `ModelDownloader.verifyBeforeFirstLoad()` (rend `_state is ModelReady`, sans calcul), paramètre `hashFile` de `HttpModelDownloader`, fonction `sha256OfFile` (calcul juste mais synchrone, sur le fil principal) ; `FakeModelDownloader` gagne `verifyBeforeLoadCalls`, `fingerprintMatches` et `verifyBeforeLoadGate`.
+- Tests rouges, écrits par le subagent `test-writer` (sans paramètre `model`) à partir des specs, relus avant l'implémentation :
+  - `test/model/verify_before_first_load_test.dart` (spec 003, CA34 à CA36) ;
+  - `test/analysis/analysis_queue_verification_test.dart` (spec 004, CA36, CA37) ;
+  - `test/analysis/llama_logging_test.dart` (spec 004, CA38 ; spec 006, décision 14) ;
+  - `test/review/review_narrator_verification_test.dart` (spec 006, CA37).
+- Tests du moteur natif, écrits par l'agent principal (comportement sans spec, ADR-004 décisions 1 et 3) : `tests/fetch-llama-native.sh` (archives factices en `file://`, aucun accès à Internet : téléchargement vérifié, revérification du cache, empreinte fausse, archive altérée, entrées inattendues, bundle non épinglé, fichier d'empreintes réel), `tests/check-llama-hook-cache.sh` (contrôle B du cache de pub), `test/platform/native_engine_config_test.dart` (`pubspec.yaml`, `.gitignore`, aucune archive versionnée, étapes de la CI).
+- Résultat, rouge pour la bonne raison :
+  - `flutter test` sur les cinq nouveaux fichiers Dart : 10 réussis, 41 en échec. Échecs : `hashFile` jamais appelé, `true` au lieu de `false` (empreinte fausse, fichier illisible), minuteur à 0 tick pendant `sha256OfFile` (calcul synchrone), file et narrateur qui n'appellent jamais `verifyBeforeFirstLoad`, niveaux de journal restés à `info`, `pubspec.yaml` sans bloc `llamadart`, CI sans les étapes.
+  - Réussis dès le squelette (gardes de non-régression, signalés par `test-writer`) : modèle absent ou en téléchargement → `false` sans calcul, modèle téléchargé pendant le lancement → `true`, après `deleteModel()` → `false`, empreinte juste de `sha256OfFile`, délai du narrateur après le calcul, aucun texte gardé après `cancel()`.
+  - `bash tests/fetch-llama-native.sh` et `bash tests/check-llama-hook-cache.sh` : script absent, toutes les vérifications échouent (code 127).
+
+### Décisions
+
+- `test-writer` a supposé, et l'agent retient : après un `false` sans changement d'état (erreur du calcul), la file s'arrête sans boucler et un nouvel enregistrement la relance ; pendant le calcul, l'entrée est « en cours » (`running`) mais reste `pending` en base ; le rédacteur du bilan fixe les niveaux de journal avant le test d'existence du fichier (agent, par délégation de Yanis du 2026-10-16).
+- Le contrôle B de l'ADR prend la forme d'un script (`scripts/check-llama-hook-cache.sh`), lancé avant `flutter pub get` avec `--purge` (cache restauré par la CI) et après les tests sans option : avec `llamadart_native_path`, le hook ne range rien hors de `native_bundles/local/` (agent, par délégation de Yanis du 2026-10-16).
+
+### Corrections et limites
+
+- Le seuil du test du minuteur (3 ticks de 4 ms pendant le calcul de 32 Mo) pourrait être fragile sur une machine très rapide ; à surveiller en CI.
+
+### Prochaine étape
+
+Implémentation : `HttpModelDownloader`, `AnalysisQueue` (minimum), `ReviewNarrator`, journaux de `llamadart`, scripts, `pubspec.yaml`, CI, puis documents de référence.
