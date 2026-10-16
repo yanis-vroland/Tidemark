@@ -321,8 +321,8 @@ void main() {
     },
   );
 
-  group('CA37 : le premier du mois s\'écrit « 1er »', () {
-    test('CA37 : carte, dimanche 1er novembre : « Du lundi 26 octobre au '
+  group('CA38 : le premier du mois s\'écrit « 1er »', () {
+    test('CA38 : carte, dimanche 1er novembre : « Du lundi 26 octobre au '
         'dimanche 1er novembre »', () {
       expect(
         weekCardLabel(weekOf(2026, 10, 28)),
@@ -330,7 +330,7 @@ void main() {
       );
     });
 
-    test('CA37 : carte, lundi 1er février : « Du lundi 1er au dimanche 7 '
+    test('CA38 : carte, lundi 1er février : « Du lundi 1er au dimanche 7 '
         'février »', () {
       expect(
         weekCardLabel(weekOf(2027, 2, 3)),
@@ -339,7 +339,7 @@ void main() {
     });
 
     test(
-      'CA37 : carte, dimanche 1er janvier, avec l\'année à chaque '
+      'CA38 : carte, dimanche 1er janvier, avec l\'année à chaque '
       'borne : « Du lundi 26 décembre 2022 au dimanche 1er janvier 2023 »',
       () {
         expect(
@@ -349,7 +349,7 @@ void main() {
       },
     );
 
-    test('CA37 : écran du bilan, dimanche 1er novembre : « 26 octobre – '
+    test('CA38 : écran du bilan, dimanche 1er novembre : « 26 octobre – '
         '1er novembre »', () {
       expect(
         weekRangeLabel(weekOf(2026, 10, 28), currentYear: 2026),
@@ -357,14 +357,14 @@ void main() {
       );
     });
 
-    test('CA37 : écran du bilan, lundi 1er février : « 1er – 7 février »', () {
+    test('CA38 : écran du bilan, lundi 1er février : « 1er – 7 février »', () {
       expect(
         weekRangeLabel(weekOf(2027, 2, 3), currentYear: 2027),
         '1er $dash 7 février',
       );
     });
 
-    test('CA37 : écran du bilan, semaine d\'une autre année : le « 1er » '
+    test('CA38 : écran du bilan, semaine d\'une autre année : le « 1er » '
         'garde son année', () {
       expect(
         weekRangeLabel(weekOf(2027, 2, 3), currentYear: 2026),
@@ -372,7 +372,7 @@ void main() {
       );
     });
 
-    test('CA37 : les autres jours restent en chiffres seuls, y compris le '
+    test('CA38 : les autres jours restent en chiffres seuls, y compris le '
         '2 et le 9', () {
       expect(
         weekCardLabel(weekOf(2026, 11, 3)),
