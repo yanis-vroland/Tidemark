@@ -156,4 +156,4 @@ Revues `reviewer` et `security-reviewer` sur `git diff origin/main...HEAD`, docu
 
 ### Prochaine étape
 
-Test humain par Yanis, sur iPhone 15 Pro et l'émulateur Android `tidemark_api35`, en thèmes clair et sombre, maquette à côté : export partagé puis annulé (Fichiers, messagerie, mode avion), journal vide, suppression depuis les Réglages, reprise après avoir tué l'app pendant la suppression, clé introuvable.
+PR #28 ouverte ; statut de la spec 005 dans le cahier des charges : « implémentée (PR #28) ». Test humain par Yanis, sur iPhone 15 Pro et l'émulateur Android `tidemark_api35`, en thèmes clair et sombre, maquette à côté : export partagé puis annulé (Fichiers, messagerie, mode avion), journal vide, suppression depuis les Réglages, reprise après avoir tué l'app pendant la suppression, clé introuvable.
