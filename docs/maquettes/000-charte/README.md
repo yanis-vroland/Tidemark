@@ -2,7 +2,7 @@
 
 Copie versionnée de la charte, faite en artefact Claude de type « Design System » ([lien privé](https://claude.ai/artifact/LxwwPXPaLTB1ciS6m7NVeu), visible seulement par Yanis). **Cette copie fait foi** ([plan](../../plan.md#maquettes-en-artefacts-claude)) ; l'artefact sert à l'explorer et à la commenter.
 
-Statut : **en attente de validation par Yanis.**
+Statut : **validée par Yanis le 2026-10-16.**
 
 ## Contenu
 
@@ -11,6 +11,7 @@ Statut : **en attente de validation par Yanis.**
 | [`charte.md`](charte.md) | Règles d'usage : ton, couleurs, typographie, espacements, états, mouvement |
 | [`tokens.json`](tokens.json) | Jetons : 16 couleurs en thème clair et sombre, 7 styles de texte, espacements, rayons, tailles. Le lot D les transcrit en constantes Dart de même nom (`lib/ui/theme/`) |
 | [`components/`](components/) | 7 composants, chacun avec son aperçu HTML (jetons seulement) et son README |
+| [`captures/`](captures/) | Capture PNG de chaque aperçu (7 composants et la couverture), en clair et en sombre |
 
 Composants : sélecteur d'humeur (`MoodSelector`), carte d'entrée (`EntryCard`), puce d'étiquette (`TagChip`), bouton (`Button`), champ de texte (`TextField`), bandeau d'erreur (`ErrorBanner`), mention de chargement (`LoadingNote`). `components/Cover/` est la couverture de l'artefact.
 
@@ -57,9 +58,9 @@ Toutes les paires passent leur seuil.
 ## Polices et icônes
 
 - **Bricolage Grotesque** (titres, chiffre d'humeur) et **Figtree** (texte) : SIL Open Font License 1.1, publiées sur Google Fonts. Les aperçus HTML les chargent depuis Google Fonts ; l'app les embarque (lot D) et ne charge aucune police depuis le réseau (RM1).
-- Icônes : seul un cadenas, dessiné en SVG dans les aperçus. Le jeu d'icônes de l'app (embarquable, licence compatible) est à choisir au lot D.
+- Icônes : **Material Icons** de Flutter, police embarquée par `uses-material-design` (licence Apache-2.0), aucun téléchargement ; choix confirmé par Yanis le 2026-10-16 ([charte, « Iconographie »](charte.md#iconographie)). Les aperçus HTML n'en dessinent qu'une, le cadenas, en SVG.
 
 ## Limites
 
-- Pas encore de captures PNG des composants : l'artefact est privé et les aperçus se rendent dans son interface. Elles seront ajoutées avec la première spec qui touche un écran (lot E).
+- Captures faites le 2026-10-16 hors de l'artefact : chaque aperçu est enveloppé dans une page qui déclare les jetons de `tokens.json` (thème clair ou sombre) et les polices de `assets/fonts/`, sans le lien Google Fonts, puis capturé par Chrome headless (largeur 393 px, 960 px pour la couverture, échelle 2), toute résolution réseau refusée (`--host-resolver-rules`). Le rendu peut différer de peu de celui de l'artefact (moteur et polices identiques, environnement de l'artefact non reproduit). Le script de capture n'est pas versionné.
 - Les composants sont des aperçus HTML, pas une bibliothèque : le lot D les recrée en widgets Flutter à partir des jetons.

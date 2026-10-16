@@ -1,6 +1,6 @@
 # ADR-005 : Partage du modèle local entre l'étiquetage et le bilan
 
-Statut : proposé (agent, 2026-10-15), à valider par Yanis
+Statut : accepté (Yanis, 2026-10-16)
 Date : 2026-10-15
 
 Contexte : le modèle local (Qwen2.5-1.5B-Instruct, environ 1,1 Go, [ADR-001](001-moteur-ia-local.md)) sert à deux fonctionnalités. La file d'analyse de la [spec 004](../specs/004-etiquetage-automatique.md) étiquette les entrées « en attente » une à la fois ; elle charge le modèle avant la première entrée et ne le libère qu'une fois la file vide. Le bilan de la [spec 006](../specs/006-bilan-de-la-semaine.md) demande une mise en mots « sur le même modèle que l'étiquetage, une génération à la fois », et prévoit que « la mise en mots attend son tour, dans la limite des 30 secondes » quand le modèle étiquette une entrée. La spec ne dit pas comment les deux se partagent le moteur.
@@ -21,7 +21,7 @@ Exigences :
 
 ## Décision
 
-Proposition de l'agent (2026-10-15), à accepter par Yanis : **un verrou d'accès au modèle, `ModelGate`** (`lib/model/model_gate.dart`), partagé par `GatedMoodAnalyzer` (`lib/model/gated_mood_analyzer.dart`) et `GatedReviewWriter` (`lib/review/gated_review_writer.dart`), créés ensemble dans `openJournal`.
+Proposition de l'agent (2026-10-15), acceptée par Yanis le 2026-10-16 : **un verrou d'accès au modèle, `ModelGate`** (`lib/model/model_gate.dart`), partagé par `GatedMoodAnalyzer` (`lib/model/gated_mood_analyzer.dart`) et `GatedReviewWriter` (`lib/review/gated_review_writer.dart`), créés ensemble dans `openJournal`.
 
 - L'analyseur garde le verrou tant que la file garde le modèle chargé, c'est-à-dire jusqu'à ce qu'elle soit vide : le bilan attend la fin du lot d'entrées en cours.
 - Le rédacteur attend le verrou dans la limite des 30 s de la spec 006 ; au-delà, le bilan s'affiche sans texte et la demande quitte la file d'attente.
