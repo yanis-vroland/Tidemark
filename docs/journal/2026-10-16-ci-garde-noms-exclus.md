@@ -109,3 +109,56 @@ Contrôle par mutation (chaque protection désactivée une fois, script restaur�
 ### Prochaine étape
 
 - Corriger le script et le workflow jusqu'au vert, puis refaire le contrôle par mutation.
+
+## 2026-10-16 11:52
+
+### Fait
+
+- Script corrigé : chemins lus séparés par NUL (`-z`, `core.quotePath=false`, pathspec `:(literal)`), `LC_ALL=C.UTF-8`, `pipefail`, code 2 sur toute erreur de Git, fichier `.excluded-names` ignoré en CI et refusé s'il est suivi, lignes ajoutées par chaque commit de la plage, `PR_TITLE`, `PR_BODY`, `PR_HEAD_REF`, `--all`, nom de moins de 3 caractères refusé.
+- Workflow : `actions/checkout` épinglé par SHA avec `persist-credentials: false` ; étape `::add-mask::` pour chaque nom ; sur une PR, version du script de la branche de base (repli sur celle de la PR tant qu'elle n'existe pas sur `main`, cas de cette PR) ; titre, description et branche passés par `env` ; sur un push, plage du push (`before..HEAD`).
+- Documentation : CLAUDE.md réduit à la commande et à un renvoi ; architecture technique détaillée (liste, non-divulgation, CI, limites et prérequis avant le passage en public) ; « deux workflows » corrigé en « trois ».
+- CA3 renforcé après mutation (une seule ligne de rapport par fichier ; cas ajouté, aucun test existant modifié).
+- Tests au vert : 86 vérifications sur 86, shellcheck propre. `dart format` et `dart analyze --fatal-infos` au vert. `flutter test` : 1 774 tests passent, 1 échoue, `analysis_queue_lifecycle_test.dart`, « CA34 : un désabonnement qui lève… » (`Bad state: désabonnement impossible`), déjà sur `main` : cette branche ne touche aucun fichier Dart.
+
+Contrôle par mutation, version finale (script restauré ensuite : 0 échec) :
+
+| Mutation | Vérifications en échec |
+| --- | --- |
+| M1 contenu des fichiers non cherché | 23 |
+| M2 messages des commits non cherchés | 6 |
+| M3a casse respectée dans `git grep` | 4 |
+| M3b casse respectée dans les autres recherches | 12 |
+| M4 liste vide acceptée en CI | 4 |
+| M5a ligne trouvée affichée (`git grep` sans `-l`) | 1 (CA3 renforcé ; avant renforcement, 0 : le masquage du chemin cachait la ligne) |
+| M5b liste affichée à l'échec | 26 (CA9) |
+| M6 chemins non cherchés | 5 |
+| M7 auteur et committer non cherchés | 8 |
+| M8 chemin jamais masqué | 6 (CA9) |
+| M9 `.excluded-names` ignoré hors CI | 4 |
+| M10 entrées vides gardées | 8 |
+| M11 plage ignorée (tout l'historique) | 5 |
+| M12 `.excluded-names` lu en CI | 1 (CA15) |
+| M13 `.excluded-names` suivi accepté | 1 (CA15) |
+| M14 titre, description, branche non vérifiés | 6 |
+| M15 `core.quotePath` par défaut | 0 : mutation équivalente, `-z` n'échappe jamais les chemins ; gardé pour les en-têtes de diff |
+| M16 diff des commits non lu | 4 |
+| M17 lignes retirées lues aussi | 1 (CA18) |
+| M18 `--all` sans effet | 2 (CA19) |
+| M19 nom trop court accepté | 1 (CA20) |
+| M20 à M23 erreur de `git grep`, `log` (les deux appels), `show`, `ls-files` ignorée | 1 chacune (CA21) |
+| M24 objet Git non cité | 1 (CA8) |
+
+### Décisions
+
+- Branche spéciale `--all` retirée : `git rev-list --all` la comprend déjà (mutation M18 d'abord équivalente) (agent, par délégation de Yanis du 2026-10-16).
+- Un titre modifié après l'ouverture de la PR ne relance pas le job : `types` n'est pas changé, pour ne pas relancer les autres jobs du workflow ; le commit de merge revoit le titre au push sur `main`. Limite documentée (agent, par délégation de Yanis du 2026-10-16).
+
+### Corrections et limites
+
+- Test humain : sans objet (aucun changement de comportement de l'app).
+- Le test CA34 de `analysis_queue_lifecycle_test.dart` échoue sur `main` : signalé dans la PR, non corrigé ici (hors sujet).
+- Je ne connais pas la liste réelle : rien ne garantit que `main` passe le contrôle des fichiers. Yanis doit le vérifier avec sa liste avant le merge.
+
+### Prochaine étape
+
+- Yanis : créer le secret `EXCLUDED_NAMES`, lancer le script en local avec sa liste, puis relire et merger la PR.

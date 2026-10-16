@@ -90,23 +90,61 @@ jobs:
 
   noms-exclus:
     name: Noms exclus
-    # Aucun nom de client ni d'employeur réel dans les fichiers suivis ni dans les
-    # commits de la PR (CLAUDE.md de l'espace de travail). La liste vient du secret
-    # EXCLUDED_NAMES et n'est jamais affichée ; sans lui, le job échoue. Un secret
-    # n'est pas transmis à une PR ouverte depuis un fork : le dépôt n'en reçoit pas.
+    # Aucun nom de client ni d'employeur réel dans les fichiers suivis, les commits
+    # ni le titre, la description et la branche de la PR (CLAUDE.md de l'espace de
+    # travail). La liste vient du secret EXCLUDED_NAMES et n'est jamais affichée ;
+    # sans lui, le job échoue. Déclencheur pull_request (jamais pull_request_target) :
+    # un secret n'est pas transmis à une PR ouverte depuis un fork, et le dépôt n'en
+    # reçoit pas.
     runs-on: ubuntu-latest
+    env:
+      LC_ALL: C.UTF-8
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      # Sur un push sur main, la plage origin/main..HEAD est vide : seuls les
-      # fichiers sont vérifiés.
-      - name: Fichiers suivis et commits de la PR
+      # GitHub masque la valeur entière du secret, pas chaque nom : chacun est
+      # masqué à part, au cas où une sortie future en citerait un.
+      - name: Masquage de chaque nom dans les journaux
         env:
           EXCLUDED_NAMES: ${{ secrets.EXCLUDED_NAMES }}
+        run: |
+          printf '%s' "$EXCLUDED_NAMES" | tr ',' '\n' | while IFS= read -r name; do
+            name=$(printf '%s' "$name" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+            if [ -n "$name" ]; then echo "::add-mask::$name"; fi
+          done
+
+      # Sur une PR, la version du script de la branche de base est lancée : une PR
+      # ne peut pas affaiblir le contrôle qui la vérifie (sauf la toute première,
+      # qui l'introduit). La plage contient le commit de merge de GitHub, et
+      # git grep porte sur l'arbre fusionné.
+      # Sur un push sur main, la plage est celle du push : elle contient le commit de
+      # merge, dont le message reprend le titre et la branche de la PR.
+      - name: Fichiers suivis, commits, titre et branche
+        env:
+          EXCLUDED_NAMES: ${{ secrets.EXCLUDED_NAMES }}
+          EVENT: ${{ github.event_name }}
           BASE_REF: ${{ github.base_ref }}
-        run: scripts/verifier-noms-exclus.sh "origin/${BASE_REF:-main}..HEAD"
+          BEFORE: ${{ github.event.before }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_HEAD_REF: ${{ github.head_ref }}
+        run: |
+          script=scripts/verifier-noms-exclus.sh
+          if [ "$EVENT" = pull_request ]; then
+            range="origin/${BASE_REF}..HEAD"
+            if git cat-file -e "origin/${BASE_REF}:$script" 2>/dev/null; then
+              git show "origin/${BASE_REF}:$script" >"$RUNNER_TEMP/verifier-noms-exclus.sh"
+              script="$RUNNER_TEMP/verifier-noms-exclus.sh"
+            fi
+          elif [ -z "$BEFORE" ] || [ "$BEFORE" = 0000000000000000000000000000000000000000 ]; then
+            range="HEAD..HEAD"
+          else
+            range="${BEFORE}..HEAD"
+          fi
+          bash "$script" "$range"
 
   secrets:
     name: Détection de secrets
