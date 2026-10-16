@@ -1,6 +1,6 @@
 # Journal : perf/empreinte-modele-native
 
-## 2026-10-16 11:29
+## 2026-10-16 11:30
 
 ### Fait
 
@@ -52,7 +52,7 @@ Critères : F1 appel de `sha256OfFile` avec `{path}` ; F2 empreinte native égal
 
 - Revues `reviewer` et `security-reviewer`, puis PR en brouillon.
 
-## 2026-10-16 12:10
+## 2026-10-16 11:59
 
 ### Fait
 
@@ -72,7 +72,7 @@ Critères : F1 appel de `sha256OfFile` avec `{path}` ; F2 empreinte native égal
 
 - Délai et `Throwable`, docs selon les revues, puis PR en brouillon et réponse aux revues.
 
-## 2026-10-16 12:08
+## 2026-10-16 12:09
 
 ### Fait
 
@@ -114,7 +114,7 @@ Critères : F1 appel de `sha256OfFile` avec `{path}` ; F2 empreinte native égal
 
 - Test humain par Yanis sur l'iPhone 15 Pro et l'émulateur `tidemark_api35` : chronométrer le premier étiquetage après un lancement. Puis reporter la mesure dans l'ADR-004 et la spec 003. Rebaser si la PR #40 est mergée avant. Ajuster ensuite la phrase des « Limites » du README (proposition dans la PR).
 
-## 2026-10-16 12:51
+## 2026-10-16 12:55
 
 ### Fait
 
@@ -127,7 +127,7 @@ Critères : F1 appel de `sha256OfFile` avec `{path}` ; F2 empreinte native égal
 
 ### Corrections et limites
 
-- Aucune nouvelle.
+- Les heures des entrées de ce journal ne correspondaient pas à l'heure réelle (heures estimées par l'agent, parfois dans le futur) : la CI refusait l'ordre chronologique. Chaque titre d'entrée reprend désormais l'heure du commit qui l'a créée (agent principal). Le contenu des entrées n'a pas changé.
 
 ### Prochaine étape
 
