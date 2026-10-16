@@ -89,6 +89,16 @@ Construit avec la chaîne [agentic-dev-workflow](https://github.com/yanis-vrolan
 - **Revues IA** : revue IA en CI à l'ouverture de chaque PR depuis la #2, subagents `reviewer` et `security-reviewer` avant les PR de fonctionnalité, et un commentaire « Réponse à la revue IA » qui donne une suite à chaque point. Une PR (#23) a été mergée avant ses revues : rattrapées par les PR #24 et #26.
 - **Traçabilité** : 27 PR mergées, un journal par branche dans [`docs/journal/`](docs/journal/) ; le dépôt est la seule mémoire de l'agent. Certaines entrées renvoient à `docs/projets/`, notes privées de l'espace de travail de l'auteur, hors de ce dépôt.
 
+## Lancement
+
+```sh
+flutter pub get
+scripts/fetch-llama-native.sh   # moteur llama.cpp, vérifié par empreinte SHA-256 (ADR-004)
+flutter run
+```
+
+Le script télécharge les archives de llama.cpp utilisées par `llamadart` et les compare aux empreintes écrites dans `scripts/llama-native.sha256` ; sans lui, la construction échoue. Il revérifie les archives à chaque lancement et efface la sortie gardée du hook, pour que la construction suivante extraie l'archive qu'il vient de vérifier : le relancer après chaque clonage et avant toute construction destinée à être installée ou distribuée. Une construction lancée sans lui reprend le dossier tel qu'il est. Détail : [ADR-004](docs/adr/004-integrite-du-moteur-et-du-modele.md).
+
 ## Licence
 
 [MIT](LICENSE). Licences du modèle (Apache-2.0), des polices (OFL), des icônes et des dépendances : [`docs/licences.md`](docs/licences.md).
