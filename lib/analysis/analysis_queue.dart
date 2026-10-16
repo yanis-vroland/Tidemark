@@ -64,14 +64,14 @@ class AnalysisQueue extends ChangeNotifier {
   bool _background = false;
   Future<void>? _stopping;
 
-  /// Entrées dont l'écriture du résultat a échoué (CA39) : aux séries suivantes,
-  /// elles passent après les autres. En mémoire seulement ; une écriture réussie
-  /// les en retire.
-  final Set<int> _saveFailed = <int>{}; // ordre d'échec (LinkedHashSet)
+  /// Entrées dont l'écriture du résultat (CA39) ou le marquage « non analysée »
+  /// (CA40) a échoué : aux séries suivantes, elles passent après les autres. En
+  /// mémoire seulement ; une écriture réussie les en retire.
+  final Set<int> _failureOrder = <int>{}; // ordre d'échec (LinkedHashSet)
 
-  /// L'écriture d'un résultat a échoué pendant ce passage : la file s'arrête
-  /// jusqu'au prochain événement, sans tenir compte de ceux reçus pendant ce
-  /// passage (CA39).
+  /// L'écriture d'un résultat ou un marquage « non analysée » a échoué pendant
+  /// ce passage : la file s'arrête jusqu'au prochain événement, sans tenir compte
+  /// de ceux reçus pendant ce passage (CA39, CA40).
   bool _writeFailed = false;
 
   /// Nombre de mises en arrière-plan : un résultat obtenu pendant que ce nombre a
@@ -207,13 +207,13 @@ class AnalysisQueue extends ChangeNotifier {
         } catch (_) {
           break;
         }
-        _saveFailed.retainAll(pending.map((e) => e.id));
+        _failureOrder.retainAll(pending.map((e) => e.id));
         if (pending.isEmpty || !_canRun) break;
         // La plus récente d'abord : celle qu'on vient d'écrire passe devant (CA13) ;
         // celles dont l'écriture a échoué passent après les autres (CA39).
         // Entre deux entrées en échec, la plus anciennement en échec d'abord :
         // aucune n'est délaissée.
-        final failures = _saveFailed.toList();
+        final failures = _failureOrder.toList();
         pending.sort((a, b) {
           final byFailure = failures
               .indexOf(a.id)
@@ -230,8 +230,14 @@ class AnalysisQueue extends ChangeNotifier {
           try {
             await repository.markSkipped([entry.id]);
           } catch (_) {
+            // Marquage impossible : l'entrée reste « en attente », sans jamais
+            // atteindre le modèle ; même règle que l'écriture du résultat
+            // impossible (RM57, CA40).
+            _recordWriteFailure(entry.id);
             break;
           }
+          // Marquage réussi : l'entrée n'est plus « en attente » et sort du rang.
+          _failureOrder.remove(entry.id);
           continue;
         }
         // « En cours » dès le chargement du modèle, jusqu'à l'écriture du
@@ -310,14 +316,22 @@ class AnalysisQueue extends ChangeNotifier {
       // Écriture impossible : l'entrée reste « en attente » (CA8) ; la file s'arrête
       // jusqu'au prochain événement, sans la reprendre dans cette série (CA39).
       // En fin d'ordre : la plus récemment en échec passera après les autres.
-      _saveFailed
-        ..remove(entryId)
-        ..add(entryId);
-      _writeFailed = true;
+      _recordWriteFailure(entryId);
       return false;
     }
-    _saveFailed.remove(entryId);
+    _failureOrder.remove(entryId);
     return true;
+  }
+
+  /// Écriture impossible pour [entryId] (résultat, CA39, ou marquage « non
+  /// analysée », CA40) : la file s'arrête jusqu'au prochain événement, sans tenir
+  /// compte de ceux reçus pendant ce passage, et l'entrée passe en fin d'ordre :
+  /// la plus récemment en échec passera après les autres.
+  void _recordWriteFailure(int entryId) {
+    _failureOrder
+      ..remove(entryId)
+      ..add(entryId);
+    _writeFailed = true;
   }
 
   /// Analyse avec un délai : au-delà, la génération est arrêtée et la file attend
