@@ -142,5 +142,21 @@ void main() {
       expect(LlamaLogging.level, LlamaLogLevel.none);
       expect(LlamaLogging.nativeLevel, LlamaLogLevel.none);
     });
+
+    // Ajouté après la revue IA : un réglage qui échoue n'est pas avalé.
+    test('spec 006 décision 14 : si le réglage des journaux échoue, write() '
+        'rend WriterFailed avant tout le reste', () async {
+      // Fichier absent : sans le garde-fou, write() irait jusqu'à ModelMissing.
+      final missing = File(
+        '${Directory.systemTemp.path}/tidemark_absent_${DateTime.now().microsecondsSinceEpoch}.gguf',
+      );
+      final writer = LlamaReviewWriter(
+        modelFile: missing,
+        gpuLayers: 0,
+        silenceLogs: () async => throw StateError('réglage impossible'),
+      );
+
+      expect(await writer.write(defaultFacts), isA<WriterFailed>());
+    });
   });
 }

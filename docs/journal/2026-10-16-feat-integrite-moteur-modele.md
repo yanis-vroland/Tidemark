@@ -97,3 +97,44 @@ Implémentation : `HttpModelDownloader`, `AnalysisQueue` (minimum), `ReviewNarra
 ### Prochaine étape
 
 Revues `reviewer` et `security-reviewer`, puis PR en brouillon ; test humain à faire par Yanis.
+
+## 2026-10-16 11:20
+
+### Fait
+
+- Suites de la revue de sécurité (`security-reviewer`, sans paramètre `model`) :
+  - point 1 (à corriger) : le contrôle du dossier énumère avec `find` ; les noms cachés (`.x`, `..x`) et les liens symboliques sont refusés ; même énumération dans `check-llama-hook-cache.sh` ; cas ajoutés aux tests ;
+  - point 2 (à corriger) : le hook ne déclare pas l'archive comme dépendance et `.dart_tool/hooks_runner/llamadart` garde sa sortie ; le script l'efface à chaque lancement (constaté : la construction suivante relance le hook, « Using local native bundle archive ») ; phrases « à chaque construction » corrigées dans `pubspec.yaml`, le README et l'architecture ;
+  - point 3 (à corriger) : `LLAMA_NATIVE_*` refusées hors de `LLAMA_NATIVE_TEST=1`, mode test annoncé sur stderr, `file://` admis seulement en mode test ;
+  - point 5 (suggestion) : `check-llama-hook-cache.sh` parcourt `hosted/*` (miroirs), échoue sans paquet `llamadart` ou sans extraction sous `local/` ;
+  - point 6 (suggestion) : limite des rechargements dans le même lancement écrite dans la spec 003 (cas limites) ;
+  - point 4 (suggestion) : non suivi, phase de build Xcode ou Gradle hors périmètre ; limite déjà écrite (README, architecture).
+- Suites de la revue `reviewer` (sans paramètre `model`) :
+  - point 1 (bloquant) : test du narrateur renforcé (`NarrationWithheld`, modèle resté prêt) ;
+  - point 2 : test que le calcul par défaut est `sha256OfFile` ;
+  - points 3 et 4 : voir la revue de sécurité ;
+  - point 5 : `LlamaReviewWriter` rend `WriterFailed` si le réglage des journaux échoue (paramètre `silenceLogs`), test ajouté ;
+  - point 6 : coûts mesurés repris dans les specs 003 et 004 ;
+  - point 9 : un calcul commencé avant un effacement suivi d'un retéléchargement rend l'état vérifié du nouveau fichier (`true`) au lieu de `false` ; test existant ajusté en conséquence (attente changée de `false` à `true`, signalé) ;
+  - point 10 : calcul orphelin écrit comme limite dans la spec 003 ;
+  - point 12 : test d'intégration file + vrai téléchargeur (`analysis_queue_single_verification_test.dart`, un seul calcul pour trois entrées) ;
+  - points 14, 15, 16 : statut de la spec 004 (CA38), `curl --connect-timeout 20 --max-time 600`, dépendance par `git/` non couverte écrite dans le script ;
+  - point 11 (effacer seulement si le fichier manque) : non suivi, la spec 003 (CA34) traite un fichier illisible comme une empreinte fausse, et l'app au premier plan lit son dossier `Application Support` ; à rediscuter si le test humain montre un effacement à tort ;
+  - point 13 (test d'écran de la carte pendant le calcul) : non suivi, l'état vient d'`immediate()`, testé, avant tout appel à `narrate()` ;
+  - points 7 et 17 : dépendance à la PR #35 (index des ADR, mentions « proposé ») et regroupement en une PR, dits dans la PR ; rebase après le merge de la #35.
+- Contrôle par mutation, deuxième tour : sortie du hook gardée, variables admises hors test, noms cachés ignorés, liens admis, contrôle B sans paquet, sans extraction locale ou sur un seul hôte, échec du réglage avalé par le rédacteur, génération changée rendue `false` : toutes tuées (les deux mutations du contrôle B sans paquet et sur un seul hôte survivaient au premier essai ; tests renforcés : message vérifié, miroir accepté avec seulement `local/`).
+- Vérifications : `dart format` sans changement, `dart analyze --fatal-infos` propre, `flutter test` 1 713 réussis, aussi avec `TZ=UTC` ; tests des deux scripts verts ; `shellcheck` propre.
+
+### Décisions
+
+- Le script efface la sortie gardée du hook à chaque lancement, plutôt que seulement après une altération : la construction suivante reprend toujours l'archive qui vient d'être vérifiée, pour environ une seconde d'extraction (agent, par délégation de Yanis du 2026-10-16).
+- Une seule PR pour le moteur et le modèle, au lieu de la PR `chore` séparée que prévoyait l'ADR : les deux touchent `pubspec.yaml`, la CI et les mêmes sections de l'architecture (agent, par délégation de Yanis du 2026-10-16).
+
+### Corrections et limites
+
+- La PR #35 (ADR-004 et ADR-005 acceptés) touche les mêmes sections de l'architecture technique et le cahier des charges : rebase à faire après son merge ; l'index des ADR et les mentions « ADR-005, proposé » de l'architecture sont laissés à la #35.
+- Test humain : à faire par Yanis (voir la PR).
+
+### Prochaine étape
+
+PR en brouillon ; rebase après le merge de la PR #35 ; test humain par Yanis, avec la mesure du hachage sur l'iPhone, qui décide du passage à l'option F.

@@ -45,9 +45,10 @@ flutter:
 # - SQLite3MultipleCiphers (ADR-002) : téléchargé par le hook de sqlite3, qui vérifie
 #   son empreinte au téléchargement et à chaque réutilisation du cache.
 # - llama.cpp (ADR-004, option A) : le hook de llamadart ne télécharge rien. Il
-#   extrait, à chaque construction, les archives de .llamadart-native/, déposées et
-#   vérifiées par scripts/fetch-llama-native.sh (empreintes épinglées dans
-#   scripts/llama-native.sha256). Sans ce dossier, la construction échoue.
+#   extrait les archives de .llamadart-native/, déposées et vérifiées par
+#   scripts/fetch-llama-native.sh (empreintes épinglées dans
+#   scripts/llama-native.sha256), quand il se relance : le script efface sa sortie
+#   gardée pour l'y obliger. Sans ce dossier, la construction échoue.
 # - Un seul moteur natif embarqué, llama.cpp : LiteRT-LM, retenu par défaut par le
 #   hook, n'a aucun usage dans Tidemark (ADR-004, décision 3).
 hooks:

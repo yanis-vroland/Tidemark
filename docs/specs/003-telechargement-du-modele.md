@@ -79,7 +79,8 @@ Le lecteur GGUF de llama.cpp est du code natif en C++ : un fichier modifié de m
 - **Fichier téléchargé pendant ce lancement** : déjà vérifié avant son renommage (CA14) ; il compte comme vérifié, sans nouveau calcul.
 - **Hors du fil de l'interface** : le calcul tourne dans un isolat (`Isolate.run`), jamais sur le fil de l'interface : l'écran ne se fige pas. Deux demandes simultanées (étiquetage et bilan) partagent le même calcul.
 - **Modèle effacé pendant le calcul** (suppression totale, spec 005) : le résultat est ignoré, le modèle reste `absent`.
-- Coût : 6,7 à 7,0 s pour 1,1 Go sur un Mac M3 (ADR-004), à mesurer sur l'iPhone 15 Pro et l'émulateur Android au test humain. Seule la première analyse (ou le premier bilan) du lancement est retardée d'autant.
+- Coût : mesuré le 2026-10-16 sur un Mac M3, avec le calcul de l'app dans un isolat, sur un vrai fichier de 1,1 Go : 9,4 à 14,8 s (l'ADR-004 annonçait 6,7 à 7,0 s, mesurés sur un fichier creux, sans lecture du disque). Sur l'iPhone 15 Pro, **estimé** à 10 à 15 s, à mesurer au test humain, comme sur l'émulateur Android. Seule la première analyse (ou le premier bilan) du lancement est retardée d'autant. Le seuil de 10 s qui ferait passer à l'option F (calcul par la bibliothèque du système) sera probablement dépassé.
+- **Calcul orphelin** : un arrêt de la file ou une suppression totale pendant le calcul n'attend pas sa fin (spec 004, CA37), mais l'isolat continue de lire le fichier, déjà délié, jusqu'au bout (une dizaine de secondes) ; la place n'est rendue qu'à la fin. Limite assumée.
 
 ## Critères d'acceptation
 
@@ -182,7 +183,7 @@ Jetons manquants, à ajouter à la charte, à `tokens.json` et au test de fidél
 - App mise en arrière-plan : le système peut suspendre le transfert ; au retour, le délai de 30 s sans octet déclenche l'échec « réseau ». L'écran de progression prévient avant (« Garde Tidemark ouvert… »).
 - App fermée ou téléphone éteint pendant le téléchargement : CA21 au démarrage suivant.
 - Fichier définitif effacé par le système ou à la main : CA22, l'état redevient `absent`.
-- Fichier définitif modifié sans changer de taille (appareil rooté ou jailbreaké, conteneur d'une version de développement remplacé, stockage corrompu) : refusé avant tout chargement (CA34), effacé, modèle `absent`. Un remplacement entre la vérification et le chargement passerait : il exige un accès en écriture au conteneur pendant que l'app tourne, hors du modèle de menace (ADR-004).
+- Fichier définitif modifié sans changer de taille (appareil rooté ou jailbreaké, conteneur d'une version de développement remplacé, stockage corrompu) : refusé avant tout chargement (CA34), effacé, modèle `absent`. Un remplacement entre la vérification et le chargement, ou entre deux chargements du même lancement (après une libération du modèle, ou pour un bilan), passerait : il exige un accès en écriture au conteneur pendant que l'app tourne, c'est-à-dire un appareil déjà compromis, hors du modèle de menace (ADR-004). Limite assumée, signalée par la revue de sécurité du 2026-10-16.
 - Révision Hugging Face supprimée ou fichier déplacé : échec « réseau » (404). Il faudra une nouvelle version de l'app avec une nouvelle `ModelSource`. Limite écrite dans le README (lot J).
 - Serveur compromis qui sert un autre fichier : refusé par l'empreinte (CA15), quel que soit l'hôte.
 - Stockage plein : détecté seulement à l'écriture (CA18), sans vérification préalable de la place libre, qui demanderait un paquet natif de plus.

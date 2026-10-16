@@ -1,6 +1,6 @@
 # Spec 004 : étiquetage automatique
 
-Statut : validée (Yanis, merge de la PR #18, 2026-10-14 ; décisions métier déléguées à l'agent). Complétée le 2026-10-15 par la correction `fix/etiquetage-interruption` (arrière-plan, CA32 à CA35), à valider par Yanis avec sa PR. Complétée le 2026-10-16 par `feat/integrite-moteur-modele` (vérification de l'empreinte avant le premier chargement, CA36 et CA37, décision n° 11 ; agent, par délégation de Yanis, 2026-10-16), à valider par Yanis avec sa PR.
+Statut : validée (Yanis, merge de la PR #18, 2026-10-14 ; décisions métier déléguées à l'agent). Complétée le 2026-10-15 par la correction `fix/etiquetage-interruption` (arrière-plan, CA32 à CA35), à valider par Yanis avec sa PR. Complétée le 2026-10-16 par `feat/integrite-moteur-modele` (vérification de l'empreinte avant le premier chargement, CA36 à CA38, décision n° 11 ; agent, par délégation de Yanis, 2026-10-16), à valider par Yanis avec sa PR.
 Date : 2026-10-14
 
 ## Besoin
@@ -116,7 +116,7 @@ Conforme : `Tagged`, avec les émotions puis les thèmes, dans l'ordre de la sor
 - **Délai** : c'est la file qui mesure les 30 s. Au-delà, elle appelle `MoodAnalyzer.cancel()` et attend sa fin avant de passer à l'entrée suivante : la génération native est arrêtée (annulation de `llamadart` si elle existe, sinon `release()` du modèle, qui sera rechargé par `prepare()`). Un simple délai côté Dart ne suffit pas : il laisserait le moteur générer pendant l'analyse suivante.
 - **Interruption** : le statut n'est écrit qu'avec le résultat. Une analyse interrompue (app fermée, mise en arrière-plan) laisse l'entrée « en attente », reprise au prochain lancement de la file.
 - **Arrière-plan** : la file observe le cycle de vie de l'app (sur iOS, le GPU est refusé à une app en arrière-plan, et la génération échoue). Quand l'app est masquée ou mise en arrière-plan (`hidden`, `paused`, `detached`), la file appelle `cancel()` si une analyse est en cours, attend sa fin, n'écrit aucun résultat, quel qu'il soit (l'entrée reste « en attente »), puis libère le modèle ; aucune analyse ne démarre tant que l'app n'est pas revenue. Un chargement du modèle qui échoue pendant ce temps n'est pas un « modèle impossible à charger » : ni `verifyAfterLoadFailure()`, ni état « indisponible ». Au retour au premier plan (`resumed`), la file se relance d'elle-même. L'état `inactive` (centre de contrôle, appel entrant) n'interrompt rien.
-- **Entrée en cours** : l'entrée prise par la file est « en cours d'analyse » (CA20, CA22) dès le chargement du modèle, qui peut prendre 12 s (plus le calcul de l'empreinte au premier chargement du lancement, quelques secondes), et jusqu'à l'écriture de son résultat.
+- **Entrée en cours** : l'entrée prise par la file est « en cours d'analyse » (CA20, CA22) dès le chargement du modèle, qui peut prendre 12 s (plus le calcul de l'empreinte au premier chargement du lancement, 9 à 15 s mesurées sur un Mac M3, spec 003), et jusqu'à l'écriture de son résultat.
 
 ## Critères d'acceptation
 
