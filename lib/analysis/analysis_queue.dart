@@ -62,6 +62,17 @@ class AnalysisQueue extends ChangeNotifier {
   bool _again = false;
   bool _stopped = false;
   bool _background = false;
+  Future<void>? _stopping;
+
+  /// Entrées dont l'écriture du résultat a échoué (CA36) : aux séries suivantes,
+  /// elles passent après les autres. En mémoire seulement ; une écriture réussie
+  /// les en retire.
+  final Set<int> _saveFailed = <int>{}; // ordre d'échec (LinkedHashSet)
+
+  /// L'écriture d'un résultat a échoué pendant ce passage : la file s'arrête
+  /// jusqu'au prochain événement, sans tenir compte de ceux reçus pendant ce
+  /// passage (CA36).
+  bool _writeFailed = false;
 
   /// Nombre de mises en arrière-plan : un résultat obtenu pendant que ce nombre a
   /// changé vient d'une analyse interrompue (CA32, CA33).
@@ -104,8 +115,11 @@ class AnalysisQueue extends ChangeNotifier {
   }
 
   /// Arrête la file, et la génération en cours. Le modèle est libéré par la file
-  /// elle-même, une fois l'analyse terminée.
-  Future<void> stop() async {
+  /// elle-même, une fois l'analyse terminée. Idempotent : un second appel, pendant
+  /// le premier arrêt ou après, rend le même futur, sans refaire l'arrêt (CA34).
+  Future<void> stop() => _stopping ??= _stop();
+
+  Future<void> _stop() async {
     _stopped = true;
     if (!_halted.isCompleted) _halted.complete();
     await _lifecycle?.cancel();
@@ -175,6 +189,7 @@ class AnalysisQueue extends ChangeNotifier {
 
   Future<void> _run() async {
     _running = true;
+    _writeFailed = false;
     _done = Completer<void>();
     try {
       while (_canRun) {
@@ -184,9 +199,18 @@ class AnalysisQueue extends ChangeNotifier {
         } catch (_) {
           break;
         }
+        _saveFailed.retainAll(pending.map((e) => e.id));
         if (pending.isEmpty || !_canRun) break;
-        // La plus récente d'abord : celle qu'on vient d'écrire passe devant (CA13).
+        // La plus récente d'abord : celle qu'on vient d'écrire passe devant (CA13) ;
+        // celles dont l'écriture a échoué passent après les autres (CA36).
+        // Entre deux entrées en échec, la plus anciennement en échec d'abord :
+        // aucune n'est délaissée.
+        final failures = _saveFailed.toList();
         pending.sort((a, b) {
+          final byFailure = failures
+              .indexOf(a.id)
+              .compareTo(failures.indexOf(b.id));
+          if (byFailure != 0) return byFailure;
           final byTime = b.createdAt.compareTo(a.createdAt);
           return byTime != 0 ? byTime : b.id.compareTo(a.id);
         });
@@ -221,10 +245,12 @@ class AnalysisQueue extends ChangeNotifier {
       } finally {
         _running = false;
         _done.complete();
-        if (_again) {
-          _again = false;
-          _kick();
-        }
+        // Après un échec d'écriture, les événements reçus pendant ce passage (dont
+        // ceux de ses propres écritures) ne relancent pas la file : sinon, elle
+        // reprendrait la même entrée en boucle (CA36).
+        final again = _again && !_writeFailed;
+        _again = false;
+        if (again) _kick();
       }
     }
   }
@@ -273,9 +299,16 @@ class AnalysisQueue extends ChangeNotifier {
     try {
       await repository.saveAnalysis(entryId, result);
     } catch (_) {
-      // Écriture impossible : l'entrée reste « en attente » (CA8).
+      // Écriture impossible : l'entrée reste « en attente » (CA8) ; la file s'arrête
+      // jusqu'au prochain événement, sans la reprendre dans cette série (CA36).
+      // En fin d'ordre : la plus récemment en échec passera après les autres.
+      _saveFailed
+        ..remove(entryId)
+        ..add(entryId);
+      _writeFailed = true;
       return false;
     }
+    _saveFailed.remove(entryId);
     return true;
   }
 

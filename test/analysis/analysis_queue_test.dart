@@ -21,6 +21,22 @@ const distressText = 'J’ai envie de mourir.';
 
 const downloading = ModelDownloading(receivedBytes: 1, totalBytes: 10);
 
+/// Dépôt dont `saveAnalysis` lève pour les entrées de [failSaveFor] (CA36) ; les
+/// autres entrées sont écrites normalement.
+class FailSaveForRepository extends FakeEntryRepository {
+  /// Identifiants des entrées dont l'écriture du résultat échoue.
+  final Set<int> failSaveFor = {};
+
+  @override
+  Future<void> saveAnalysis(int entryId, AnalysisResult result) async {
+    if (failSaveFor.contains(entryId)) {
+      saveAnalysisCalls.add((entryId: entryId, result: result));
+      throw StateError('écriture impossible pour $entryId');
+    }
+    return super.saveAnalysis(entryId, result);
+  }
+}
+
 /// File et faux, avec l'arrêt de la file en fin de test.
 class QueueEnv {
   QueueEnv({
@@ -319,6 +335,130 @@ void main() {
 
       expect(env.status(a), AnalysisStatus.pending);
       expect(env.tags(a), isEmpty);
+      expect(env.queue.currentEntryId, isNull);
+    });
+
+    group('CA36 : écriture du résultat impossible pour la plus récente', () {
+      // Trois entrées en attente ; l'écriture échoue pour la plus récente (oct12).
+      ({FailSaveForRepository repo, Entry old, Entry mid, Entry recent})
+      seedThree() {
+        final repo = FailSaveForRepository();
+        final old = repo.seed(mood: 2, text: 'T10', createdAt: oct10);
+        final mid = repo.seed(mood: 3, text: 'T11', createdAt: oct11);
+        final recent = repo.seed(mood: 4, text: 'T12', createdAt: oct12);
+        repo.failSaveFor.add(recent.id);
+        return (repo: repo, old: old, mid: mid, recent: recent);
+      }
+
+      test('CA36 : l\'entrée en échec reste « en attente », son texte n\'est '
+          'reçu qu\'une fois malgré les événements du journal pendant '
+          'l\'analyse, et rien ne boucle', () async {
+        final s = seedThree();
+        final env = QueueEnv(
+          repo: s.repo,
+          analyzer: FakeMoodAnalyzer(
+            delays: {'T12': const Duration(milliseconds: 300)},
+          ),
+        );
+        await env.start();
+        await until(() => env.analyzer.received.isNotEmpty);
+
+        // Événements du journal pendant l'analyse : une entrée non « en attente »
+        // ajoutée, puis supprimée.
+        final other = s.repo.seed(
+          mood: 3,
+          text: null,
+          createdAt: DateTime(2026, 10, 9, 9),
+        );
+        await s.repo.deleteEntry(other.id);
+        await env.idle();
+        await wait();
+
+        expect(env.analyzer.received, ['T12']);
+        expect(s.repo.saveAnalysisCalls.map((c) => c.entryId), [s.recent.id]);
+        expect(env.status(s.recent), AnalysisStatus.pending);
+        expect(env.queue.currentEntryId, isNull);
+        // La file s'est arrêtée : les plus anciennes attendent le prochain
+        // événement.
+        expect(env.status(s.mid), AnalysisStatus.pending);
+        expect(env.status(s.old), AnalysisStatus.pending);
+
+        // Du temps passe, sans événement : aucune nouvelle analyse.
+        await wait(const Duration(milliseconds: 400));
+        expect(env.analyzer.received, ['T12']);
+      });
+
+      test('CA36 : au prochain événement, la nouvelle entrée et les deux '
+          'plus anciennes sont analysées avant que l\'entrée en échec ne '
+          'soit reprise, une seule fois pour cette série', () async {
+        final s = seedThree();
+        final env = QueueEnv(
+          repo: s.repo,
+          analyzer: FakeMoodAnalyzer(
+            results: {
+              'T13': Tagged([emotion('joie')]),
+              'T11': Tagged([emotion('calme')]),
+            },
+          ),
+        );
+        await env.run();
+        expect(env.analyzer.received, ['T12']);
+        expect(env.status(s.recent), AnalysisStatus.pending);
+
+        // Nouvelle entrée en attente : un événement du journal.
+        final fresh = s.repo.seed(mood: 5, text: 'T13', createdAt: oct13);
+        await env.idle();
+        await wait();
+
+        expect(env.analyzer.received, [
+          'T12',
+          'T13',
+          'T11',
+          'T10',
+          'T12',
+        ], reason: 'la nouvelle, puis oct11 et oct10, puis oct12 en dernier');
+        expect(env.status(fresh), AnalysisStatus.tagged);
+        expect(env.tags(fresh), [emotion('joie')]);
+        expect(env.status(s.mid), AnalysisStatus.tagged);
+        expect(env.tags(s.mid), [emotion('calme')]);
+        expect(env.status(s.old), AnalysisStatus.untagged);
+        expect(env.status(s.recent), AnalysisStatus.pending);
+
+        // Une seule reprise : plus rien ne se passe ensuite.
+        await wait(const Duration(milliseconds: 400));
+        expect(env.analyzer.received, hasLength(5));
+        expect(env.queue.currentEntryId, isNull);
+      });
+    });
+
+    test('CA36 : deux entrées dont l\'écriture échoue toujours sont reprises '
+        'chacune à son tour, la plus anciennement en échec d\'abord', () async {
+      final repo = FailSaveForRepository();
+      final y = repo.seed(mood: 2, text: 'TY', createdAt: oct11);
+      final x = repo.seed(mood: 4, text: 'TX', createdAt: oct12);
+      repo.failSaveFor.addAll([x.id, y.id]);
+      final env = QueueEnv(repo: repo);
+
+      // Première série : X (la plus récente) est essayée, échoue, arrêt.
+      await env.run();
+      expect(env.analyzer.received, ['TX']);
+
+      // Événements successifs, chacun une fois la file au repos : une entrée
+      // sans texte (« sans analyse ») ne génère aucune analyse nouvelle.
+      for (var day = 1; day <= 3; day++) {
+        repo.seed(mood: 3, text: null, createdAt: DateTime(2026, 10, day, 9));
+        await env.idle();
+        await wait();
+      }
+
+      expect(env.analyzer.received, [
+        'TX',
+        'TY',
+        'TX',
+        'TY',
+      ], reason: 'à tour de rôle, la plus anciennement en échec d\'abord');
+      expect(env.status(x), AnalysisStatus.pending);
+      expect(env.status(y), AnalysisStatus.pending);
       expect(env.queue.currentEntryId, isNull);
     });
 

@@ -37,9 +37,15 @@ const _months = [
 DateTime _civilDay(DateTime date) =>
     DateTime.utc(date.year, date.month, date.day);
 
-/// Jour de la semaine et date, sans l'année : « Mercredi 14 octobre ».
+/// Quantième du mois selon l'usage français : « 1er », puis « 2 », « 3 »…
+/// (spec 006, CA37).
+String dayOfMonth(int day) => day == 1 ? '1er' : '$day';
+
+/// Jour de la semaine et date, sans l'année : « Mercredi 14 octobre »,
+/// « Dimanche 1er novembre ».
 String weekdayAndDate(DateTime day) =>
-    '${_weekdays[day.weekday - 1]} ${day.day} ${_months[day.month - 1]}';
+    '${_weekdays[day.weekday - 1]} ${dayOfMonth(day.day)} '
+    '${_months[day.month - 1]}';
 
 /// Intertitre du jour [day] vu depuis [today] (dates locales) : « Aujourd'hui »,
 /// « Hier », « Lundi 12 octobre », ou « Lundi 13 octobre 2025 » pour une autre année.

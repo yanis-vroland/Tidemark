@@ -137,6 +137,87 @@ class GatedSaveRepository extends FakeEntryRepository {
   }
 }
 
+/// Dépôt dont l'abonnement de `watchEntries()` compte les appels à `cancel()`.
+/// Comme drift dans le temps simulé, le premier `cancel()` rend un futur terminé et
+/// les suivants un futur qui ne se termine jamais (tant que [hangLaterCancels]).
+class CancelCountingRepository extends FakeEntryRepository {
+  int cancelCalls = 0;
+
+  /// Faux : les `cancel()` suivants se terminent normalement (nettoyage de fin de
+  /// test, pour ne pas faire attendre les `tearDown`).
+  bool hangLaterCancels = true;
+
+  /// `cancel()` lève : un désabonnement en échec ne doit pas empêcher le reste
+  /// de l'arrêt (revue de sécurité de la PR).
+  bool throwOnCancel = false;
+
+  @override
+  Stream<List<Entry>> watchEntries() =>
+      _CancelCountingStream(super.watchEntries(), this);
+}
+
+class _CancelCountingStream extends Stream<List<Entry>> {
+  _CancelCountingStream(this._inner, this._owner);
+
+  final Stream<List<Entry>> _inner;
+  final CancelCountingRepository _owner;
+
+  @override
+  StreamSubscription<List<Entry>> listen(
+    void Function(List<Entry> event)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) => _CancelCountingSubscription(
+    _inner.listen(
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    ),
+    _owner,
+  );
+}
+
+class _CancelCountingSubscription implements StreamSubscription<List<Entry>> {
+  _CancelCountingSubscription(this._inner, this._owner);
+
+  final StreamSubscription<List<Entry>> _inner;
+  final CancelCountingRepository _owner;
+
+  @override
+  Future<void> cancel() {
+    _owner.cancelCalls++;
+    if (_owner.throwOnCancel) throw StateError('désabonnement impossible');
+    if (_owner.cancelCalls > 1 && _owner.hangLaterCancels) {
+      return Completer<void>().future;
+    }
+    return _inner.cancel();
+  }
+
+  @override
+  void onData(void Function(List<Entry> data)? handleData) =>
+      _inner.onData(handleData);
+
+  @override
+  void onError(Function? handleError) => _inner.onError(handleError);
+
+  @override
+  void onDone(void Function()? handleDone) => _inner.onDone(handleDone);
+
+  @override
+  void pause([Future<void>? resumeSignal]) => _inner.pause(resumeSignal);
+
+  @override
+  void resume() => _inner.resume();
+
+  @override
+  bool get isPaused => _inner.isPaused;
+
+  @override
+  Future<E> asFuture<E>([E? futureValue]) => _inner.asFuture(futureValue);
+}
+
 // ---------------------------------------------------------------------------
 // Environnement
 // ---------------------------------------------------------------------------
@@ -518,6 +599,76 @@ void main() {
 
       expect(analyzer.received, isEmpty);
       expect(analyzer.releaseCalls, greaterThanOrEqualTo(1));
+    });
+  });
+
+  group('CA34 : second stop() (issue #33)', () {
+    /// File démarrée sur un dépôt dont le second `cancel()` ne se termine jamais ;
+    /// le faux redevient normal avant le `tearDown` de [LifeEnv].
+    Future<
+      ({LifeEnv env, CancelCountingRepository repo, LoggingAnalyzer analyzer})
+    >
+    startedQueue() async {
+      final repo = CancelCountingRepository();
+      final analyzer = LoggingAnalyzer(delays: {textA: null});
+      final env = LifeEnv(repo: repo, analyzer: analyzer);
+      addTearDown(() => repo.hangLaterCancels = false);
+      repo.seed(mood: 3, text: textA, createdAt: oct10);
+      await env.start();
+      await eventually(
+        () => analyzer.received.length == 1,
+        'l\'analyse doit démarrer',
+      );
+      return (env: env, repo: repo, analyzer: analyzer);
+    }
+
+    test('CA34 : stop() puis stop() : le second appel se termine', () async {
+      final s = await startedQueue();
+      await s.env.queue.stop().timeout(const Duration(seconds: 2));
+
+      await s.env.queue.stop().timeout(const Duration(seconds: 2));
+    });
+
+    test('CA34 : deux stop() lancés en même temps se terminent', () async {
+      final s = await startedQueue();
+
+      await Future.wait([s.env.queue.stop(), s.env.queue.stop()])
+          .timeout(const Duration(seconds: 2));
+    });
+
+    test('CA34 : le second stop() ne refait pas l\'arrêt : un seul cancel() '
+        'de l\'abonnement, aucun nouvel appel à cancel() ni release() de '
+        'l\'analyseur', () async {
+      final s = await startedQueue();
+      await s.env.queue.stop().timeout(const Duration(seconds: 2));
+      final cancelsBefore = s.analyzer.cancelCalls;
+      final releasesBefore = s.analyzer.releaseCalls;
+      expect(s.repo.cancelCalls, 1);
+
+      // Sans attendre sa fin : le test ne dépend pas d'un blocage éventuel.
+      unawaited(s.env.queue.stop());
+      await wait();
+
+      expect(
+        s.repo.cancelCalls,
+        1,
+        reason: 'l\'abonnement au journal n\'est annulé qu\'une fois',
+      );
+      expect(s.analyzer.cancelCalls, cancelsBefore);
+      expect(s.analyzer.releaseCalls, releasesBefore);
+    });
+
+    test('CA34 : un désabonnement qui lève n\'empêche pas le reste de '
+        'l\'arrêt : génération annulée, modèle libéré', () async {
+      final s = await startedQueue();
+      s.repo.throwOnCancel = true;
+      addTearDown(() => s.repo.throwOnCancel = false);
+
+      // `stop()` se termine normalement : aucune erreur ne remonte.
+      await s.env.queue.stop().timeout(const Duration(seconds: 2));
+
+      expect(s.analyzer.cancelCalls, greaterThanOrEqualTo(1));
+      expect(s.analyzer.releaseCalls, greaterThanOrEqualTo(1));
     });
   });
 
