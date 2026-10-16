@@ -48,10 +48,20 @@ String analysisFinishedMessage(Entry entry) {
 /// étiquette », la fin de l'analyse est annoncée (CA28) : annonce explicite sur
 /// iOS, région vive sur le nouveau statut ailleurs (Android), jamais les deux.
 class EntryTagsSection extends StatefulWidget {
-  const EntryTagsSection({super.key, required this.entry, this.downloader});
+  const EntryTagsSection({
+    super.key,
+    required this.entry,
+    this.downloader,
+    this.live = true,
+  });
 
   final Entry entry;
   final ModelDownloader? downloader;
+
+  /// [entry] est lue dans le journal, à jour. `false` : entrée transmise par la
+  /// liste, peut-être déjà analysée depuis ; son passage à l'état lu dans le
+  /// journal n'est pas une fin d'analyse (CA28).
+  final bool live;
 
   @override
   State<EntryTagsSection> createState() => _EntryTagsSectionState();
@@ -72,7 +82,8 @@ class _EntryTagsSectionState extends State<EntryTagsSection> {
       _finished = false;
       return;
     }
-    if (oldWidget.entry.analysisStatus != AnalysisStatus.pending ||
+    if (!oldWidget.live ||
+        oldWidget.entry.analysisStatus != AnalysisStatus.pending ||
         !_isFinal(entry.analysisStatus)) {
       return;
     }
@@ -108,7 +119,15 @@ class _EntryTagsSectionState extends State<EntryTagsSection> {
     if (_finished &&
         _isFinal(entry.analysisStatus) &&
         defaultTargetPlatform != TargetPlatform.iOS) {
-      body = Semantics(container: true, liveRegion: true, child: body);
+      // Le libellé porte l'annonce (TalkBack ne lit une région vive que si son
+      // libellé change) ; les lignes restent des nœuds à part.
+      body = Semantics(
+        container: true,
+        liveRegion: true,
+        explicitChildNodes: true,
+        label: analysisFinishedMessage(entry),
+        child: body,
+      );
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

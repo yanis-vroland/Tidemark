@@ -67,7 +67,7 @@ class AnalysisQueue extends ChangeNotifier {
   /// Entrées dont l'écriture du résultat a échoué (CA36) : aux séries suivantes,
   /// elles passent après les autres. En mémoire seulement ; une écriture réussie
   /// les en retire.
-  final Set<int> _saveFailed = {};
+  final Set<int> _saveFailed = <int>{}; // ordre d'échec (LinkedHashSet)
 
   /// L'écriture d'un résultat a échoué pendant ce passage : la file s'arrête
   /// jusqu'au prochain événement, sans tenir compte de ceux reçus pendant ce
@@ -206,10 +206,13 @@ class AnalysisQueue extends ChangeNotifier {
         if (pending.isEmpty || !_canRun) break;
         // La plus récente d'abord : celle qu'on vient d'écrire passe devant (CA13) ;
         // celles dont l'écriture a échoué passent après les autres (CA36).
+        // Entre deux entrées en échec, la plus anciennement en échec d'abord :
+        // aucune n'est délaissée.
+        final failures = _saveFailed.toList();
         pending.sort((a, b) {
-          final byFailure = (_saveFailed.contains(a.id) ? 1 : 0).compareTo(
-            _saveFailed.contains(b.id) ? 1 : 0,
-          );
+          final byFailure = failures
+              .indexOf(a.id)
+              .compareTo(failures.indexOf(b.id));
           if (byFailure != 0) return byFailure;
           final byTime = b.createdAt.compareTo(a.createdAt);
           return byTime != 0 ? byTime : b.id.compareTo(a.id);
@@ -286,7 +289,10 @@ class AnalysisQueue extends ChangeNotifier {
     } catch (_) {
       // Écriture impossible : l'entrée reste « en attente » (CA8) ; la file s'arrête
       // jusqu'au prochain événement, sans la reprendre dans cette série (CA36).
-      _saveFailed.add(entryId);
+      // En fin d'ordre : la plus récemment en échec passera après les autres.
+      _saveFailed
+        ..remove(entryId)
+        ..add(entryId);
       _writeFailed = true;
       return false;
     }
