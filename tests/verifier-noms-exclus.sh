@@ -305,6 +305,13 @@ verify_hidden "CA7 e-mail du committer"
 file_case 1 "CA8 : nom dans le chemin d'un fichier suivi, contenu neutre" "" \
   "Acmecorp" docs/acmecorp-notes.md "Un contenu parfaitement neutre"
 
+# Renforcé après revue : le fichier masqué est désigné par son objet Git, non vide
+r=$(repo_with_file docs/acmecorp-notes.md "Un contenu parfaitement neutre")
+blob=$(git -C "$r" rev-parse HEAD:docs/acmecorp-notes.md)
+run_env "$r" "EXCLUDED_NAMES=Acmecorp" -- main..HEAD
+verify 1 "CA8 : chemin masqué, objet Git du fichier cité" "objet $blob"
+verify_hidden "CA8 objet Git cité"
+
 # --- CA9 : plusieurs noms dans la liste et dans les résultats ----------------
 
 r=$(repo_with_file docs/notes.md "Acmecorp et Globex dans le même fichier")
@@ -356,6 +363,142 @@ verify 2 "CA13 : plage invalide, code de sortie 2" ""
 r=$(new_repo)
 run_env "$r" "EXCLUDED_NAMES=Acmecorp" -- main..HEAD main..HEAD
 verify 2 "CA13 : deux arguments, code de sortie 2" ""
+
+# --- CA15 : en CI, seul le secret compte ; .excluded-names suivi refusé -------
+# (ajouté après la revue de sécurité : un fichier versionné ne doit pas tenir
+# lieu de secret)
+
+r=$(repo_with_file docs/notes.md "Réunion avec Acmecorp demain")
+printf 'Acmecorp\n' >"$r/.excluded-names"
+run_env "$r" CI=true -- main..HEAD
+verify 1 "CA15 : CI=true, fichier .excluded-names ignoré, secret exigé" "EXCLUDED_NAMES"
+verify_hidden "CA15 fichier ignoré en CI"
+
+r=$(new_repo)
+printf 'Zzzzneutre\n' >"$r/.excluded-names"
+git -C "$r" add -f .excluded-names
+git -C "$r" commit -q -m "chore: ajout"
+run_env "$r" "EXCLUDED_NAMES=Acmecorp" -- main..HEAD
+verify 1 "CA15 : .excluded-names suivi par Git refusé" ".excluded-names"
+
+r=$(new_repo)
+printf '\n\n' >"$r/.excluded-names"
+run_script "$r" main..HEAD
+verify 0 "CA15 : hors CI, fichier fait de lignes vides, avertissement EXCLUDED_NAMES" "EXCLUDED_NAMES"
+
+# --- CA16 : titre, description et branche de la PR ---------------------------
+
+r=$(new_repo)
+run_env "$r" "EXCLUDED_NAMES=Acmecorp" "PR_TITLE=feat: demande de Acmecorp" -- main..HEAD
+verify 1 "CA16 : nom dans le titre de la PR" "titre"
+verify_hidden "CA16 titre de la PR"
+
+r=$(new_repo)
+run_env "$r" "EXCLUDED_NAMES=Globex" "PR_BODY=Contexte : retour de GLOBEX" -- main..HEAD
+verify 1 "CA16 : nom dans la description de la PR" "description"
+verify_hidden "CA16 description de la PR"
+
+r=$(new_repo)
+run_env "$r" "EXCLUDED_NAMES=Acmecorp" "PR_HEAD_REF=feat/acmecorp-export" -- main..HEAD
+verify 1 "CA16 : nom dans la branche de la PR" "branche"
+verify_hidden "CA16 branche de la PR"
+
+r=$(new_repo)
+run_env "$r" "EXCLUDED_NAMES=Acmecorp" "PR_TITLE=feat: export" "PR_BODY=Neutre" "PR_HEAD_REF=feat/export" -- main..HEAD
+verify 0 "CA16 : titre, description et branche neutres acceptés" ""
+
+# --- CA17 : chemins non ASCII ou avec espaces --------------------------------
+
+r=$(repo_with_file "docs/été notes.md" "Réunion avec Acmecorp demain")
+run_env "$r" "EXCLUDED_NAMES=Acmecorp" -- main..HEAD
+verify 1 "CA17 : chemin accentué avec espace cité en clair" "docs/été notes.md"
+verify_hidden "CA17 chemin accentué"
+
+r=$(repo_with_file "docs/Acmé notes.md" "Un contenu parfaitement neutre")
+run_env "$r" "EXCLUDED_NAMES=Acmé" -- main..HEAD
+verify 1 "CA17 : nom accentué dans un chemin détecté" ""
+if grep -qiF -- "acm" <<<"$output"; then
+  failed "CA17 : nom accentué dans un chemin jamais affiché, même échappé" "$(head -n 1 <<<"$output")"
+else
+  pass "CA17 : nom accentué dans un chemin jamais affiché, même échappé"
+fi
+
+r=$(repo_with_file "docs/Acmé notes.md" "Réunion avec Acmé demain")
+run_env "$r" "EXCLUDED_NAMES=Acmé" -- main..HEAD
+verify 1 "CA17 : nom accentué dans le chemin et le contenu détecté" ""
+if grep -qiF -- "acm" <<<"$output"; then
+  failed "CA17 : chemin accentué masqué dans le rapport du contenu" "$(head -n 1 <<<"$output")"
+else
+  pass "CA17 : chemin accentué masqué dans le rapport du contenu"
+fi
+
+# --- CA18 : lignes ajoutées par les commits de la plage ----------------------
+
+# Nom ajouté puis retiré dans la PR : absent de l'arbre final, mais présent
+# dans l'historique qui sera publié
+r=$(new_repo)
+git -C "$r" checkout -q -b feat/pr
+write_file "$r" docs/notes.md "Réunion avec Acmecorp demain"
+commit_all "$r" "docs: notes"
+sha=$(git -C "$r" rev-parse HEAD)
+write_file "$r" docs/notes.md "Réunion demain"
+commit_all "$r" "docs: notes revues"
+run_env "$r" "EXCLUDED_NAMES=Acmecorp" -- main..HEAD
+verify 1 "CA18 : nom ajouté puis retiré dans la plage, SHA du commit cité" "$sha"
+verify_hidden "CA18 nom ajouté puis retiré"
+
+# Une PR qui retire un nom déjà présent sur main est acceptée
+r=$(repo_with_file docs/notes.md "Réunion avec Acmecorp demain")
+git -C "$r" checkout -q -b feat/pr
+write_file "$r" docs/notes.md "Réunion demain"
+commit_all "$r" "docs: retrait"
+run_env "$r" "EXCLUDED_NAMES=Acmecorp" -- main..HEAD
+verify 0 "CA18 : PR qui retire un nom acceptée (lignes retirées ignorées)" ""
+
+# --- CA19 : tout l'historique ------------------------------------------------
+
+r=$(new_repo)
+write_file "$r" docs/notes.md "Réunion avec Globex demain"
+commit_all "$r" "docs: notes"
+sha=$(git -C "$r" rev-parse HEAD)
+write_file "$r" docs/notes.md "Réunion demain"
+commit_all "$r" "docs: notes revues"
+run_env "$r" "EXCLUDED_NAMES=Globex" -- main..HEAD
+verify 0 "CA19 : sans --all, l'historique de main n'est pas relu" ""
+run_env "$r" "EXCLUDED_NAMES=Globex" -- --all
+verify 1 "CA19 : --all relit tout l'historique, SHA cité" "$sha"
+verify_hidden "CA19 tout l'historique"
+
+# --- CA20 : motif trop court -------------------------------------------------
+
+r=$(new_repo)
+run_env "$r" "EXCLUDED_NAMES=Acmecorp,Gx" -- main..HEAD
+verify 2 "CA20 : nom de moins de 3 caractères refusé, code 2" ""
+if grep -qF -- "Gx" <<<"$output"; then
+  failed "CA20 : nom trop court jamais affiché" "$(head -n 1 <<<"$output")"
+else
+  pass "CA20 : nom trop court jamais affiché"
+fi
+
+# --- CA21 : une erreur de Git ne vaut jamais « rien trouvé » -----------------
+
+mkdir -p "$work/fakebin"
+real_git=$(command -v git)
+cat >"$work/fakebin/git" <<EOF
+#!/usr/bin/env bash
+for a in "\$@"; do
+  [ "\$a" = "\$FAIL_GIT_SUBCOMMAND" ] && exit 128
+done
+exec "$real_git" "\$@"
+EOF
+chmod +x "$work/fakebin/git"
+
+for sub in grep log show rev-list ls-files; do
+  r=$(repo_with_file docs/notes.md "Un contenu parfaitement neutre")
+  branch_commit "$r" "feat: travail neutre"
+  run_env "$r" "PATH=$work/fakebin:$PATH" "FAIL_GIT_SUBCOMMAND=$sub" "EXCLUDED_NAMES=Acmecorp" -- main..HEAD
+  verify 2 "CA21 : échec de git $sub, code de sortie 2" ""
+done
 
 # --- CA14 : .excluded-names ignoré par Git dans le vrai dépôt ----------------
 

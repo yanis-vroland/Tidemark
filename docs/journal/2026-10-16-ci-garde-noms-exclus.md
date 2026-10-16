@@ -74,10 +74,38 @@ Contrôle par mutation (chaque protection désactivée une fois, script restaur�
 
 ### Corrections et limites
 
-- Non vérifiés : titre et description de la PR, noms de branche, historique déjà mergé sur `main` (dont le commit 462ceb1, qui reste dans l'historique ; le réécrire est une décision de Yanis). Un secret n'est pas transmis à une PR ouverte depuis un fork : le dépôt n'en reçoit pas.
+- Non vérifiés : titre et description de la PR, noms de branche, historique déjà mergé sur `main`, qui contient déjà des noms exclus (le réécrire est une décision de Yanis). Un secret n'est pas transmis à une PR ouverte depuis un fork : le dépôt n'en reçoit pas.
 - Je ne connais pas la liste réelle : je n'ai pas pu vérifier que `main` passe déjà le contrôle. À vérifier par Yanis en local avec son `.excluded-names` avant le merge.
 - Test humain : sans objet (aucun changement de comportement de l'app).
 
 ### Prochaine étape
 
 - Revues `reviewer` et `security-reviewer`, puis PR.
+
+## 2026-10-16 11:31
+
+### Fait
+
+- Revues `reviewer` et `security-reviewer` : aucun point bloquant ; points « à corriger » repris ci-dessous.
+- Tests ajoutés avant correction (écrits par l'agent principal de la branche, pas par `test-writer`, pour aller vite sur des suites de revue) : CA15 à CA21, et CA8 renforcé (l'objet Git cité n'est pas vide ; le test d'origine n'est pas modifié, un cas s'ajoute).
+  - CA15 en CI, seul le secret compte (`.excluded-names` ignoré) ; un `.excluded-names` suivi par Git est refusé ; fichier fait de lignes vides traité comme absent.
+  - CA16 titre, description et branche de la PR (`PR_TITLE`, `PR_BODY`, `PR_HEAD_REF`).
+  - CA17 chemins accentués ou avec espaces : cités en clair, nom accentué détecté et jamais affiché, même échappé en octal.
+  - CA18 lignes ajoutées par chaque commit de la plage (un nom ajouté puis retiré dans la PR reste dans l'historique publié) ; une PR qui retire un nom est acceptée.
+  - CA19 option `--all` : tout l'historique, à lancer avant le passage en public.
+  - CA20 nom de moins de 3 caractères refusé (code 2), sans l'afficher.
+  - CA21 une erreur de `git grep`, `log`, `show`, `ls-files` ou `rev-list` donne le code 2, jamais « rien trouvé ».
+- Exécution rouge : 20 vérifications en échec sur 85, chacune pour l'absence du comportement. CA17 montre la fuite signalée par les revues : `"docs/Acm\303\251 notes.md"` affiché.
+
+### Décisions
+
+- Suites de revue retenues (agent, par délégation de Yanis du 2026-10-16) : toutes les corrections « à corriger » des deux revues, plus le motif trop court, `LC_ALL=C.UTF-8`, le masquage de chaque nom dans les journaux de CI (`::add-mask::`), l'exécution de la version du script de la branche de base, `actions/checkout` épinglé par SHA avec `persist-credentials: false`.
+- SHA du commit fautif retiré de ce journal : il désignerait où lire les noms une fois le dépôt public.
+
+### Corrections et limites
+
+- Le journal déjà mergé de `docs/readme-final` cite ce SHA ; il ne peut pas être modifié ici (`verifier-journal.sh`). À traiter lors de la réécriture de l'historique.
+
+### Prochaine étape
+
+- Corriger le script et le workflow jusqu'au vert, puis refaire le contrôle par mutation.
