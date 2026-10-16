@@ -96,7 +96,7 @@ Mise en œuvre : 1, 3 et 4 ne changent aucun comportement observable (PR `chore`
 
 ## Mise en œuvre de l'option F (2026-10-16)
 
-Statut : accepté (agent, par délégation de Yanis du 2026-10-16), à confirmer par Yanis avec la PR. Décision prise sans attendre la mesure sur l'iPhone que demandait le point 2 de la décision. Motif : sur le Mac M3, avec un vrai fichier de 1,1 Go, le calcul Dart de l'option E a pris 9,4 à 14,8 s (journal de `feat/integrite-moteur-modele`), déjà au niveau du seuil de 10 s fixé pour l'iPhone, dont les cœurs sont de la même génération.
+Statut : accepté (agent, par délégation de Yanis du 2026-10-16), confirmé par Yanis au merge de la PR #44 (2026-10-16). La mesure sur l'iPhone reste à faire. Décision prise sans attendre la mesure sur l'iPhone que demandait le point 2 de la décision. Motif : sur le Mac M3, avec un vrai fichier de 1,1 Go, le calcul Dart de l'option E a pris 9,4 à 14,8 s (journal de `feat/integrite-moteur-modele`), déjà au niveau du seuil de 10 s fixé pour l'iPhone, dont les cœurs sont de la même génération.
 
 Mise en œuvre (branche `perf/empreinte-modele-native`) :
 
