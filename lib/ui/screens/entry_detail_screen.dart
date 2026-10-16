@@ -37,15 +37,21 @@ class EntryDetailScreen extends StatefulWidget {
 }
 
 class _EntryDetailScreenState extends State<EntryDetailScreen> {
-  /// Le journal observé, créé une fois : une reconstruction ne réabonne pas
-  /// l'écran (issue #32).
-  late Stream<List<Entry>> _entries = widget.repository.watchEntries();
+  /// L'entrée affichée, observée seule (issue #39) et créée une fois : une
+  /// reconstruction ne réabonne pas l'écran (issue #32). Chaque émission est
+  /// enveloppée, pour qu'une entrée supprimée (`null`) compte comme une donnée
+  /// reçue, comme quand l'écran observait tout le journal.
+  late Stream<(Entry?,)> _entry = _watch();
+
+  Stream<(Entry?,)> _watch() =>
+      widget.repository.watchEntry(widget.entry.id).map((entry) => (entry,));
 
   @override
   void didUpdateWidget(EntryDetailScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.repository != widget.repository) {
-      _entries = widget.repository.watchEntries();
+    if (oldWidget.repository != widget.repository ||
+        oldWidget.entry.id != widget.entry.id) {
+      _entry = _watch();
     }
   }
 
@@ -182,14 +188,10 @@ class _EntryDetailScreenState extends State<EntryDetailScreen> {
                     ],
                     // L'entrée relue à chaque changement : ses étiquettes
                     // apparaissent dès que l'analyse se termine (CA18).
-                    StreamBuilder<List<Entry>>(
-                      stream: _entries,
+                    StreamBuilder<(Entry?,)>(
+                      stream: _entry,
                       builder: (context, snapshot) => EntryTagsSection(
-                        entry:
-                            snapshot.data
-                                ?.where((e) => e.id == entry.id)
-                                .firstOrNull ??
-                            entry,
+                        entry: snapshot.data?.$1 ?? entry,
                         downloader: widget.downloader,
                         // L'entrée vient du journal, pas de la liste : seule une
                         // transition vue ici est une fin d'analyse (CA28).

@@ -136,6 +136,28 @@ void _watchEntryCases(String name, RepositoryHandle Function() create) {
       expect(await repo.watchEntry(9999).first, isNull);
     });
 
+    test('parmi d\'autres entrées, plus anciennes et plus récentes : seule '
+        'l\'entrée demandée est émise', () async {
+      final older = await repo.addEntry(mood: 1, text: 'Plus ancienne.');
+      final observed = await repo.addEntry(mood: 3, text: 'Entrée observée.');
+      await repo.addEntry(mood: 5, text: 'Plus récente.');
+      await repo.saveAnalysis(older.id, const Tagged(_tags));
+
+      final entry = await repo.watchEntry(observed.id).first;
+
+      expect(entry?.id, observed.id);
+      expect(entry?.text, 'Entrée observée.');
+      expect(entry?.tags, isEmpty);
+    });
+
+    test('identifiant inexistant, avec d\'autres entrées : la première '
+        'émission est null', () async {
+      await repo.addEntry(mood: 2, text: 'Une entrée.');
+      await repo.addEntry(mood: 4, text: 'Une autre.');
+
+      expect(await repo.watchEntry(9999).first, isNull);
+    });
+
     test('autres entrées : aucune émission quand elles sont ajoutées, '
         'étiquetées ou supprimées', () async {
       final observed = await repo.addEntry(mood: 3, text: 'Entrée observée.');
@@ -164,6 +186,36 @@ void _watchEntryCases(String name, RepositoryHandle Function() create) {
 }
 
 void main() {
+  group('sameEntry', () {
+    Entry entry({List<Tag> tags = const []}) => Entry(
+      id: 1,
+      mood: 3,
+      text: 'Texte',
+      createdAt: DateTime.utc(2026, 10, 14, 19, 40),
+      utcOffset: const Duration(hours: 2),
+      analysisStatus: AnalysisStatus.tagged,
+      tags: tags,
+    );
+
+    test('mêmes champs et mêmes étiquettes, dans le même ordre : '
+        'identiques', () {
+      expect(sameEntry(entry(tags: _tags), entry(tags: [..._tags])), isTrue);
+      expect(sameEntry(null, null), isTrue);
+    });
+
+    test('étiquettes différentes, ou dans un autre ordre : différentes', () {
+      expect(
+        sameEntry(entry(tags: _tags), entry(tags: _tags.sublist(1))),
+        isFalse,
+      );
+      expect(
+        sameEntry(entry(tags: _tags), entry(tags: _tags.reversed.toList())),
+        isFalse,
+      );
+      expect(sameEntry(entry(), null), isFalse);
+    });
+  });
+
   _watchEntryCases('base en mémoire', () {
     final db = AppDatabase.memory();
     final repo = DriftEntryRepository(
