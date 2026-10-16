@@ -37,8 +37,9 @@ class MainActivity : FlutterActivity() {
             }
             try {
                 result.success(sha256OfFile(path))
-            } catch (e: Exception) {
-                // Sans le chemin ni le contenu : le Dart refait le calcul en repli.
+            } catch (e: Throwable) {
+                // Exception ou Error (mémoire) : toujours une réponse, sans le chemin
+                // ni le contenu ; le Dart refait le calcul en repli.
                 result.error("unreadable", null, null)
             }
         }

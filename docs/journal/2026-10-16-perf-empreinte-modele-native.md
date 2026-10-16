@@ -71,3 +71,26 @@ Critères : F1 appel de `sha256OfFile` avec `{path}` ; F2 empreinte native égal
 ### Prochaine étape
 
 - Délai et `Throwable`, docs selon les revues, puis PR en brouillon et réponse aux revues.
+
+## 2026-10-16 12:08
+
+### Fait
+
+- Délai de 60 s sur l'appel natif, puis repli (`SystemFileHasher.nativeTimeout`) ; Android attrape `Throwable`. Docstring : gain mesuré sur Mac seulement.
+- Docs selon les revues : ADR-004 (statut de la section F, empreinte attendue jamais envoyée au canal, `verifyAfterLoadFailure`, portée réelle des tests du natif, conséquences d'un défaut natif réécrites, gain de dix à vingt fois selon la charge, TOCTOU) ; spec 003 (coût et calcul orphelin au présent de F, `verifyAfterLoadFailure`) ; architecture technique (ligne de sécurité « pas encore mis en œuvre » corrigée dans cette PR, au risque d'un rebase après la PR #40).
+- Tests : `system_file_hasher_test.dart` 35/35 ; suite `+1809 -1`, aussi avec `TZ=UTC` (même échec préexistant, corrigé par la PR #41). `dart analyze --fatal-infos` sans remarque. APK debug, iOS simulateur et iOS appareil (`--no-codesign`) construits.
+- Mutations : 15, toutes tuées (M1 à M6 de l'entrée précédente, plus enregistrement iOS commenté, délai retiré, Android limité à `Exception`, calcul iOS hors de `queue.async`, Android sans file d'arrière-plan, `configureFlutterEngine` retiré, `modelSha256OfFile` sans voie native, empreinte attendue vide, empreinte attendue envoyée au canal).
+
+### Décisions
+
+- Section F de l'ADR-004 : « accepté (agent, par délégation de Yanis du 2026-10-16), à confirmer par Yanis avec la PR ». La revue jugeait que la délégation ne couvrait pas la révision d'un ADR ; non suivi, puisque les règles communes du 2026-10-16 permettent un ADR « accepté (agent, par délégation de Yanis) » ; signalé en tête des points d'attention de la PR (agent).
+- File d'arrière-plan explicite sur iOS (`DispatchQueue`), pas `makeBackgroundTaskQueue?()` : cette méthode est optionnelle dans le protocole et, absente, renverrait le calcul sur le fil principal (agent, par délégation de Yanis du 2026-10-16).
+- Empreinte attendue gardée dans `modelSha256OfFile`, et un test vérifie que le téléchargeur de l'app utilise la même source (`same(qwenModelSource)`), plutôt que de changer la signature de `hashFile` (agent, par délégation de Yanis du 2026-10-16).
+
+### Corrections et limites
+
+- iPhone et Android non mesurés. Test humain : à faire par Yanis.
+
+### Prochaine étape
+
+- PR en brouillon, puis commentaire « Réponse à la revue IA ».
