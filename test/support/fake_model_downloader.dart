@@ -25,6 +25,17 @@ class FakeModelDownloader implements ModelDownloader {
   /// Si non nul, [checkAtStartup] lève cette erreur.
   Object? checkAtStartupError;
 
+  /// Appels de [verifyBeforeFirstLoad] (spec 003, CA34).
+  int verifyBeforeLoadCalls = 0;
+
+  /// Empreinte juste au prochain [verifyBeforeFirstLoad] ; fausse : le modèle
+  /// repasse à `absent`, comme le vrai téléchargeur (CA34).
+  bool fingerprintMatches = true;
+
+  /// Si non nul, [verifyBeforeFirstLoad] attend ce signal avant de rendre son
+  /// résultat : un calcul de l'empreinte « en cours ».
+  Completer<void>? verifyBeforeLoadGate;
+
   /// Change l'état, comme le ferait le vrai téléchargeur.
   void emit(ModelState state) {
     _current = state;
@@ -68,4 +79,17 @@ class FakeModelDownloader implements ModelDownloader {
 
   @override
   Future<void> verifyAfterLoadFailure() async => verifyCalls++;
+
+  @override
+  Future<bool> verifyBeforeFirstLoad() async {
+    verifyBeforeLoadCalls++;
+    final gate = verifyBeforeLoadGate;
+    if (gate != null) await gate.future;
+    if (_current is! ModelReady) return false;
+    if (!fingerprintMatches) {
+      emit(const ModelAbsent());
+      return false;
+    }
+    return true;
+  }
 }
