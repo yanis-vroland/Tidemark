@@ -18,11 +18,16 @@ flowchart LR
   repo --> db[(journal.db, SQLite chiffré)]
   key[Trousseau iOS ou Keystore Android] --> db
   ui --> analyzer[MoodAnalyzer]
-  analyzer --> engine[llamadart : llama.cpp]
+  ui --> writer[ReviewWriter]
+  analyzer --> gate[ModelGate]
+  writer --> gate
+  gate --> engine[llamadart : llama.cpp]
   engine --> model[(Qwen2.5-1.5B-Instruct Q4_K_M, GGUF, sur le téléphone)]
 ```
 
 - **`MoodAnalyzer`** : interface qui isole le modèle local. Une implémentation factice sert aux tests et à la CI ; l'implémentation réelle repose sur `llamadart` 0.12.0, version épinglée exactement ([ADR-001](adr/001-moteur-ia-local.md)).
+- **`ReviewWriter`** : interface qui met en mots le bilan de la semaine ([spec 006](specs/006-bilan-de-la-semaine.md)), à partir de faits sans chiffre (`ReviewFacts`) ; tous les chiffres sont calculés en Dart par `WeeklyReviewCalculator` (RM10). Sortie validée par `ReviewTextValidator` (règles déterministes), texte gardé en mémoire seulement (RM54). `LlamaReviewWriter` charge le modèle pour une mise en mots puis le libère ; `FakeReviewWriter` sert aux tests.
+- **Accès au modèle** : `ModelGate`, un verrou partagé par l'analyseur (de `prepare` à `release`) et par le rédacteur (le temps d'une mise en mots) : jamais deux générations ni deux modèles en mémoire ([ADR-005](adr/005-partage-du-modele-local.md), proposé).
 - **Sortie** : contrainte par un schéma JSON qui porte la liste fermée des étiquettes (RM19), puis validée par l'app (RM9).
 - **Accélération** : GPU (Metal) sur iOS ; processeur seul sur Android tant que le GPU n'est pas vérifié sur un appareil réel.
 - **Modèle** : 1 117 320 736 octets (« 1,1 Go »), téléchargé une fois sur l'appui de la personne (RM11, RM18) par `HttpModelDownloader` dans `Application Support/tidemark/models/`, empreinte SHA-256 vérifiée avant le renommage du fichier ([spec 003](specs/003-telechargement-du-modele.md)) ; chargé en arrière-plan (jusqu'à 12 s au premier chargement sur iPhone 15 Pro).
@@ -89,6 +94,8 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 | `PhoneDialer` | `UrlLauncherDialer` (`url_launcher`, `tel:`) ; `FakePhoneDialer` dans `test/support/` | `HelpScreen` | Interface Dart : `dial(number)` rend vrai si le composeur s'est ouvert | `lib/ui/phone_dialer.dart` |
 | `AnalysisQueue` | `AnalysisQueue` (`ChangeNotifier`), créée et démarrée par `startApp` quand un analyseur existe | Liste et détail, par `AnalysisScope` (`InheritedNotifier`, `lib/ui/analysis_scope.dart`) | Classe Dart : `start`, `stop`, `currentEntryId` (entrée en cours d'analyse ou `null`), `state` (`AnalysisQueueState` : `idle`, `running`, `unavailable`), `whenIdle` (tests seulement) ; observe `EntryRepository.watchEntries` et `ModelDownloader.watch`, appelle `MoodAnalyzer` et `saveAnalysis` ([spec 004](specs/004-etiquetage-automatique.md)) | `lib/analysis/analysis_queue.dart` |
 | `MoodAnalyzer` | `LlamaMoodAnalyzer` (`llamadart` 0.12.0) ; `FakeMoodAnalyzer` dans `test/support/` pour les tests | `AnalysisQueue` (spec 004) | Interface Dart : `prepare`, `analyze(text)` (rend `Tagged` ou `Untagged`, jamais d'exception), `cancel`, `release` | `lib/analysis/mood_analyzer.dart` |
+| `ReviewWriter` | `LlamaReviewWriter` (`llamadart` 0.12.0) enveloppé par `GatedReviewWriter` ; `FakeReviewWriter` dans `test/support/` | `ReviewNarrator` (bilan de la semaine, spec 006) | Interface Dart : `write(ReviewFacts)` (rend `RawReview`, `ModelMissing` ou `WriterFailed`, jamais d'exception), `cancel` ; délai de 30 s et validation tenus par l'appelant | `lib/review/review_writer.dart` |
+| `ModelGate` | `lib/model/model_gate.dart` | `GatedMoodAnalyzer`, `GatedReviewWriter`, créés ensemble dans `openJournal` | `acquire({abandon})` rend la fonction de libération, dans l'ordre d'arrivée ([ADR-005](adr/005-partage-du-modele-local.md), proposé) | `lib/model/model_gate.dart` |
 | `LocalEngine` | Implémentation sur `llamadart` (seul code qui touche au modèle) ; moteurs factices dans les tests | `LlamaMoodAnalyzer` | Interface Dart : `generate(text)` (consigne et schéma de la spec 004), `cancelGeneration`, `dispose` ; `cancel()` de l'analyseur attend la génération, 5 s au plus, puis libère le moteur (spec 004, CA35) | `lib/analysis/llama_mood_analyzer.dart` |
 | Cycle de vie de l'app | `appLifecycleStates()` (`AppLifecycleListener`) dans `main` ; flux factice dans les tests | `AnalysisQueue` (spec 004, CA32, CA33) | `Stream<AppLifecycleState>` passé à `startApp` : `hidden`, `paused`, `detached` interrompent la file, `resumed` la relance | `lib/main.dart` |
 | Fichier d'export, version 1 (prévu, lot H) | `JournalExporter` | La personne, hors de l'app (lecture, archivage) | JSON versionné par `formatVersion` ; tout changement l'augmente | Section « Format » de la [spec 005](specs/005-export-et-suppression-totale.md) |
@@ -134,4 +141,5 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 | [ADR-001](adr/001-moteur-ia-local.md) | Moteur d'IA local | accepté |
 | [ADR-002](adr/002-stockage-local-chiffre.md) | Stockage local chiffré | accepté |
 | [ADR-003](adr/003-export-par-la-feuille-de-partage.md) | Export par la feuille de partage | accepté |
+| [ADR-005](adr/005-partage-du-modele-local.md) | Partage du modèle local entre l'étiquetage et le bilan | proposé |
 | [ADR-004](adr/004-integrite-du-moteur-et-du-modele.md) | Intégrité du moteur natif et du modèle | proposé |

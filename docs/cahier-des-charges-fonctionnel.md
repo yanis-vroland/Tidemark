@@ -57,6 +57,11 @@ Les termes du métier et leur nom dans le code. Les specs, le code et les PR uti
 | Sensibilité aux humeurs basses | `LowMoodSensitivity` : `high`, `normal`, `low` | Degré choisi par la personne qui fixe la série d'humeurs très basses déclenchant l'écran d'aide (RM25, RM29). |
 | Réglages | `SettingsRepository` (données), `SettingsScreen` (écran) | Choix de la personne, et l'écran où elle les fait. `SettingsRepository` est l'interface par laquelle l'app les lit et les enregistre, dont la sensibilité aux humeurs basses ([spec 002](specs/002-garde-fou-detresse.md)). |
 | Bilan de la semaine | `WeeklyReview` | Synthèse des entrées d'une semaine : chiffres calculés par l'app, mis en mots par le modèle local (RM10). |
+| Semaine locale | `LocalWeek` | Semaine du lundi au dimanche, en jours locaux, qui porte un bilan ([spec 006](specs/006-bilan-de-la-semaine.md)). |
+| Calculateur du bilan | `WeeklyReviewCalculator` | Code de l'app qui calcule tous les chiffres du bilan, sans modèle (RM10, RM50). |
+| Faits du bilan | `ReviewFacts` : `WeekRegularity`, `ReviewTrend` | Seules informations transmises au modèle pour le bilan, sans aucun chiffre : libellé de l'humeur moyenne, régularité, étiquettes fréquentes, tendance (RM51). |
+| Rédacteur du bilan | `ReviewWriter` | Interface qui met en mots les faits du bilan avec le modèle local ; une implémentation factice sert aux tests ([spec 006](specs/006-bilan-de-la-semaine.md)). |
+| Validateur du bilan | `ReviewTextValidator` | Règles déterministes qu'un texte du bilan doit passer pour être montré (RM53). |
 | Export | `export`, `JournalExporter` | Copie de toutes les données de la personne dans un fichier JSON, au format versionné de la [spec 005](specs/005-export-et-suppression-totale.md) (RM20, RM40). `JournalExporter` construit le fichier. |
 | Feuille de partage | `ShareSheet` | Interface de la feuille de partage du système, seule voie de sortie du fichier d'export (RM23, [ADR-003](adr/003-export-par-la-feuille-de-partage.md)). |
 | Suppression totale | `wipe`, `JournalWiper` | Effacement de toutes les données de l'app sur le téléphone, qui revient à l'état du premier lancement (RM12, RM42). `JournalWiper` en exécute les étapes. |
@@ -161,12 +166,15 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 | MVP (lot G) | Téléchargement du modèle local | [003](specs/003-telechargement-du-modele.md) | implémentée (PR #22) |
 | MVP (lot G) | Étiquetage automatique | [004](specs/004-etiquetage-automatique.md) | implémentée (PR #23) |
 | MVP (lot H) | Export et suppression totale | [005](specs/005-export-et-suppression-totale.md) | spec validée |
-| Si le temps le permet (lot I) | Bilan de la semaine | [006](specs/006-bilan-de-la-semaine.md) | spec validée |
+| Si le temps le permet (lot I) | Bilan de la semaine | [006](specs/006-bilan-de-la-semaine.md) | implémentée (PR #27, test humain en attente) |
 
 ## Questions ouvertes
 
 Questions métier non tranchées. Une fois la réponse donnée, elle rejoint la section concernée, et la question est retirée.
 
+- **Premier du mois dans les dates du bilan** (2026-10-15, lot I) : la spec 006 écrit les dates en chiffres (« Du lundi 12 au dimanche 18 octobre ») sans dire comment écrire le premier jour d'un mois. L'app écrit « 1 novembre » ; l'usage français serait « 1er novembre ». À trancher par Yanis.
+
+La question « Entrée sans analyse » (2026-10-14, lot G) est tranchée par RM34.
 Points de la [spec 004](specs/004-etiquetage-automatique.md) que la spec ne fixe pas, et que l'implémentation (PR #23) a tranchés sans les écrire (relevé du 2026-10-15). Yanis avait délégué les décisions métier de cette spec à l'agent, mais ces choix ont été faits dans le code, sans passer par la spec ni par sa validation : ils remontent ici pour être confirmés et écrits dans la spec, ou changés. Le comportement actuel est décrit.
 
 - **Écriture du résultat qui échoue (CA8)** : la spec dit que l'entrée reste « en attente », sans dire quand elle est reprise. Aujourd'hui, la file s'arrête (`lib/analysis/analysis_queue.dart`, l. 158 à 163) et libère le modèle (l. 166 à 170) ; l'entrée est analysée de nouveau, par un nouvel appel au modèle, au prochain réveil de la file : tout changement de la liste des entrées (un enregistrement, une suppression), un changement d'état du modèle ou le lancement suivant. Si l'écriture échoue toujours, chaque changement du journal relance une analyse de la même entrée ; comme la file prend toujours la plus récente d'abord, aucune entrée plus ancienne n'est plus analysée. Faut-il réessayer ainsi, attendre le lancement suivant, ou limiter le nombre d'essais ?

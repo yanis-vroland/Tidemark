@@ -9,9 +9,15 @@ import 'analysis/llama_mood_analyzer.dart';
 import 'analysis/mood_analyzer.dart';
 import 'distress/startup_screening.dart';
 import 'entries/entry_repository.dart';
+import 'model/gated_mood_analyzer.dart';
 import 'model/model_downloader.dart';
+import 'model/model_gate.dart';
 import 'model/model_source.dart';
 import 'model/model_transport.dart';
+import 'review/gated_review_writer.dart';
+import 'review/llama_review_writer.dart';
+import 'review/review_narrator.dart';
+import 'review/review_writer.dart';
 import 'settings/settings_repository.dart';
 import 'storage/app_database.dart';
 import 'storage/database_key.dart';
@@ -47,6 +53,7 @@ class Journal {
     required this.settings,
     required this.downloader,
     this.analyzer,
+    this.reviewWriter,
   });
 
   final EntryRepository entries;
@@ -54,6 +61,9 @@ class Journal {
 
   /// Analyseur du modèle local (spec 004) ; `null` : aucune analyse.
   final MoodAnalyzer? analyzer;
+
+  /// Rédacteur du bilan (spec 006) ; `null` : bilan sans texte.
+  final ReviewWriter? reviewWriter;
 
   /// Modèle local, dans le dossier `models/` à côté de la base (spec 003).
   final ModelDownloader downloader;
@@ -85,8 +95,13 @@ Future<Widget> startApp({
             downloader: journal.downloader,
             lifecycle: lifecycle,
           )..start());
+    final writer = journal.reviewWriter;
+    final narrator = writer == null
+        ? null
+        : ReviewNarrator(writer: writer, downloader: journal.downloader);
     return TidemarkApp(
       repository: journal.entries,
+      reviewNarrator: narrator,
       settings: journal.settings,
       downloader: journal.downloader,
       analysisQueue: queue,
@@ -116,6 +131,10 @@ Future<Journal> openJournal({Directory? folder, KeyStore? keyStore}) async {
   final db = await AppDatabase.openEncrypted(file, key);
   // Vérifie la clé dès le démarrage, plutôt qu'à la première lecture.
   await db.countEntries();
+  // Un seul accès au modèle pour l'étiquetage et le bilan : jamais deux
+  // générations ni deux modèles en mémoire (ADR-005, proposé).
+  final gate = ModelGate();
+  final modelFile = File('${dir.path}/models/${qwenModelSource.fileName}');
   return Journal(
     entries: DriftEntryRepository(db),
     settings: DriftSettingsRepository(db),
@@ -123,8 +142,10 @@ Future<Journal> openJournal({Directory? folder, KeyStore? keyStore}) async {
       transport: IoModelTransport(),
       folder: Directory('${dir.path}/models'),
     ),
-    analyzer: LlamaMoodAnalyzer(
-      modelFile: File('${dir.path}/models/${qwenModelSource.fileName}'),
+    analyzer: GatedMoodAnalyzer(LlamaMoodAnalyzer(modelFile: modelFile), gate),
+    reviewWriter: GatedReviewWriter(
+      LlamaReviewWriter(modelFile: modelFile),
+      gate,
     ),
   );
 }
@@ -137,6 +158,7 @@ class TidemarkApp extends StatelessWidget {
     required this.downloader,
     this.dialer = const UrlLauncherDialer(),
     this.analysisQueue,
+    this.reviewNarrator,
     this.clock,
   });
 
@@ -148,6 +170,10 @@ class TidemarkApp extends StatelessWidget {
   /// File d'analyse (spec 004), visible des écrans par [AnalysisScope] ; `null` :
   /// aucune analyse affichée.
   final AnalysisQueue? analysisQueue;
+
+  /// Mise en mots du bilan de la semaine (spec 006) ; `null` : bilan sans
+  /// rédacteur.
+  final ReviewNarrator? reviewNarrator;
 
   /// Date et heure locales ; [DateTime.now] par défaut.
   final DateTime Function()? clock;
@@ -164,6 +190,7 @@ class TidemarkApp extends StatelessWidget {
         downloader: downloader,
         dialer: dialer,
         clock: clock ?? DateTime.now,
+        narrator: reviewNarrator,
       ),
     );
     final queue = analysisQueue;
