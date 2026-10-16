@@ -49,6 +49,10 @@ xcuserdata/
 !.env.example
 .claude/settings.local.json
 
+# Liste locale des noms exclus (clients et employeurs réels), lue par
+# scripts/verifier-noms-exclus.sh : jamais versionnée, le dépôt sera public
+/.excluded-names
+
 # Dossiers de travail des subagents de Claude Code (isolation worktree)
 .claude/worktrees/
 
