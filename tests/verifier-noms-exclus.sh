@@ -208,6 +208,18 @@ verify 1 "CA2 : EXCLUDED_NAMES non vide prime sur le fichier (Globex détecté)"
 file_case 1 "CA3 : nom dans un fichier suivi, chemin cité" "docs/notes.md" \
   "Acmecorp" docs/notes.md "Réunion avec Acmecorp demain"
 
+# Renforcé après le contrôle par mutation : une seule ligne par fichier, sans
+# extrait du contenu (git grep -l)
+r=$(repo_with_file docs/notes.md "Réunion avec Acmecorp demain
+Acmecorp encore
+et Acmecorp")
+run_env "$r" "EXCLUDED_NAMES=Acmecorp" -- main..HEAD
+if [ "$code" -eq 1 ] && [ "$(grep -c '^Nom exclu' <<<"$output")" -eq 1 ]; then
+  pass "CA3 : une seule ligne de rapport pour un fichier à plusieurs occurrences"
+else
+  failed "CA3 : une seule ligne de rapport pour un fichier à plusieurs occurrences" "code $code : $(head -n 3 <<<"$output" | tr '\n' ' ')"
+fi
+
 r=$(new_repo)
 write_file "$r" docs/brouillon.md "Réunion avec Acmecorp demain"
 run_env "$r" "EXCLUDED_NAMES=Acmecorp" -- main..HEAD
