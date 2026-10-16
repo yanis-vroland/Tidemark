@@ -1,6 +1,6 @@
 # Spec 006 : bilan de la semaine
 
-Statut : validée (Yanis, merge de la PR #17, 2026-10-14 ; décisions métier déléguées à l'agent)
+Statut : validée (Yanis, merge de la PR #17, 2026-10-14 ; décisions métier déléguées à l'agent). Complétée le 2026-10-16 par la correction `fix/suites-revue-004` (premier du mois, CA37), agent, par délégation de Yanis du 2026-10-16.
 Date : 2026-10-14
 
 ## Besoin
@@ -248,6 +248,7 @@ Le texte validé n'est jamais enregistré dans la base. Il est gardé en mémoir
 ### Semaine affichée
 
 - CA4 : Étant donné l'écran du bilan, quand il s'affiche, alors il montre le retour « Journal », le titre « Ta semaine », les dates de la semaine (« 12 – 18 octobre » ; « 28 septembre – 4 octobre » quand le mois change ; avec l'année à chaque borne si elle diffère de l'année en cours), et la mention « Semaine en cours » ou « Semaine dernière » pour ces deux semaines, aucune pour les autres.
+- CA37 : Étant donné une date qui tombe le premier jour d'un mois, quand elle s'affiche dans l'app (carte et écran du bilan, intertitres des jours de la liste, date du détail d'une entrée), alors le jour s'écrit « 1er », selon l'usage français : « Du lundi 26 octobre au dimanche 1er novembre » et « 26 octobre – 1er novembre » ; « Du lundi 1er au dimanche 7 février » et « 1er – 7 février » ; « Dimanche 1er novembre » ; « Mercredi 1er janvier 2025 » avec l'année. Les autres jours restent en chiffres seuls (« Lundi 2 novembre »), et le libellé lu par le lecteur d'écran reprend le même texte (« Bilan de la semaine, du lundi 26 octobre au dimanche 1er novembre »).
 - CA5 : Étant donné l'écran du bilan, quand la personne touche « Semaine précédente » ou « Semaine suivante », alors la semaine affichée change. « Semaine suivante » est désactivé sur la semaine en cours, « Semaine précédente » sur la semaine de l'entrée la plus ancienne.
 - CA6 : Étant donné une semaine de 0, 1 ou 2 entrées, quand elle s'affiche, alors l'écran montre « Pas encore de bilan pour cette semaine » et « Le bilan demande au moins 3 entrées dans la semaine ; celle-ci en compte 2. » (« celle-ci en compte 1. » pour 1 ; « celle-ci n'en compte aucune. » pour 0), sans chiffre ni texte, et le rédacteur n'est pas appelé (RM21).
 - CA7 : Étant donné une entrée saisie le dimanche à 23:30, heure locale, dans un fuseau, et l'app ouverte ensuite dans un autre fuseau, quand le bilan est calculé, alors l'entrée compte dans la semaine de ce dimanche (jour local de saisie, spec 001).
@@ -359,3 +360,4 @@ Aucune. Décisions prises par l'agent, à la demande de Yanis (2026-10-14) :
 11. **Arrondis** : libellé transmis au modèle depuis la moyenne exacte, tendance depuis les moyennes affichées (CA35).
 12. **Impératifs** : injonctions courantes ajoutées à la liste ; les autres impératifs sont une limite assumée, documentée par CA36, plutôt qu'une analyse grammaticale fragile.
 13. **`ModelMissing` et `WriterFailed`** : messages de CA27 et de CA22.
+14. **Premier du mois** (question ouverte du cahier des charges, 2026-10-15 ; tranchée le 2026-10-16 par l'agent, par délégation de Yanis) : « 1er », l'usage français, partout où une date s'affiche, y compris la liste et le détail de la spec 001 (CA37).
