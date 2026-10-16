@@ -30,11 +30,48 @@ final forbidden = <String, RegExp>{
   'package:dio': RegExp(r'package:dio\b'),
 };
 
-/// Remplace les commentaires par des espaces, en gardant les retours à la ligne.
-String withoutComments(String source) => source.replaceAllMapped(
-  RegExp(r'/\*[\s\S]*?\*/|//[^\n]*'),
-  (m) => m[0]!.replaceAll(RegExp(r'[^\n]'), ' '),
-);
+/// Remplace les commentaires par des espaces, en gardant les retours à la ligne
+/// et les chaînes de caractères : un `//` ou un `/*` dans une chaîne (« https://… »,
+/// « models/*.gguf ») n'ouvre pas de commentaire. Limite : les chaînes imbriquées
+/// dans une interpolation `${…}` ne sont pas suivies.
+String withoutComments(String source) {
+  String blank(String text) => text.replaceAll(RegExp(r'[^\n]'), ' ');
+  final out = StringBuffer();
+  final n = source.length;
+  var i = 0;
+  while (i < n) {
+    if (source.startsWith('//', i)) {
+      final end = source.indexOf('\n', i);
+      final stop = end < 0 ? n : end;
+      out.write(blank(source.substring(i, stop)));
+      i = stop;
+    } else if (source.startsWith('/*', i)) {
+      final end = source.indexOf('*/', i + 2);
+      final stop = end < 0 ? n : end + 2;
+      out.write(blank(source.substring(i, stop)));
+      i = stop;
+    } else if (source[i] == "'" || source[i] == '"') {
+      final raw = i > 0 && source[i - 1] == 'r';
+      final quote = source.startsWith(source[i] * 3, i)
+          ? source[i] * 3
+          : source[i];
+      var j = i + quote.length;
+      while (j < n && !source.startsWith(quote, j)) {
+        if (quote.length == 1 && source[j] == '\n') break;
+        j += !raw && source[j] == r'\' ? 2 : 1;
+      }
+      final stop = j < n && source.startsWith(quote, j)
+          ? j + quote.length
+          : (j < n ? j : n);
+      out.write(source.substring(i, stop));
+      i = stop;
+    } else {
+      out.write(source[i]);
+      i++;
+    }
+  }
+  return out.toString();
+}
 
 /// Ce que [source] fait d'interdit : noms de [forbidden] trouvés, et usages de
 /// `url_launcher` autres que `launchUrl(Uri(scheme: 'tel', …))`.
@@ -246,4 +283,188 @@ Future<bool> dial(String n) => launchUrl(Uri(scheme: 'tel', path: n));
       }
     });
   });
+
+  group('llamadart : source du modèle (issue #31)', () {
+    const import = "import 'package:llamadart/llamadart.dart' as llama;\n";
+
+    final refused = {
+      'ModelSource.url préfixé':
+          "final m = llama.LlamaModel(llama.ModelSource.url("
+          "Uri.parse('https://x/m.gguf')));",
+      'ModelSource.huggingFace':
+          "final s = ModelSource.huggingFace(repo: 'a/b', file: 'm.gguf');",
+      'ModelSource.parse': "final s = llama.ModelSource.parse('https://x');",
+      'ModelSource.url coupé sur deux lignes':
+          'final s = llama.ModelSource\n  .url(u);',
+      'loadModelFromUrl': 'await engine.loadModelFromUrl(u);',
+      'loadModel avec une adresse':
+          "await engine.loadModel('https://x/m.gguf');",
+      'LlamaModel avec une source passée par une variable':
+          'final m = llama.LlamaModel(source);',
+      'loadModelFromUrl référencée sans appel':
+          'final load = engine.loadModelFromUrl;\nawait load(u);',
+      'setLoraSource': 'await engine.setLoraSource(src);',
+      'loadMultimodalProjectorSource':
+          'await engine.loadMultimodalProjectorSource(src);',
+      'LlamaModel.new avec une variable':
+          'final m = llama.LlamaModel.new(src);',
+      'alias de type de ModelSource':
+          'typedef Src = llama.ModelSource;\nfinal s = Src.url(u);',
+      'ModelSource.url après une adresse sur la même ligne':
+          "final u = Uri.parse('https://h/m.gguf'); "
+          'final m = llama.LlamaModel(llama.ModelSource.url(u));',
+      'ModelSource.url après un /* dans une chaîne':
+          "final g = 'models/*.gguf';\n"
+          'final m = llama.LlamaModel(llama.ModelSource.url(u));\n'
+          "final h = '*/';",
+      'part dans un fichier llamadart': "part 'loader_part.dart';",
+      'llamadart réexporté': "export 'package:llamadart/llamadart.dart';",
+      'projecteur passé par une variable':
+          'final m = llama.LlamaModel(llama.ModelSource.path(p), '
+          'projector: other);',
+    };
+    for (final MapEntry(key: name, value: body) in refused.entries) {
+      test('issue #31 : refuse, avec import llamadart, $name', () {
+        expect(llamadartViolations('$import$body'), isNotEmpty);
+      });
+    }
+
+    test('issue #31 : un fichier qui ne fait que réexporter llamadart, sans '
+        'import, est refusé', () {
+      expect(
+        llamadartViolations("export 'package:llamadart/llamadart.dart';"),
+        isNotEmpty,
+      );
+    });
+
+    test('issue #31 : un import conditionnel de llamadart est analysé', () {
+      expect(
+        llamadartViolations(
+          "import 'stub.dart' if (dart.library.io) "
+          "'package:llamadart/llamadart.dart' as llama;\n"
+          'final s = llama.ModelSource.url(u);',
+        ),
+        isNotEmpty,
+      );
+    });
+
+    test('issue #31 : admet une source locale, ModelSource.path', () {
+      expect(
+        llamadartViolations(
+          '${import}final m = '
+          'llama.LlamaModel(llama.ModelSource.path(modelFile.path));',
+        ),
+        isEmpty,
+      );
+    });
+
+    test('issue #31 : admet ModelSource.path sans préfixe d\'import', () {
+      expect(
+        llamadartViolations(
+          "import 'package:llamadart/llamadart.dart';\n"
+          'final m = LlamaModel(ModelSource.path(modelFile.path));',
+        ),
+        isEmpty,
+      );
+    });
+
+    test('issue #31 : un fichier sans import llamadart qui utilise la classe '
+        'ModelSource de l\'app n\'est pas concerné', () {
+      expect(
+        llamadartViolations(
+          "import '../model/model_source.dart';\n"
+          'final ok = ModelSource.isAllowed(next);',
+        ),
+        isEmpty,
+      );
+    });
+
+    test('issue #31 : les commentaires sont ignorés', () {
+      expect(
+        llamadartViolations(
+          '$import// ModelSource.url(u) est interdit\n'
+          '/* engine.loadModelFromUrl(u) */\n'
+          'final m = llama.LlamaModel(llama.ModelSource.path(p));',
+        ),
+        isEmpty,
+      );
+    });
+
+    final libFiles = [
+      for (final file in Directory('lib').listSync(recursive: true))
+        if (file is File && file.path.endsWith('.dart')) file,
+    ];
+    final importers = [
+      for (final file in libFiles)
+        if (RegExp(r'''import\s+['"]package:llamadart/''')
+            .hasMatch(file.readAsStringSync()))
+          file.path.replaceAll(r'\', '/'),
+    ];
+
+    test('issue #31 : le balayage voit les fichiers qui importent llamadart '
+        '(il n\'est pas vide)', () {
+      expect(importers.length, greaterThanOrEqualTo(2));
+      expect(
+        importers,
+        containsAll([
+          endsWith('lib/analysis/llama_mood_analyzer.dart'),
+          endsWith('lib/review/llama_review_writer.dart'),
+        ]),
+      );
+    });
+
+    test('issue #31 : aucun fichier de lib/, lib/model/ compris, ne crée une '
+        'source de modèle autrement que par ModelSource.path', () {
+      final found = {
+        for (final file in libFiles)
+          file.path: llamadartViolations(file.readAsStringSync()),
+      }..removeWhere((_, v) => v.isEmpty);
+
+      expect(found, isEmpty);
+    });
+  });
+}
+
+/// Ce qu'un fichier qui mentionne `package:llamadart` (import, import conditionnel,
+/// réexport) fait d'interdit : toute source de modèle autre que
+/// `ModelSource.path(` (adresse, Hugging Face, `parse`, alias, source passée par une
+/// variable), les méthodes du moteur qui acceptent une adresse ou une autre source
+/// (`loadModel*`, `setLoraSource`, `loadMultimodalProjectorSource`), le réexport de
+/// llamadart et les fichiers `part`, que le balayage ne relierait pas. Commentaires
+/// ignorés ; un fichier qui ne mentionne pas llamadart n'est pas concerné (la
+/// classe `ModelSource` de l'app, `lib/model/model_source.dart`, porte le même
+/// nom). Issue #31.
+List<String> llamadartViolations(String source) {
+  final code = withoutComments(source);
+  if (!code.contains('package:llamadart')) return const [];
+  const localSource = r'(\w+\s*\.\s*)?ModelSource\s*\.\s*path\s*\(';
+  final found = <String>[
+    if (RegExp(r'''\bexport\s+['"]package:llamadart''').hasMatch(code))
+      'llamadart : réexport',
+    if (RegExp(r'^\s*part\b', multiLine: true).hasMatch(code))
+      'llamadart : part',
+    // `ModelSource` n'apparaît que suivi de `.path(` : ni autre fabrique, ni
+    // alias, ni variable typée.
+    for (final m in RegExp(
+      r'\bModelSource\b(?!\s*\.\s*path\s*\()',
+    ).allMatches(code))
+      'llamadart : ModelSource autre que path (${m.start})',
+    // Méthodes du moteur qui acceptent une adresse ou une autre source, appelées
+    // ou seulement référencées.
+    for (final m in RegExp(
+      r'\b(loadModel\w*|setLoraSource|loadMultimodalProjectorSource)\b',
+    ).allMatches(code))
+      'llamadart : ${m[1]}',
+    // Le modèle (et son projecteur) reçoit sa source directement de
+    // `ModelSource.path(`, jamais d'une variable construite ailleurs.
+    for (final m in RegExp(
+      r'\bLlamaModel\b(?!\s*(\.\s*new\s*)?\(\s*' + localSource + r')',
+    ).allMatches(code))
+      'llamadart : LlamaModel sans ModelSource.path (${m.start})',
+    for (final m in RegExp(
+      r'\bprojector\s*:\s*(?!' + localSource + r')',
+    ).allMatches(code))
+      'llamadart : projector sans ModelSource.path (${m.start})',
+  ];
+  return found;
 }

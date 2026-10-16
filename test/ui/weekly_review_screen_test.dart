@@ -255,6 +255,33 @@ void main() {
       );
     }, build: () => ReviewEnv(now: DateTime(2026, 1, 2, 10)));
 
+    envTest('CA37 : le dimanche 1er novembre, la carte écrit « 1er » et '
+        's\'annonce « Bilan de la semaine, du lundi 26 octobre au dimanche '
+        '1er novembre »', (tester, env) async {
+      await env.addAt(DateTime(2026, 10, 28, 9), 3);
+      await showList(tester, env);
+
+      expect(
+        find.text('Du lundi 26 octobre au dimanche 1er novembre'),
+        findsOneWidget,
+      );
+      final label = find.bySemanticsLabel(
+        RegExp(
+          r'^Bilan de la semaine, du lundi 26 octobre au dimanche 1er novembre$',
+        ),
+      );
+      expect(label, findsOneWidget);
+      expect(tester.getSemantics(label).flagsCollection.isButton, isTrue);
+    }, build: () => ReviewEnv(now: DateTime(2026, 10, 28, 10)));
+
+    envTest('CA37 : l\'écran du bilan de cette semaine écrit « 26 octobre – '
+        '1er novembre »', (tester, env) async {
+      await env.addAt(DateTime(2026, 10, 28, 9), 3);
+      await showReview(tester, env);
+
+      expect(find.text('26 octobre $dash 1er novembre'), findsOneWidget);
+    }, build: () => ReviewEnv(now: DateTime(2026, 10, 28, 10)));
+
     envTest('CA2 : liste vide : pas de carte ; dès la première entrée, '
         'elle apparaît', (tester, env) async {
       await showList(tester, env);

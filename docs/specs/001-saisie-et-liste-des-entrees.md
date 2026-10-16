@@ -21,7 +21,7 @@ Lot E du [plan](../plan.md). Règles du [cahier des charges](../cahier-des-charg
 
 - CA1 : Étant donné aucune entrée enregistrée, quand la personne ouvre l'app, alors la liste affiche l'état vide « Ta première entrée apparaîtra ici » et le bouton « Nouvelle entrée ».
 - CA2 : Étant donné des entrées sur plusieurs jours, quand la liste s'affiche, alors les entrées sont regroupées par jour local, les jours du plus récent au plus ancien, et dans un jour les entrées de la plus récente à la plus ancienne.
-- CA3 : Étant donné un groupe de jours, quand la liste s'affiche, alors l'intertitre vaut « Aujourd'hui » pour le jour même, « Hier » pour la veille, et sinon le jour de la semaine et la date (« Lundi 12 octobre »), avec l'année si elle diffère de l'année en cours (« Lundi 13 octobre 2025 »).
+- CA3 : Étant donné un groupe de jours, quand la liste s'affiche, alors l'intertitre vaut « Aujourd'hui » pour le jour même, « Hier » pour la veille, et sinon le jour de la semaine et la date (« Lundi 12 octobre »), avec l'année si elle diffère de l'année en cours (« Lundi 13 octobre 2025 ») ; le premier du mois s'écrit « 1er » (« Dimanche 1er novembre », spec 006, CA37).
 - CA4 : Étant donné une entrée avec texte, quand sa carte s'affiche, alors elle montre la pastille de l'humeur avec son chiffre, l'heure (« 21:40 »), le libellé de l'humeur et le début du texte sur deux lignes au plus.
 - CA5 : Étant donné une entrée sans texte, quand sa carte s'affiche, alors elle montre la pastille, l'heure et le libellé, sans ligne de texte vide.
 - CA6 : Étant donné plusieurs entrées le même jour (RM14), quand la liste s'affiche, alors chacune a sa carte sous l'intertitre de ce jour.
