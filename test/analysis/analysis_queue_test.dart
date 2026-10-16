@@ -21,7 +21,7 @@ const distressText = 'J’ai envie de mourir.';
 
 const downloading = ModelDownloading(receivedBytes: 1, totalBytes: 10);
 
-/// Dépôt dont `saveAnalysis` lève pour les entrées de [failSaveFor] (CA36) ; les
+/// Dépôt dont `saveAnalysis` lève pour les entrées de [failSaveFor] (CA39) ; les
 /// autres entrées sont écrites normalement.
 class FailSaveForRepository extends FakeEntryRepository {
   /// Identifiants des entrées dont l'écriture du résultat échoue.
@@ -578,7 +578,7 @@ void main() {
       expect(env.queue.currentEntryId, isNull);
     });
 
-    group('CA36 : écriture du résultat impossible pour la plus récente', () {
+    group('CA39 : écriture du résultat impossible pour la plus récente', () {
       // Trois entrées en attente ; l'écriture échoue pour la plus récente (oct12).
       ({FailSaveForRepository repo, Entry old, Entry mid, Entry recent})
       seedThree() {
@@ -590,7 +590,7 @@ void main() {
         return (repo: repo, old: old, mid: mid, recent: recent);
       }
 
-      test('CA36 : l\'entrée en échec reste « en attente », son texte n\'est '
+      test('CA39 : l\'entrée en échec reste « en attente », son texte n\'est '
           'reçu qu\'une fois malgré les événements du journal pendant '
           'l\'analyse, et rien ne boucle', () async {
         final s = seedThree();
@@ -628,7 +628,7 @@ void main() {
         expect(env.analyzer.received, ['T12']);
       });
 
-      test('CA36 : au prochain événement, la nouvelle entrée et les deux '
+      test('CA39 : au prochain événement, la nouvelle entrée et les deux '
           'plus anciennes sont analysées avant que l\'entrée en échec ne '
           'soit reprise, une seule fois pour cette série', () async {
         final s = seedThree();
@@ -671,7 +671,7 @@ void main() {
       });
     });
 
-    test('CA36 : deux entrées dont l\'écriture échoue toujours sont reprises '
+    test('CA39 : deux entrées dont l\'écriture échoue toujours sont reprises '
         'chacune à son tour, la plus anciennement en échec d\'abord', () async {
       final repo = FailSaveForRepository();
       final y = repo.seed(mood: 2, text: 'TY', createdAt: oct11);
