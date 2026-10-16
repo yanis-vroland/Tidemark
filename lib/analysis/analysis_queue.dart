@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show AppLifecycleState;
 
 import 'package:flutter/foundation.dart';
 
@@ -14,7 +15,8 @@ enum AnalysisQueueState {
   /// Rien à analyser, ou modèle absent.
   idle,
 
-  /// Une entrée est en cours d'analyse ([AnalysisQueue.currentEntryId]).
+  /// Une entrée est en cours d'analyse ([AnalysisQueue.currentEntryId]), du
+  /// chargement du modèle à l'écriture de son résultat.
   running,
 
   /// Le modèle n'a pas pu être chargé alors que son empreinte est juste : rien
@@ -24,8 +26,9 @@ enum AnalysisQueueState {
 
 /// File d'analyse (glossaire : `AnalysisQueue`, spec 004, RM34, RM35) : analyse les
 /// entrées « en attente » une à la fois, la plus récente d'abord, quand le modèle
-/// est prêt. Elle observe les entrées et l'état du modèle : un enregistrement, la
-/// fin d'un téléchargement ou le démarrage la relancent d'eux-mêmes.
+/// est prêt et l'app au premier plan. Elle observe les entrées, l'état du modèle et
+/// le cycle de vie de l'app : un enregistrement, la fin d'un téléchargement, le
+/// démarrage ou le retour au premier plan la relancent d'eux-mêmes.
 class AnalysisQueue extends ChangeNotifier {
   AnalysisQueue({
     required this.repository,
@@ -33,6 +36,7 @@ class AnalysisQueue extends ChangeNotifier {
     required this.downloader,
     this.detector = const DistressDetector(),
     this.timeout = const Duration(seconds: 30),
+    this.lifecycle,
   });
 
   final EntryRepository repository;
@@ -43,15 +47,25 @@ class AnalysisQueue extends ChangeNotifier {
   /// Durée maximale d'une analyse (CA9, CA14).
   final Duration timeout;
 
+  /// Cycle de vie de l'app (CA32, CA33) ; `null` : non observé.
+  final Stream<AppLifecycleState>? lifecycle;
+
   int? _current;
   AnalysisQueueState _state = AnalysisQueueState.idle;
   StreamSubscription<ModelState>? _model;
   StreamSubscription<List<Entry>>? _entries;
+  StreamSubscription<AppLifecycleState>? _lifecycle;
   bool _modelReady = false;
   bool _prepared = false;
   bool _running = false;
+  bool _analyzing = false;
   bool _again = false;
   bool _stopped = false;
+  bool _background = false;
+
+  /// Nombre de mises en arrière-plan : un résultat obtenu pendant que ce nombre a
+  /// changé vient d'une analyse interrompue (CA32, CA33).
+  int _interruptions = 0;
   Completer<void> _done = Completer<void>()..complete();
 
   /// Entrée en cours d'analyse, ou `null`.
@@ -59,8 +73,9 @@ class AnalysisQueue extends ChangeNotifier {
 
   AnalysisQueueState get state => _state;
 
-  /// Écoute les entrées et l'état du modèle, et lance les analyses.
+  /// Écoute les entrées, l'état du modèle et le cycle de vie, et lance les analyses.
   void start() {
+    _lifecycle ??= lifecycle?.listen(_onLifecycle, onError: (Object _) {});
     _model ??= downloader.watch().listen((model) {
       _modelReady = model is ModelReady;
       _kick();
@@ -71,7 +86,8 @@ class AnalysisQueue extends ChangeNotifier {
     );
   }
 
-  /// Se termine quand plus rien n'est à analyser pour l'instant (tests).
+  /// Se termine quand plus rien n'est à analyser pour l'instant.
+  @visibleForTesting
   Future<void> get whenIdle async {
     // Laisse arriver les événements des flux observés.
     for (var i = 0; i < 3; i++) {
@@ -83,18 +99,54 @@ class AnalysisQueue extends ChangeNotifier {
     }
   }
 
-  /// Arrête la file, et la génération en cours.
+  /// Arrête la file, et la génération en cours. Le modèle est libéré par la file
+  /// elle-même, une fois l'analyse terminée.
   Future<void> stop() async {
     _stopped = true;
+    await _lifecycle?.cancel();
     await _model?.cancel();
     await _entries?.cancel();
-    if (_running) {
-      await analyzer.cancel();
-      await _done.future;
+    await _cancelAnalysis();
+    await _done.future;
+    // Filet : rien ne tourne, mais le modèle serait resté chargé.
+    await _release();
+  }
+
+  void _onLifecycle(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        // Sur iOS, le GPU est refusé en arrière-plan : la génération échouerait
+        // et l'entrée deviendrait « sans étiquette » à tort (CA32).
+        if (_background) return;
+        _background = true;
+        _interruptions++;
+        unawaited(_cancelAnalysis());
+      case AppLifecycleState.resumed:
+        if (!_background) return;
+        _background = false;
+        _kick();
+      case AppLifecycleState.inactive:
+        // Centre de contrôle, appel entrant : le GPU reste permis.
+        break;
     }
-    if (_prepared) {
-      _prepared = false;
+  }
+
+  Future<void> _cancelAnalysis() async {
+    if (!_analyzing) return;
+    try {
+      await analyzer.cancel();
+    } catch (_) {}
+  }
+
+  Future<void> _release() async {
+    if (!_prepared) return;
+    _prepared = false;
+    try {
       await analyzer.release();
+    } catch (_) {
+      // Libération impossible : la file reste utilisable (CA34).
     }
   }
 
@@ -104,8 +156,10 @@ class AnalysisQueue extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool get _canRun => !_stopped && !_background && _modelReady;
+
   void _kick() {
-    if (_stopped || !_modelReady) return;
+    if (!_canRun) return;
     if (_state == AnalysisQueueState.unavailable) return;
     if (_running) {
       _again = true;
@@ -118,14 +172,14 @@ class AnalysisQueue extends ChangeNotifier {
     _running = true;
     _done = Completer<void>();
     try {
-      while (!_stopped && _modelReady) {
+      while (_canRun) {
         final List<Entry> pending;
         try {
           pending = await repository.pendingEntriesWithText();
         } catch (_) {
           break;
         }
-        if (pending.isEmpty) break;
+        if (pending.isEmpty || !_canRun) break;
         // La plus récente d'abord : celle qu'on vient d'écrire passe devant (CA13).
         pending.sort((a, b) {
           final byTime = b.createdAt.compareTo(a.createdAt);
@@ -143,54 +197,91 @@ class AnalysisQueue extends ChangeNotifier {
           }
           continue;
         }
-        if (!_prepared) {
-          if (!await analyzer.prepare()) {
-            await _onLoadFailure();
-            break;
-          }
-          _prepared = true;
-        }
+        // « En cours » dès le chargement du modèle, jusqu'à l'écriture du
+        // résultat (spec 004, « Entrée en cours »).
         _setState(AnalysisQueueState.running, current: entry.id);
-        final result = await _analyze(text);
-        _setState(AnalysisQueueState.idle);
-        // Interrompue : l'entrée reste « en attente » (spec 004, « Interruption »).
-        if (_stopped) break;
         try {
-          await repository.saveAnalysis(entry.id, result);
-        } catch (_) {
-          // Écriture impossible : l'entrée reste « en attente » (CA8).
-          break;
+          if (!await _analyzeAndSave(entry.id, text)) break;
+        } finally {
+          if (_state == AnalysisQueueState.running) {
+            _setState(AnalysisQueueState.idle);
+          }
         }
       }
     } finally {
-      // Modèle libéré quand la file est vide : la mémoire revient au téléphone.
-      if (_prepared && !_stopped) {
-        _prepared = false;
-        await analyzer.release();
-      }
-      _running = false;
-      _done.complete();
-      if (_again) {
-        _again = false;
-        _kick();
+      // Modèle libéré quand la file est vide, arrêtée ou en arrière-plan : la
+      // mémoire revient au téléphone.
+      try {
+        await _release();
+      } finally {
+        _running = false;
+        _done.complete();
+        if (_again) {
+          _again = false;
+          _kick();
+        }
       }
     }
+  }
+
+  /// Charge le modèle si besoin, analyse [text] et enregistre le résultat. Rend
+  /// `false` si la file doit s'arrêter là.
+  Future<bool> _analyzeAndSave(int entryId, String text) async {
+    final interruptions = _interruptions;
+    bool interrupted() => _stopped || _interruptions != interruptions;
+    if (!_prepared) {
+      bool loaded;
+      try {
+        loaded = await analyzer.prepare();
+      } catch (_) {
+        loaded = false;
+      }
+      if (loaded) _prepared = true;
+      // Arrêt ou arrière-plan pendant le chargement : ni analyse, ni échec de
+      // chargement (CA33, CA34).
+      if (interrupted()) return false;
+      if (!loaded) {
+        await _onLoadFailure();
+        return false;
+      }
+    }
+    if (interrupted()) return false;
+    final result = await _analyze(text);
+    // Interrompue : l'entrée reste « en attente », quel que soit le résultat
+    // (spec 004, « Interruption », « Arrière-plan », CA32).
+    if (interrupted()) return false;
+    try {
+      await repository.saveAnalysis(entryId, result);
+    } catch (_) {
+      // Écriture impossible : l'entrée reste « en attente » (CA8).
+      return false;
+    }
+    return true;
   }
 
   /// Analyse avec un délai : au-delà, la génération est arrêtée et la file attend
   /// que l'analyseur rende la main avant d'aller plus loin (CA9, CA14).
   Future<AnalysisResult> _analyze(String text) async {
-    final analysis = analyzer.analyze(text);
+    _analyzing = true;
     try {
-      return await analysis.timeout(timeout);
-    } on TimeoutException {
-      await analyzer.cancel();
+      final analysis = analyzer.analyze(text);
       try {
-        await analysis;
-      } catch (_) {}
-      return const Untagged();
-    } catch (_) {
-      return const Untagged();
+        return await analysis.timeout(timeout);
+      } on TimeoutException {
+        await _cancelAnalysis();
+        try {
+          await analysis;
+        } catch (_) {}
+        // L'analyseur a pu libérer son moteur pour l'arrêter : la file le
+        // libère aussi, et l'entrée suivante le recharge (CA35), au lieu de
+        // devenir « sans étiquette » faute de moteur.
+        await _release();
+        return const Untagged();
+      } catch (_) {
+        return const Untagged();
+      }
+    } finally {
+      _analyzing = false;
     }
   }
 
