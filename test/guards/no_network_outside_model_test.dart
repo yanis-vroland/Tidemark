@@ -246,4 +246,111 @@ Future<bool> dial(String n) => launchUrl(Uri(scheme: 'tel', path: n));
       }
     });
   });
+
+  group('llamadart : source du modèle (issue #31)', () {
+    const import = "import 'package:llamadart/llamadart.dart' as llama;\n";
+
+    final refused = {
+      'ModelSource.url préfixé':
+          "final m = llama.LlamaModel(llama.ModelSource.url("
+          "Uri.parse('https://x/m.gguf')));",
+      'ModelSource.huggingFace':
+          "final s = ModelSource.huggingFace(repo: 'a/b', file: 'm.gguf');",
+      'ModelSource.parse': "final s = llama.ModelSource.parse('https://x');",
+      'ModelSource.url coupé sur deux lignes':
+          'final s = llama.ModelSource\n  .url(u);',
+      'loadModelFromUrl': 'await engine.loadModelFromUrl(u);',
+      'loadModel avec une adresse':
+          "await engine.loadModel('https://x/m.gguf');",
+      'LlamaModel avec une source passée par une variable':
+          'final m = llama.LlamaModel(source);',
+    };
+    for (final MapEntry(key: name, value: body) in refused.entries) {
+      test('issue #31 : refuse, avec import llamadart, $name', () {
+        expect(llamadartViolations('$import$body'), isNotEmpty);
+      });
+    }
+
+    test('issue #31 : admet une source locale, ModelSource.path', () {
+      expect(
+        llamadartViolations(
+          '${import}final m = '
+          'llama.LlamaModel(llama.ModelSource.path(modelFile.path));',
+        ),
+        isEmpty,
+      );
+    });
+
+    test('issue #31 : admet ModelSource.path sans préfixe d\'import', () {
+      expect(
+        llamadartViolations(
+          "import 'package:llamadart/llamadart.dart';\n"
+          'final m = LlamaModel(ModelSource.path(modelFile.path));',
+        ),
+        isEmpty,
+      );
+    });
+
+    test('issue #31 : un fichier sans import llamadart qui utilise la classe '
+        'ModelSource de l\'app n\'est pas concerné', () {
+      expect(
+        llamadartViolations(
+          "import '../model/model_source.dart';\n"
+          'final ok = ModelSource.isAllowed(next);',
+        ),
+        isEmpty,
+      );
+    });
+
+    test('issue #31 : les commentaires sont ignorés', () {
+      expect(
+        llamadartViolations(
+          '$import// ModelSource.url(u) est interdit\n'
+          '/* engine.loadModelFromUrl(u) */\n'
+          'final m = llama.LlamaModel(llama.ModelSource.path(p));',
+        ),
+        isEmpty,
+      );
+    });
+
+    final libFiles = [
+      for (final file in Directory('lib').listSync(recursive: true))
+        if (file is File && file.path.endsWith('.dart')) file,
+    ];
+    final importers = [
+      for (final file in libFiles)
+        if (RegExp(r'''import\s+['"]package:llamadart/''')
+            .hasMatch(file.readAsStringSync()))
+          file.path.replaceAll(r'\', '/'),
+    ];
+
+    test('issue #31 : le balayage voit les fichiers qui importent llamadart '
+        '(il n\'est pas vide)', () {
+      expect(importers.length, greaterThanOrEqualTo(2));
+      expect(
+        importers,
+        containsAll([
+          endsWith('lib/analysis/llama_mood_analyzer.dart'),
+          endsWith('lib/review/llama_review_writer.dart'),
+        ]),
+      );
+    });
+
+    test('issue #31 : aucun fichier de lib/, lib/model/ compris, ne crée une '
+        'source de modèle autrement que par ModelSource.path', () {
+      final found = {
+        for (final file in libFiles)
+          file.path: llamadartViolations(file.readAsStringSync()),
+      }..removeWhere((_, v) => v.isEmpty);
+
+      expect(found, isEmpty);
+    });
+  });
 }
+
+/// Ce qu'un fichier qui importe `package:llamadart` fait d'interdit : toute source
+/// de modèle autre que `ModelSource.path(` (adresse, Hugging Face, `parse`, source
+/// passée par une variable, méthodes `loadModel*`). Commentaires ignorés ; un
+/// fichier sans cet import n'est pas concerné. Garde-fou de test, à implémenter
+/// (issue #31).
+List<String> llamadartViolations(String source) => const [];
