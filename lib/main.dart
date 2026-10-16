@@ -9,13 +9,13 @@ import 'analysis/llama_mood_analyzer.dart';
 import 'analysis/mood_analyzer.dart';
 import 'distress/startup_screening.dart';
 import 'entries/entry_repository.dart';
+import 'export/journal_export.dart';
+import 'export/share_sheet.dart';
 import 'model/gated_mood_analyzer.dart';
 import 'model/model_downloader.dart';
 import 'model/model_gate.dart';
 import 'model/model_source.dart';
 import 'model/model_transport.dart';
-import 'export/journal_export.dart';
-import 'export/share_sheet.dart';
 import 'review/gated_review_writer.dart';
 import 'review/llama_review_writer.dart';
 import 'review/review_narrator.dart';
@@ -28,10 +28,10 @@ import 'ui/analysis_scope.dart';
 import 'ui/app_host.dart';
 import 'ui/phone_dialer.dart';
 import 'ui/screens/entry_list_screen.dart';
+import 'ui/screens/wipe_confirmation_screen.dart';
 import 'ui/theme/tidemark_colors.dart';
 import 'ui/theme/tidemark_theme.dart';
 import 'ui/theme/tidemark_tokens.dart';
-import 'ui/screens/wipe_confirmation_screen.dart';
 import 'ui/theme/tidemark_typography.dart';
 import 'ui/widgets/action_buttons.dart';
 import 'ui/widgets/my_data_section.dart';
@@ -128,10 +128,6 @@ Future<Widget> startApp({
       open ??
       () => openJournal(folder: store!.folder, keyStore: store.keyStore);
   if (store != null) {
-    // Fichier d'export resté d'un partage interrompu (CA10).
-    try {
-      await purgeExportTemporaryFiles(store.cacheFolder);
-    } catch (_) {}
     // Suppression interrompue : reprise avant toute ouverture de la base, jamais
     // ouverte tant que `wipe-pending` existe (RM43, CA22, CA23).
     final wiper = _wiperFor(store);
@@ -143,6 +139,10 @@ Future<Widget> startApp({
       }
       wiped = true;
     }
+    // Fichier d'export resté d'un partage interrompu (CA10).
+    try {
+      await purgeExportTemporaryFiles(store.cacheFolder);
+    } catch (_) {}
     // Nouvelle installation : clé orpheline effacée ; n'échoue jamais (RM45).
     await checkInstallMarker(
       folder: store.folder,

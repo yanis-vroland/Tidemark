@@ -69,6 +69,10 @@ class EntryListScreen extends StatefulWidget {
 class _EntryListScreenState extends State<EntryListScreen> {
   late final Stream<List<Entry>> _entries = widget.repository.watchEntries();
 
+  /// Message de fin de la suppression totale : affiché jusqu'à la première
+  /// entrée, jamais de nouveau ensuite (CA18, CA19).
+  late bool _wiped = widget.wiped;
+
   /// Sans rédacteur fourni, le bilan s'affiche sans texte (modèle absent).
   late final ReviewNarrator _narrator =
       widget.narrator ??
@@ -133,6 +137,7 @@ class _EntryListScreenState extends State<EntryListScreen> {
           stream: _entries,
           builder: (context, snapshot) {
             final entries = snapshot.data;
+            if (entries != null && entries.isNotEmpty) _wiped = false;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -144,7 +149,7 @@ class _EntryListScreenState extends State<EntryListScreen> {
                       : entries.isEmpty
                       ? _EmptyState(
                           onOpenSettings: _openSettings,
-                          wiped: widget.wiped,
+                          wiped: _wiped,
                         )
                       : _EntryList(
                           onOpenSettings: _openSettings,

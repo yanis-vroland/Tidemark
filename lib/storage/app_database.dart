@@ -117,9 +117,19 @@ class AppDatabase extends _$AppDatabase {
 
   /// Ferme la base une seule fois : un second appel attend la même fermeture
   /// (suppression totale puis fermeture par l'appelant), au lieu de rester
-  /// bloqué sur un isolat déjà arrêté.
+  /// bloqué sur un isolat déjà arrêté. Une fermeture en échec peut être
+  /// retentée (« Réessayer » de la suppression, CA21).
   @override
-  Future<void> close() => _closing ??= super.close();
+  Future<void> close() => _closing ??= _closeOnce();
+
+  Future<void> _closeOnce() async {
+    try {
+      await super.close();
+    } catch (_) {
+      _closing = null;
+      rethrow;
+    }
+  }
 
   @override
   int get schemaVersion => 4;
