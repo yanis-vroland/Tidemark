@@ -88,25 +88,57 @@ Ce comportement est un choix validé, pas un oubli : la spec 003 (l. 69 et déci
 Proposition de l'agent (2026-10-15), acceptée par Yanis le 2026-10-16 telle quelle :
 
 1. **Moteur : option A**, avec le contrôle de B en CI. C'est la seule option qui couvre l'app réellement installée sur l'iPhone et Android, sans dépendance nouvelle. Le surcoût est une commande de plus, que le README rend explicite, et une liste de trois empreintes à mettre à jour à chaque montée de version de `llamadart` (montée déjà soumise à relecture par l'ADR-001).
-2. **Modèle : option E**, mesurée au test humain ; passage à F seulement si la mesure le justifie.
+2. **Modèle : option E**, mesurée au test humain ; passage à F seulement si la mesure le justifie. Option F mise en œuvre le 2026-10-16, avec E en repli : voir « Mise en œuvre de l'option F » ci-dessous.
 3. **`llamadart_native_runtimes: llama_cpp`** dans `pubspec.yaml` : un seul moteur natif embarqué.
 4. **`LlamaLogging.configure(level: LlamaLogLevel.none)`** appelé une fois au démarrage de l'analyseur : niveau natif explicite, sans dépendre de la valeur par défaut.
 
 Mise en œuvre : 1, 3 et 4 ne changent aucun comportement observable (PR `chore`, avec contrôle par mutation du script : une empreinte fausse doit faire échouer la construction). 2 change le comportement au démarrage et revient sur une décision validée : révision de la spec 003 (l. 69, décision 5, nouveau critère d'acceptation) et de la spec 004 (l. 113, CA15), validée par Yanis, puis des tests d'abord.
+
+## Mise en œuvre de l'option F (2026-10-16)
+
+Décision : agent, par délégation de Yanis du 2026-10-16, sans attendre la mesure sur l'iPhone. Motif : sur le Mac M3, avec un vrai fichier de 1,1 Go, le calcul Dart de l'option E a pris 9,4 à 14,8 s (journal de `feat/integrite-moteur-modele`), déjà au niveau du seuil de 10 s fixé pour l'iPhone, dont les cœurs sont de la même génération.
+
+Mise en œuvre (branche `perf/empreinte-modele-native`) :
+
+- **iOS** : `ios/Runner/ModelHashChannel.swift`, canal `dev.tidemark/model_hash`, méthode `sha256OfFile({path})`. Calcul par CryptoKit (`SHA256`), plutôt que CommonCrypto que citait l'option : même bibliothèque du système (corecrypto), API non dépréciée, sans pointeur à manier ; mesuré un peu plus rapide sur le Mac (ci-dessous). Lecture en flux par blocs de 4 Mo, chaque bloc libéré aussitôt (`autoreleasepool`), sur une file d'arrière-plan, réponse sur le fil principal. Enregistré par `AppDelegate.didInitializeImplicitFlutterEngine`.
+- **Android** : `MainActivity.kt`, même canal et même méthode, `MessageDigest.getInstance("SHA-256")` (fournisseur du système), blocs de 4 Mo, sur une file d'arrière-plan du moteur Flutter (`makeBackgroundTaskQueue`).
+- **Dart** : `SystemFileHasher` (`lib/model/system_file_hasher.dart`), passé à `HttpModelDownloader` par `openJournal` (`hashFile: modelSha256OfFile`). Le calcul Dart de l'option E (`sha256OfFile`, dans un isolat) reste le repli : canal absent (tests, ordinateur), erreur du canal, réponse d'un autre type.
+- **Le natif ne peut dire que « oui »** : seule une réponse native égale à l'empreinte attendue est crue. Une réponse différente est recalculée en Dart avant toute décision : un défaut du code natif ne fait jamais effacer un bon modèle de 1,1 Go, et un fichier réellement modifié est refusé comme avec E (effacé, modèle `absent`), au coût du calcul Dart, dans ce seul cas.
+- **Aucune dépendance nouvelle** : CryptoKit et `java.security` font partie des systèmes.
+- **Tests** : `test/model/system_file_hasher_test.dart` simule le canal (`setMockMethodCallHandler`) ; aucun test n'exécute le code natif. Contrôle par mutation : réponse native crue sans comparaison, repli supprimé (deux variantes), comparaison du téléchargeur neutralisée, câblage retiré de `openJournal`, canal non enregistré sur iOS : chaque mutation fait échouer au moins un test.
+
+Mesures du 2026-10-16, Mac M3, fichier aléatoire de 1 117 320 736 octets (contenu réel, pas un fichier creux), trois tours où chaque outil passe à tour de rôle. Le poste était chargé par d'autres constructions (charge moyenne de 13 à 15 pendant la série, jusqu'à 100 juste avant) : les écarts entre tours viennent de là.
+
+| Calcul | Tour 1 | Tour 2 | Tour 3 |
+| --- | --- | --- | --- |
+| Dart, `crypto` 3.0.7, compilé (`dart compile exe`), boucle de `sha256OfFile` (repli, option E) | 9,9 s | 19,6 s | 23,9 s |
+| Swift, fonction de `ModelHashChannel.swift` copiée telle quelle (CryptoKit, `swiftc -O`) | 0,96 s | 0,98 s | 1,18 s |
+| `openssl dgst -sha256` | 1,28 s | 1,87 s | 0,75 s |
+| `shasum -a 256` | 4,35 s | 6,16 s | 4,12 s |
+| Java 17 sur macOS, `MessageDigest` (même boucle que `MainActivity.kt`) | 6,85 s | 9,79 s | 8,22 s |
+
+Les cinq calculs donnent la même empreinte. Une série précédente, poste plus chargé encore, a donné 1,12 à 1,41 s pour CryptoKit et 1,43 à 4,94 s pour CommonCrypto. Le gain mesuré sur le Mac pour iOS est de l'ordre de dix fois.
+
+Limites :
+
+- **iPhone 15 Pro : non mesuré**, à mesurer par Yanis au test humain (premier étiquetage après un lancement).
+- **Android : non mesuré.** La ligne Java ne vaut pas pour Android : sur Android, `MessageDigest` passe par Conscrypt (BoringSSL), qui utilise les instructions SHA des processeurs ARMv8, alors que le Java 17 du Mac utilise ici son implémentation interne. Le gain sur Android est donc attendu, pas prouvé ; l'émulateur, lui, mesure surtout le processeur du Mac.
+- Le code natif n'est couvert par aucun test automatique : seules sa présence, le nom du canal et son enregistrement sont vérifiés par lecture des sources. Son exactitude repose sur la mesure ci-dessus (même empreinte que `shasum`) et sur le test humain ; un défaut ne pourrait que ralentir (repli Dart), jamais faire accepter un fichier modifié ou effacer un bon modèle.
+- Temps de contrôle à temps d'usage : inchangé par rapport à E.
 
 ## Conséquences
 
 - **Lancement** : `flutter pub get`, le script de récupération du moteur, puis `flutter run`. Le README le dira (lot J).
 - **Montée de version de `llamadart`** : relire le hook (tag, dépôt, nouvelles cibles), mettre à jour les empreintes, vérifier qu'elles concordent avec le champ `digest` de la release GitHub.
 - **En amont** : signaler à `leehack/llamadart` que llama.cpp est le seul moteur du hook sans empreinte épinglée, alors que LiteRT-LM et stable-diffusion en ont une. Une correction en amont rendrait l'option A inutile à la version suivante. Aucune issue ouverte sans l'accord de Yanis.
-- **Première analyse de chaque lancement** retardée de quelques secondes (option E).
+- **Première analyse de chaque lancement** retardée de quelques secondes (option E) ; d'environ une seconde attendue avec F sur iPhone, à mesurer.
 - **Contre-argument** : le risque de remplacement d'un asset GitHub reste rare, et le mainteneur pourrait aussi publier un binaire malveillant sous un nouveau tag. L'option A ne protège pas contre ce second cas, mais elle garantit que le binaire embarqué est celui qui a été relu et mesuré pendant le spike, et rend toute montée de version explicite.
 
 ### Incertitudes
 
 - Présence de LiteRT-LM dans l'APK et l'IPA actuels : non vérifiée.
 - Comportement du hook avec `llamadart_native_path` pour plusieurs cibles dans un même dossier : lu dans le code (`_localPathDirectoryCandidates`, `_localPathArchiveCandidates`), non essayé.
-- Temps de hachage sur l'iPhone 15 Pro et l'émulateur Android : estimé, pas mesuré.
+- Temps de hachage sur l'iPhone 15 Pro et l'émulateur Android : estimé, pas mesuré, avec E comme avec F (mesures de F sur le Mac dans « Mise en œuvre de l'option F »).
 - `flutter test` déclenche peut-être le hook pour la machine hôte (archive `macos-arm64` présente dans le cache) : si c'est le cas, la CI télécharge déjà aujourd'hui une bibliothèque `linux-x64` non vérifiée à chaque exécution sans cache. À vérifier avant d'accepter l'ADR (condition de l'option A).
 
 ## Sources
@@ -116,4 +148,4 @@ Mise en œuvre : 1, 3 et 4 ne changent aucun comportement observable (PR `chore`
 - Release GitHub : `gh api repos/leehack/llamadart-native/releases/tags/v0.6.0-2` (champs `immutable`, `digest`, `created_at`, `updated_at`, `published_at`) et `gh api repos/leehack/llamadart-native/attestations/sha256:<empreinte>`, relevés le 2026-10-15.
 - Workflows de Tidemark : `.github/workflows/garde-fous.yml` (installation de gitleaks), `.github/workflows/flutter.yml` (cache).
 - Code de Tidemark : `lib/model/model_downloader.dart`, `lib/analysis/analysis_queue.dart`, `ios/Runner/AppDelegate.swift`, `android/app/src/main/res/xml/data_extraction_rules.xml`.
-- Mesure du hachage : programme Dart jetable hors du dépôt (`sha256.bind(file.openRead())`, comme `verifyAfterLoadFailure`), non versionné.
+- Mesure du hachage : programme Dart jetable hors du dépôt (`sha256.bind(file.openRead())`, comme `verifyAfterLoadFailure`), non versionné. Mesures de l'option F (2026-10-16) : programmes jetables hors du dépôt (Dart, Swift, Java), non versionnés ; la fonction Swift est copiée de `ios/Runner/ModelHashChannel.swift`.

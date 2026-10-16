@@ -25,3 +25,29 @@ Critères : F1 appel de `sha256OfFile` avec `{path}` ; F2 empreinte native égal
 ### Prochaine étape
 
 - Implémenter `SystemFileHasher`, le canal Swift (CryptoKit) et Kotlin (`MessageDigest`), mesurer, mettre à jour l'ADR-004 et la spec 003.
+
+## 2026-10-16 11:54
+
+### Fait
+
+- `SystemFileHasher` et `modelSha256OfFile` (`lib/model/system_file_hasher.dart`), câblés dans `openJournal` ; canal iOS `ios/Runner/ModelHashChannel.swift` (CryptoKit, blocs de 4 Mo, file d'arrière-plan), ajouté au projet Xcode et enregistré dans `AppDelegate.swift` ; canal Android dans `MainActivity.kt` (`MessageDigest`, blocs de 4 Mo, `makeBackgroundTaskQueue`).
+- Tests : `system_file_hasher_test.dart` 28/28 ; suite complète `+1802 -1`, aussi avec `TZ=UTC`. Le seul échec, `analysis_queue_lifecycle_test.dart` « CA34 : un désabonnement qui lève… » (`Bad state: désabonnement impossible`), touche `AnalysisQueue._stop`, que cette branche ne modifie pas : il est corrigé par la PR #41, encore ouverte.
+- `dart format` et `dart analyze --fatal-infos` sans remarque. `flutter build apk --debug`, `flutter build ios --simulator --debug` et `flutter build ios --no-codesign --debug` : construits (après `scripts/fetch-llama-native.sh`).
+- Contrôle par mutation (script jetable hors du dépôt, chaque mutation restaurée), sur `system_file_hasher_test.dart` et `verify_before_first_load_test.dart` : M1 réponse native crue sans comparaison à l'attendue (9 échecs) ; M2 erreur du canal propagée, sans repli (6) ; M3 réponse native rendue au lieu du repli (18) ; M4 comparaison d'empreinte du téléchargeur neutralisée (5) ; M5 câblage retiré d'`openJournal` (1) ; M6 canal non enregistré dans `AppDelegate` (1). Toutes tuées.
+- Mesures (Mac M3, fichier aléatoire de 1 117 320 736 octets, trois tours alternés, poste chargé par d'autres constructions) : Dart compilé 9,9 / 19,6 / 23,9 s ; fonction Swift de l'app 0,96 / 0,98 / 1,18 s ; `openssl` 1,28 / 1,87 / 0,75 s ; `shasum` 4,35 / 6,16 / 4,12 s ; Java 17 macOS `MessageDigest` 6,85 / 9,79 / 8,22 s (non représentatif d'Android). Même empreinte partout. ADR-004 (« Mise en œuvre de l'option F »), spec 003 et architecture technique mises à jour.
+
+### Décisions
+
+- CryptoKit plutôt que CommonCrypto sur iOS : même bibliothèque du système, API non dépréciée, sans pointeur ; un peu plus rapide sur le Mac (agent, par délégation de Yanis du 2026-10-16).
+- Contrôle de format de la réponse native retiré : la comparaison exacte à l'empreinte attendue suffit et une mutation du contrôle de format survivrait (agent, par délégation de Yanis du 2026-10-16).
+- Ligne « pas encore mis en œuvre » de la section sécurité de l'architecture technique (l. 129) laissée telle quelle : la PR #40, ouverte, modifie ce fichier ; à reprendre après son merge (agent).
+
+### Corrections et limites
+
+- iPhone 15 Pro et Android : non mesurés, à mesurer par Yanis au test humain.
+- Le code natif n'est vérifié que par lecture des sources (nom du canal, enregistrement) et par la mesure de la fonction Swift copiée ; aucun test automatique ne l'exécute.
+- Test humain : à faire par Yanis.
+
+### Prochaine étape
+
+- Revues `reviewer` et `security-reviewer`, puis PR en brouillon.
