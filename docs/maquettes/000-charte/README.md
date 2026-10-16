@@ -62,5 +62,5 @@ Toutes les paires passent leur seuil.
 
 ## Limites
 
-- Captures faites le 2026-10-16 hors de l'artefact : chaque aperçu est enveloppé dans une page qui déclare les jetons de `tokens.json` (thème clair ou sombre) et les polices de `assets/fonts/`, sans le lien Google Fonts, puis capturé par Chrome headless (largeur 393 px, 960 px pour la couverture, échelle 2), toute résolution réseau refusée (`--host-resolver-rules`). Le rendu peut différer de peu de celui de l'artefact (moteur et polices identiques, environnement de l'artefact non reproduit). Le script de capture n'est pas versionné.
+- Captures faites le 2026-10-16 hors de l'artefact : chaque aperçu est enveloppé dans une page qui déclare les jetons de `tokens.json` (thème clair ou sombre) et les polices de `assets/fonts/`, sans le lien Google Fonts, puis capturé par Chrome headless (largeur 393 px, 960 px pour la couverture, échelle 2, hauteur d'au moins 300 px : en dessous, Chrome headless tronque le rendu), toute résolution réseau refusée (`--host-resolver-rules`). Le rendu peut différer de peu de celui de l'artefact (moteur et polices identiques, environnement de l'artefact non reproduit). Le script de capture n'est pas versionné.
 - Les composants sont des aperçus HTML, pas une bibliothèque : le lot D les recrée en widgets Flutter à partir des jetons.
