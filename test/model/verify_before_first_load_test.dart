@@ -385,10 +385,12 @@ void main() {
       expect(downloader.current, isA<ModelReady>());
       gate.complete();
 
-      expect(await verification, isFalse);
+      // Le fichier retéléchargé est vérifié : le chargement peut avoir lieu.
+      expect(await verification, isTrue);
       expect(downloader.current, isA<ModelReady>());
       expect(finalFile().readAsBytesSync(), modelBytes);
       expect(await downloader.verifyBeforeFirstLoad(), isTrue);
+      expect(probe.calls, 1);
     });
 
     test('CA35 : après une empreinte fausse, retéléchargement : rend true '
@@ -414,6 +416,16 @@ void main() {
   });
 
   group('CA36 : calcul hors du fil principal', () {
+    // Ajouté après la revue IA : le calcul par défaut est celui de l'isolat.
+    test('CA36 : sans hashFile injecté, le téléchargeur calcule par '
+        'sha256OfFile', () {
+      final downloader = HttpModelDownloader(
+        transport: FakeModelTransport(),
+        folder: models,
+      );
+      expect(identical(downloader.hashFile, sha256OfFile), isTrue);
+    });
+
     const size = 32 * 1024 * 1024;
 
     late File big;

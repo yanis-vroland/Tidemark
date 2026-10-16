@@ -101,6 +101,9 @@ void main() {
       expect(setup.writer.writeCalls, 0);
       expect(narration, isNot(isA<NarrationText>()));
       expect(narration, isNot(isA<NarrationWriting>()));
+      // Renforcé après la revue : modèle resté prêt, message de CA22.
+      expect(narration, isA<NarrationWithheld>());
+      expect(downloader.current, isA<ModelReady>());
     },
   );
 

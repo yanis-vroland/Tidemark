@@ -14,7 +14,7 @@ scripts/fetch-llama-native.sh   # moteur llama.cpp, vérifié par empreinte SHA-
 flutter run
 ```
 
-Le script télécharge les archives de llama.cpp utilisées par `llamadart` et les compare aux empreintes écrites dans `scripts/llama-native.sha256` ; sans lui, la construction échoue. Il revérifie les archives à chaque lancement : le relancer après chaque clonage, et avant une construction si le dossier `.llamadart-native/` a pu être modifié. Détail : [ADR-004](docs/adr/004-integrite-du-moteur-et-du-modele.md).
+Le script télécharge les archives de llama.cpp utilisées par `llamadart` et les compare aux empreintes écrites dans `scripts/llama-native.sha256` ; sans lui, la construction échoue. Il revérifie les archives à chaque lancement et efface la sortie gardée du hook, pour que la construction suivante extraie l'archive qu'il vient de vérifier : le relancer après chaque clonage et avant toute construction destinée à être installée ou distribuée. Une construction lancée sans lui reprend le dossier tel qu'il est. Détail : [ADR-004](docs/adr/004-integrite-du-moteur-et-du-modele.md).
 
 ## Licence
 

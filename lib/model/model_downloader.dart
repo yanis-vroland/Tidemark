@@ -438,8 +438,10 @@ class HttpModelDownloader implements ModelDownloader {
     } catch (_) {
       return false;
     }
-    // Modèle effacé ou retéléchargé pendant le calcul : ce résultat ne vaut plus.
-    if (generation != _fileGeneration || _state is! ModelReady) return false;
+    // Modèle effacé ou retéléchargé pendant le calcul : ce résultat ne vaut plus ;
+    // un fichier retéléchargé entre-temps est déjà vérifié (CA35).
+    if (generation != _fileGeneration) return _state is ModelReady && _verified;
+    if (_state is! ModelReady) return false;
     if (matches) {
       _verified = true;
       return true;

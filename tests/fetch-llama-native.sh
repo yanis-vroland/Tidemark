@@ -70,7 +70,7 @@ code=0
 run() {
   local dir=$1 base=$2 pins=$3
   shift 3
-  LLAMA_NATIVE_DIR="$dir" LLAMA_NATIVE_BASE_URL="$base" \
+  LLAMA_NATIVE_TEST=1 LLAMA_NATIVE_DIR="$dir" LLAMA_NATIVE_BASE_URL="$base" \
     LLAMA_NATIVE_PINS="$pins" "$script" "$@" >/dev/null 2>"$work/stderr"
   code=$?
   err=$(cat "$work/stderr")
@@ -98,6 +98,17 @@ if [ "$code" -eq 0 ]; then
   pass "archives présentes et justes : acceptées sans téléchargement"
 else
   failed "archives présentes et justes : acceptées sans téléchargement" "code $code, $err"
+fi
+
+# 2 bis. La sortie gardée du hook est effacée à chaque lancement, même quand les
+# archives sont justes : la construction suivante extrait l'archive vérifiée
+mkdir -p "$work/hook-output/abc"
+printf 'extraction ancienne' >"$work/hook-output/abc/libllama.so"
+LLAMA_NATIVE_HOOK_OUTPUT="$work/hook-output" run "$dir" "$nowhere" "$work/pins" android-arm64
+if [ "$code" -eq 0 ] && [ ! -e "$work/hook-output" ]; then
+  pass "sortie gardée du hook effacée"
+else
+  failed "sortie gardée du hook effacée" "code $code"
 fi
 
 # 3. Empreinte épinglée fausse : téléchargement refusé, rien n'entre dans le dossier
@@ -139,10 +150,14 @@ else
 fi
 
 # 6. Bibliothèque ou dossier déposé à côté des archives : refus (le hook l'utiliserait sans contrôle)
-for intrus in libllamadart.so libllamadart.dylib llama.framework extracted android-arm64 notes.txt; do
+# « ..x » et « .x » : noms cachés que le motif .[!.]* manquait (revue de sécurité).
+for intrus in libllamadart.so libllamadart.dylib llama.framework extracted android-arm64 notes.txt ..x .x lien; do
   dir="$work/d6-$intrus"
   mkdir -p "$dir"
   case "$intrus" in
+    ..x) mkdir -p "$dir/$intrus" && printf 'x' >"$dir/$intrus/libllama.so" ;;
+    lien) mkdir -p "$work/cible" && ln -s "$work/cible" "$dir/llamadart-native-ios-arm64-v0.6.0-2.tar.gz" ;;
+    .x) printf 'x' >"$dir/$intrus" ;;
     *.*) printf 'x' >"$dir/$intrus" ;;
     *) mkdir -p "$dir/$intrus" ;;
   esac
@@ -172,7 +187,18 @@ else
   failed "archive introuvable : refus" "code $code"
 fi
 
-# 9. Fichier d'empreintes réel : une ligne par bundle utile, 64 caractères hexadécimaux,
+# 9. Hors du mode test, les substitutions sont refusées (revue de sécurité)
+for variable in LLAMA_NATIVE_DIR LLAMA_NATIVE_PINS LLAMA_NATIVE_BASE_URL; do
+  env "$variable=$work/ailleurs" "$script" android-arm64 >/dev/null 2>"$work/stderr"
+  code=$?
+  if refused && grep -q "$variable" "$work/stderr" && [ ! -e "$work/ailleurs" ]; then
+    pass "$variable sans LLAMA_NATIVE_TEST=1 : refus"
+  else
+    failed "$variable sans LLAMA_NATIVE_TEST=1 : refus" "code $code"
+  fi
+done
+
+# 10. Fichier d'empreintes réel : une ligne par bundle utile, 64 caractères hexadécimaux,
 # tag de llamadart 0.12.0 (v0.6.0-2)
 expected="android-arm64 android-x64 ios-arm64 ios-arm64-sim ios-x86_64-sim linux-x64 macos-arm64"
 for bundle in $expected; do

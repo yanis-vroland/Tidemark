@@ -14,22 +14,43 @@
 # Chaque archive déjà présente est revérifiée à chaque lancement : une archive
 # altérée est effacée et le script échoue. Le dossier ne doit contenir que des
 # archives épinglées : le hook utiliserait sans contrôle une bibliothèque ou un
-# dossier déposé à côté.
+# dossier déposé à côté. Le hook ne déclare pas l'archive comme dépendance : sa
+# sortie, gardée dans .dart_tool/hooks_runner/llamadart, serait réutilisée même
+# après le remplacement de l'archive. Le script l'efface à chaque lancement, pour
+# que la construction suivante extraie l'archive qu'il vient de vérifier.
 #
-# Variables, pour les tests : LLAMA_NATIVE_DIR, LLAMA_NATIVE_PINS,
-# LLAMA_NATIVE_BASE_URL.
+# Variables, pour les tests seulement, avec LLAMA_NATIVE_TEST=1 : LLAMA_NATIVE_DIR,
+# LLAMA_NATIVE_PINS, LLAMA_NATIVE_BASE_URL (file:// admis), LLAMA_NATIVE_HOOK_OUTPUT
+# (sortie du hook à effacer ; aucune par défaut). Hors de ce mode, elles
+# sont refusées : elles affaibliraient la vérification.
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd -P)"
-dir="${LLAMA_NATIVE_DIR:-$root/.llamadart-native}"
-pins="${LLAMA_NATIVE_PINS:-$root/scripts/llama-native.sha256}"
 tag="v0.6.0-2"
-base="${LLAMA_NATIVE_BASE_URL:-https://github.com/leehack/llamadart-native/releases/download/$tag}"
 
 die() {
   echo "fetch-llama-native : $*" >&2
   exit 1
 }
+
+if [ "${LLAMA_NATIVE_TEST:-}" = "1" ]; then
+  echo "fetch-llama-native : mode test, substitutions admises (LLAMA_NATIVE_*)" >&2
+  dir="${LLAMA_NATIVE_DIR:-$root/.llamadart-native}"
+  pins="${LLAMA_NATIVE_PINS:-$root/scripts/llama-native.sha256}"
+  base="${LLAMA_NATIVE_BASE_URL:-https://github.com/leehack/llamadart-native/releases/download/$tag}"
+  protocols='=https,file'
+  hook_output="${LLAMA_NATIVE_HOOK_OUTPUT:-}"
+else
+  for variable in LLAMA_NATIVE_DIR LLAMA_NATIVE_PINS LLAMA_NATIVE_BASE_URL LLAMA_NATIVE_HOOK_OUTPUT; do
+    [ -z "${!variable+x}" ] ||
+      die "$variable est réservée aux tests (LLAMA_NATIVE_TEST=1) ; la retirer de l'environnement"
+  done
+  dir="$root/.llamadart-native"
+  pins="$root/scripts/llama-native.sha256"
+  base="https://github.com/leehack/llamadart-native/releases/download/$tag"
+  protocols='=https'
+  hook_output="$root/.dart_tool/hooks_runner/llamadart"
+fi
 
 sha256_of() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -69,19 +90,25 @@ done
 mkdir -p "$dir"
 
 # 1. Rien d'autre que des archives épinglées dans le dossier.
+# Toutes les entrées, cachées comprises (« .x », « ..x ») : find, pas un motif.
 unexpected=()
-for entry in "$dir"/* "$dir"/.[!.]*; do
-  [ -e "$entry" ] || [ -L "$entry" ] || continue
+while IFS= read -r -d '' entry; do
   name="$(basename "$entry")"
   if [ ! -f "$entry" ] || [ -L "$entry" ] || [ -z "$(pinned "$name")" ]; then
     unexpected+=("$name")
   fi
-done
+done < <(find "$dir" -mindepth 1 -maxdepth 1 -print0)
 if [ "${#unexpected[@]}" -gt 0 ]; then
   die "entrées inattendues dans $dir : ${unexpected[*]} ; le hook pourrait les utiliser sans contrôle. Effacer le dossier, puis relancer."
 fi
 
 # 2. Chaque archive présente est revérifiée, demandée ou non.
+# Sortie du hook effacée d'abord : même si une archive est altérée, aucune
+# construction ne réutilisera une extraction faite avant ce contrôle.
+if [ -n "$hook_output" ] && [ -d "$hook_output" ]; then
+  rm -rf "$hook_output"
+fi
+
 altered=0
 for entry in "$dir"/*.tar.gz; do
   [ -f "$entry" ] || continue
@@ -104,7 +131,8 @@ for bundle in "${bundles[@]}"; do
     continue
   fi
   echo "Téléchargement : $name"
-  curl -fsSL --proto '=https,file' --proto-redir '=https' --retry 3 \
+  curl -fsSL --proto "$protocols" --proto-redir '=https' --retry 3 \
+    --connect-timeout 20 --max-time 600 \
     -o "$tmp/$name" "$base/$name" || die "téléchargement impossible : $base/$name"
   actual="$(sha256_of "$tmp/$name")"
   expected="$(pinned "$name")"
