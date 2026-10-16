@@ -264,6 +264,9 @@ Future<bool> dial(String n) => launchUrl(Uri(scheme: 'tel', path: n));
           "await engine.loadModel('https://x/m.gguf');",
       'LlamaModel avec une source passée par une variable':
           'final m = llama.LlamaModel(source);',
+      'projecteur passé par une variable':
+          'final m = llama.LlamaModel(llama.ModelSource.path(p), '
+          'projector: other);',
     };
     for (final MapEntry(key: name, value: body) in refused.entries) {
       test('issue #31 : refuse, avec import llamadart, $name', () {
@@ -351,6 +354,29 @@ Future<bool> dial(String n) => launchUrl(Uri(scheme: 'tel', path: n));
 /// Ce qu'un fichier qui importe `package:llamadart` fait d'interdit : toute source
 /// de modèle autre que `ModelSource.path(` (adresse, Hugging Face, `parse`, source
 /// passée par une variable, méthodes `loadModel*`). Commentaires ignorés ; un
-/// fichier sans cet import n'est pas concerné. Garde-fou de test, à implémenter
-/// (issue #31).
-List<String> llamadartViolations(String source) => const [];
+/// fichier sans cet import n'est pas concerné (la classe `ModelSource` de l'app,
+/// `lib/model/model_source.dart`, porte le même nom). Issue #31.
+List<String> llamadartViolations(String source) {
+  final code = withoutComments(source);
+  if (!RegExp(r'''import\s+['"]package:llamadart/''').hasMatch(code)) {
+    return const [];
+  }
+  const localSource = r'(\w+\s*\.\s*)?ModelSource\s*\.\s*path\s*\(';
+  final found = <String>[
+    for (final m in RegExp(r'\bModelSource\s*\.\s*(\w+)').allMatches(code))
+      if (m[1] != 'path') 'llamadart : ModelSource.${m[1]}',
+    // Méthodes du moteur qui acceptent une adresse au lieu d'un chemin.
+    if (RegExp(r'\bloadModel\w*\s*\(').hasMatch(code)) 'llamadart : loadModel*',
+    // Le modèle (et son projecteur) reçoit sa source directement de
+    // `ModelSource.path(`, jamais d'une variable construite ailleurs.
+    for (final m in RegExp(
+      r'\bLlamaModel\s*\(\s*(?!' + localSource + r')',
+    ).allMatches(code))
+      'llamadart : LlamaModel sans ModelSource.path (${m.start})',
+    for (final m in RegExp(
+      r'\bprojector\s*:\s*(?!' + localSource + r')',
+    ).allMatches(code))
+      'llamadart : projector sans ModelSource.path (${m.start})',
+  ];
+  return found;
+}
