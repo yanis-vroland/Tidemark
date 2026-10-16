@@ -113,3 +113,22 @@ Critères : F1 appel de `sha256OfFile` avec `{path}` ; F2 empreinte native égal
 ### Prochaine étape
 
 - Test humain par Yanis sur l'iPhone 15 Pro et l'émulateur `tidemark_api35` : chronométrer le premier étiquetage après un lancement. Puis reporter la mesure dans l'ADR-004 et la spec 003. Rebaser si la PR #40 est mergée avant. Ajuster ensuite la phrase des « Limites » du README (proposition dans la PR).
+
+## 2026-10-16 12:51
+
+### Fait
+
+- `main` fusionné dans la branche après le merge de la PR #41 (agent principal). Fusion sans conflit.
+- Commit de merge testé avant le push : `dart analyze --fatal-infos` et `dart format` sans remarque, `flutter test` au vert (1811 tests), dont le test CA34 qui échouait sur `main`.
+
+### Décisions
+
+- Fusion de `main` plutôt que rebase, le force-push étant interdit (agent, par délégation de Yanis du 2026-10-16).
+
+### Corrections et limites
+
+- Aucune nouvelle.
+
+### Prochaine étape
+
+- Inchangée : voir l'entrée précédente.
