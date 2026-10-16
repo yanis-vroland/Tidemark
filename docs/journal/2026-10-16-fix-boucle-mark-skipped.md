@@ -90,3 +90,33 @@ Issue #38 : quand le marquage « non analysée » d'une entrée en détresse éc
 ### Prochaine étape
 
 - Revues `reviewer` et `security-reviewer`, puis PR en brouillon.
+
+## 2026-10-16 16:20
+
+### Fait
+
+- Revues `reviewer` et `security-reviewer` : aucun point bloquant. Suites données :
+  - commentaire de `_writeFailed` mis à jour (il couvre aussi le marquage) ;
+  - ensemble `_saveFailed` renommé `_failureOrder`, puisqu'il range les deux échecs ;
+  - après un marquage réussi, l'entrée est retirée du rang explicitement, comme le dit la spec ;
+  - rang commun aux deux échecs : CA40 complété dans la spec, et nouveau test « CA40 : une entrée en détresse au marquage en échec et une entrée ordinaire à l'écriture en échec partagent le même rang… », ajouté après le code et vert dès son ajout (la mutation M6 le couvre) ;
+  - test « CA40 : quand le marquage réussit ensuite… » renforcé : un seul marquage réussi (2 appels en tout, rien ensuite). **Test modifié après son commit rouge** : ajout de vérifications, aucune retirée ;
+  - cahier des charges : RM35 complétée (marquage impossible → l'entrée reste « en attente », jamais transmise au modèle, la file suit RM57), sans toucher RM57, RM60 ni RM61.
+- Suite complète : 1 779 verts, 1 rouge (CA34, défaut de `main` corrigé par #41), en heure locale comme avec `TZ=UTC`. `dart format` et `dart analyze --fatal-infos` propres.
+- Contrôle par mutation refait sur tout `analysis_queue_test.dart`, 7 mutations :
+  - M1 (retour au défaut) : 4 rouges ; M2 (arrêt sans rang) : 2 ; M3 (rang sans arrêt) : 3 ; M4 (RM8 : analyse après un marquage en échec) : 5 ; M5 (RM8 : détecteur ignoré) : 8 ; M6 (marquage en échec non replacé en fin de rang) : 1 ;
+  - M7 (rang non effacé après un marquage réussi) : survivante, mutation équivalente : `retainAll(pending)` retire l'entrée au tour suivant, puisqu'elle n'est plus « en attente ». Le retrait explicite documente la règle.
+
+### Décisions
+
+- Le journal de 14:00 disait qu'aucune règle métier ne changeait : corrigé, RM35 couvre désormais l'échec du marquage (agent, par délégation de Yanis du 2026-10-16, sur la remarque du `reviewer`).
+- Renvois CA39 du code gardés (consigne du coordinateur) alors que la spec de `main` nomme encore CA36 la règle d'échec d'écriture : la PR reste en brouillon et sera rebasée après le merge de #41 (agent, par délégation de Yanis du 2026-10-16).
+- Non suivis : délais fixes des tests CA40 (une file qui reboucle figerait `whenIdle` au lieu d'échouer ; délais larges, 300 ms pour des faux immédiats) ; garde contre un `markSkipped` « réussi sans effet » (suggestion de sécurité : impossible avec l'`UPDATE` actuel de drift, le texte n'atteindrait de toute façon pas le modèle), signalé dans la PR.
+
+### Corrections et limites
+
+- Test humain : impossible dans l'app telle quelle, `markSkipped` n'échoue que sur une erreur de la base, qu'aucune action de l'utilisatrice ne provoque. Scénario possible avec un correctif local non commité, décrit dans la PR, à faire par Yanis.
+
+### Prochaine étape
+
+- Ouvrir la PR en brouillon, publier la réponse à la revue IA, puis passer à `refactor/watch-entry` (#39).
