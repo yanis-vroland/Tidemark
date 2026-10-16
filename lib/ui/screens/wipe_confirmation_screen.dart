@@ -94,12 +94,16 @@ class _WipeConfirmationScreenState extends State<WipeConfirmationScreen> {
     }
     // L'écran reste sur « Suppression… » jusqu'à ce que l'app rouverte le
     // remplace par la liste vide.
-    final onWiped = widget.onWiped;
-    if (onWiped != null) {
-      await onWiped();
-    } else if (mounted) {
-      await AppHost.maybeOf(context)?.restart(wiped: true);
-    }
+    // `startApp` rend toujours une app, au pire l'écran d'erreur : une erreur
+    // ici n'efface plus rien, et la suppression est déjà terminée.
+    try {
+      final onWiped = widget.onWiped;
+      if (onWiped != null) {
+        await onWiped();
+      } else if (mounted) {
+        await AppHost.maybeOf(context)?.restart(wiped: true);
+      }
+    } catch (_) {}
   }
 
   @override

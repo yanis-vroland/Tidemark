@@ -83,7 +83,7 @@ Fichiers de l'app ([spec 005](specs/005-export-et-suppression-totale.md)) ; doss
 | `Application Support/tidemark/journal.db` (et `-wal`, `-shm`, `-journal`) | Base chiffrée. |
 | `Application Support/tidemark/installed` | Marqueur d'installation, fichier vide (RM45). |
 | `Application Support/tidemark/wipe-pending` | Marqueur de suppression totale en cours (RM43). |
-| `Application Support/tidemark/models/` | Modèle local et téléchargement partiel (spec 003). La spec 005 écrit `model/` : le dossier réel est `models/`, celui du lot G. |
+| `Application Support/tidemark/models/` | Modèle local et téléchargement partiel (spec 003). |
 | `<cache>/tidemark-export/`, `<cache>/share_plus/` (Android) | Fichier d'export temporaire, purgé au démarrage et avant chaque export (RM41). `<cache>` : `getTemporaryDirectory` (Library/Caches sur iOS, `cacheDir` sur Android), non sauvegardé. |
 
 ## Contrats entre composants

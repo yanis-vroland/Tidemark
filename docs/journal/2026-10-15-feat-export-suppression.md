@@ -125,3 +125,35 @@ Correction : la fermeture du journal arrête la file, oublie le bilan, annule le
 ### Prochaine étape
 
 Revues `reviewer` et `security-reviewer` sur `git diff origin/main...HEAD`, documents de référence, PR.
+
+## 2026-10-16 10:50
+
+### Fait
+
+- Revue `reviewer` : aucun bloquant ; 4 « à corriger », 5 suggestions. Revue `security-reviewer` : aucun bloquant ni « à corriger », 3 suggestions.
+- Tests de non-régression, committés rouges (`05ec8a7`) : fermeture de la base retentée après un échec (`test/storage/database_close_retry_test.dart`), message de fin qui ne revient pas après la suppression de la première entrée (`test/ui/wiped_notice_test.dart`).
+- Corrigé :
+  - `AppDatabase.close` : une fermeture en échec n'est plus gardée, « Réessayer » la retente (reviewer, à corriger n° 2 ; sécurité, suggestion n° 3) ;
+  - spec 005, « Données » : dossier du modèle `models/` (correction factuelle, celui de la spec 003) ; phrase d'écart retirée de l'architecture technique (reviewer n° 1) ;
+  - prochaine étape du journal : test humain (reviewer n° 3) ;
+  - purge des fichiers d'export après la reprise de `wipe-pending`, qui passe « avant toute autre chose » (suggestion n° 1) ;
+  - erreur après une suppression réussie rattrapée par la confirmation (suggestion n° 3) ;
+  - message de fin effacé dès la première entrée (suggestion n° 4) ;
+  - imports de `main.dart` triés (suggestion n° 5).
+- `flutter test` : 1 658 verts (aussi avec `TZ=UTC`).
+
+### Décisions
+
+- Non suivis, consignés dans la PR (agent) :
+  - extraction de la fermeture du journal dans une classe (suggestion n° 2) : utile, mais hors du besoin de cette PR ;
+  - sécurité n° 1 (clé restante réutilisée si son effacement échoue à une nouvelle installation) : conforme à la table de la spec (CA32) ; une parade change la spec, à trancher par Yanis ;
+  - sécurité n° 2 (copie `share_plus` en clair jusqu'au démarrage suivant) : risque accepté par la spec (CA10) et l'ADR-003.
+- Statut de la spec 005 dans le cahier des charges : mis à jour avec le numéro de la PR, dans un commit qui suit sa création (reviewer n° 4).
+
+### Corrections et limites
+
+- Test humain impossible pour l'agent : à faire par Yanis (scénarios dans la PR).
+
+### Prochaine étape
+
+Test humain par Yanis, sur iPhone 15 Pro et l'émulateur Android `tidemark_api35`, en thèmes clair et sombre, maquette à côté : export partagé puis annulé (Fichiers, messagerie, mode avion), journal vide, suppression depuis les Réglages, reprise après avoir tué l'app pendant la suppression, clé introuvable.

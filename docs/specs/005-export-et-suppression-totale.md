@@ -185,7 +185,7 @@ Un échec d'effacement de la clé ou d'écriture du marqueur n'empêche pas l'ap
 - **Suppression** :
   - `JournalWiper` : exécute les étapes dans l'ordre, chacune idempotente ; dépend de `KeyStore`, d'un accès aux fichiers injectable et de la fermeture de la base.
   - `KeyStore` (spec 001) : nouvelle opération `deleteAll()`, qui efface toute clé de l'app.
-  - Dossier `Application Support/tidemark/` : `journal.db` et ses fichiers, `installed`, `wipe-pending`, et le dossier du modèle `model/`. **Contrainte pour le lot G** : le modèle et tout téléchargement partiel vivent dans `Application Support/tidemark/model/`, exclu des sauvegardes comme la base.
+  - Dossier `Application Support/tidemark/` : `journal.db` et ses fichiers, `installed`, `wipe-pending`, et le dossier du modèle `models/` (spec 003). Le modèle et tout téléchargement partiel vivent dans `Application Support/tidemark/models/`, exclu des sauvegardes comme la base.
 - **Démarrage** (`startApp`, spec 001) : reprise de `wipe-pending`, puis marqueur `installed`, puis ouverture de la base. `StartupErrorApp` gagne le cas « suppression non terminée ».
 - **Dépendance** : `share_plus` 13.3.1 (BSD-3-Clause), version épinglée exactement ; justifiée dans la PR d'implémentation et dans l'ADR-003.
 
