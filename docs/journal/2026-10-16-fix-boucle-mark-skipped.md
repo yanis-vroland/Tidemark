@@ -2,7 +2,7 @@
 
 Issue #38 : quand le marquage « non analysée » d'une entrée en détresse échoue (`markSkipped` lève), la file d'analyse reprend la même entrée à chaque événement et n'atteint plus les plus anciennes.
 
-## 2026-10-16 14:00
+## 2026-10-16 11:20
 
 ### Fait
 
@@ -24,7 +24,7 @@ Issue #38 : quand le marquage « non analysée » d'une entrée en détresse éc
 
 - Tests rouges (subagent `test-writer`), commit séparé, puis implémentation.
 
-## 2026-10-16 14:45
+## 2026-10-16 11:52
 
 ### Fait
 
@@ -46,7 +46,7 @@ Issue #38 : quand le marquage « non analysée » d'une entrée en détresse éc
 
 - Implémentation dans `lib/analysis/analysis_queue.dart`, puis contrôle par mutation.
 
-## 2026-10-16 15:20
+## 2026-10-16 11:57
 
 ### Fait
 
@@ -65,7 +65,7 @@ Issue #38 : quand le marquage « non analysée » d'une entrée en détresse éc
 
 - Commit de l'implémentation, contrôle par mutation, revues.
 
-## 2026-10-16 15:40
+## 2026-10-16 11:58
 
 ### Fait
 
@@ -91,7 +91,7 @@ Issue #38 : quand le marquage « non analysée » d'une entrée en détresse éc
 
 - Revues `reviewer` et `security-reviewer`, puis PR en brouillon.
 
-## 2026-10-16 16:20
+## 2026-10-16 12:07
 
 ### Fait
 
@@ -134,7 +134,7 @@ Issue #38 : quand le marquage « non analysée » d'une entrée en détresse éc
 
 ### Corrections et limites
 
-- Aucune nouvelle.
+- Les heures des entrées de ce journal ne correspondaient pas à l'heure réelle (heures estimées par l'agent, parfois dans le futur) : la CI refusait l'ordre chronologique. Chaque titre d'entrée reprend désormais l'heure du commit qui l'a créée (agent principal). Le contenu des entrées n'a pas changé.
 
 ### Prochaine étape
 
