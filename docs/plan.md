@@ -67,7 +67,9 @@ Point d'arrêt le **2026-10-24** : si le lot D n'est pas mergé, Yanis décide e
 - [x] **[Yanis]** Accord pour créer le label `agent-corrigé` (2026-10-14).
 - [x] **[Yanis]** Répondre aux questions de cadrage avant le lot B (2026-10-14).
 - [ ] **[Yanis]** Valider la charte (lot C) en commentant l'artefact.
-- [ ] **[Yanis]** Valider l'ADR-001, puis chaque spec et sa maquette.
+- [x] **[Yanis]** Valider l'ADR-001 (accepté le 2026-10-14 ; l'ADR-002 et l'ADR-003 aussi).
+- [x] **[Yanis]** Valider les specs 001 à 006 et leurs maquettes (merges des PR #12, #15, #16, #17 et #18). Reste : CA31 à CA36 de la spec 001, ajoutés après les revues de code.
+- [ ] **[Yanis]** Valider ou refuser l'ADR-004 (intégrité du moteur natif et du modèle, proposé le 2026-10-15).
 - [ ] **[Yanis]** Test humain de chaque fonctionnalité sur l'iPhone 15 Pro et sur l'émulateur Android, maquette à côté.
 - [ ] **[Yanis]** Passer le dépôt en public (lot J).
 
@@ -115,8 +117,8 @@ Une première version existe : l'artefact « Design System » Tidemark, créé l
 - [x] Inventaire des écrans du MVP : liste des entrées (avec état vide), saisie, détail d'une entrée et ses étiquettes, écran d'aide (3114), téléchargement du modèle, réglages (export, suppression totale), bilan de la semaine.
 - [x] Artefact « Design System » Tidemark : ton visuel (calme, sans infantiliser, adapté à un sujet sensible), jetons clair et sombre, échelle typographique, composants communs (sélecteur d'humeur, carte d'entrée, puce d'étiquette, boutons, champ de texte, bandeau d'erreur, indicateur de chargement).
 - [x] Contraste AA vérifié pour chaque paire texte et fond, dans les deux thèmes.
-- [ ] Polices et icônes choisies parmi celles qu'on peut embarquer, licence compatible avec un dépôt public. Polices faites (OFL) ; jeu d'icônes reporté au lot D.
-- [ ] Source et captures versionnées dans `docs/maquettes/000-charte/`. Source faite ; captures reportées au lot E.
+- [ ] Polices et icônes choisies parmi celles qu'on peut embarquer, licence compatible avec un dépôt public. Polices faites (OFL). Icônes : non tranché. Le lot D ne l'a pas fait ; de fait, l'app utilise les Material Icons de Flutter (police embarquée par `uses-material-design`, licence Apache-2.0, aucun téléchargement), mais la charte (`docs/maquettes/000-charte/charte.md`, « Iconographie ») dit encore « pas encore de jeu d'icônes choisi ». À confirmer par Yanis, puis à reporter dans la charte.
+- [ ] Source et captures versionnées dans `docs/maquettes/000-charte/`. Source faite ; captures reportées au lot E, toujours absentes (aucun PNG dans le dossier au 2026-10-15) alors que le lot E est mergé.
 
 ## Lot D : socle Flutter
 
@@ -173,3 +175,5 @@ Décisions de cadrage de Yanis (2026-10-14). Leurs effets sur le produit (hors p
 - `/install-github-app` ajoute deux workflows qui doublent `ai-review.yml` ; le guide d'adoption pourrait prévenir de les supprimer, ou de configurer le secret à la main.
 - Le `plan.md` du template est local et non versionné, ce qui contredit la spec 004 (le dépôt est la seule mémoire). Ce dépôt le versionne dans `docs/plan.md`.
 - La skill `/spec` ne prévoit pas d'étape de maquette, alors que la règle « Maquettes dans la spec » l'exige pour un projet avec écrans. Ce dépôt la décrit dans son plan.
+- Rien n'empêche de merger une PR dont la description dit « Ne pas merger » : la PR #23 l'a été le 2026-10-15, avant ses tests manquants (repris par la PR #24), ses revues `reviewer` et `security-reviewer` et l'essai du vrai modèle. Proposition pour la chaîne P1 : l'agent ouvre une PR inachevée en brouillon (`gh pr create --draft`), que GitHub refuse de merger, et ne la passe prête (`gh pr ready`) qu'une fois sa « Prochaine étape » vide ; une vérification de CI peut aussi échouer tant que la description contient « Ne pas merger ».
+- Une affirmation sur une dépendance a passé la revue sans preuve : le journal et la PR #23 disaient le moteur natif de `llamadart` téléchargé « avec une empreinte SHA-256 épinglée », ce qui est faux ([ADR-004](adr/004-integrite-du-moteur-et-du-modele.md)). Proposition pour la chaîne P1 : toute affirmation de sécurité sur une dépendance cite le fichier et les lignes lus, et le subagent `security-reviewer` la vérifie.
