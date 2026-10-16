@@ -64,3 +64,29 @@ Issue #38 : quand le marquage « non analysée » d'une entrée en détresse éc
 ### Prochaine étape
 
 - Commit de l'implémentation, contrôle par mutation, revues.
+
+## 2026-10-16 15:40
+
+### Fait
+
+- `lib/analysis/analysis_queue.dart` : l'échec de `markSkipped` suit le mécanisme de l'échec d'écriture du résultat (PR #37), mis en commun dans `_recordWriteFailure` : l'entrée passe en fin d'ordre (`_saveFailed`, en mémoire) et `_writeFailed` empêche les événements reçus pendant le passage de relancer la file. L'entrée reste « en attente » et la boucle s'arrête avant toute analyse : le modèle ne reçoit jamais son texte.
+- Tests CA40 verts (52 sur 52 dans `analysis_queue_test.dart`). Suite complète : 1 778 verts, 1 rouge, en heure locale comme avec `TZ=UTC` ; le rouge est CA34 « un désabonnement qui lève… », déjà rouge sur `main` et corrigé par #41.
+- `dart format` : rien à changer ; `dart analyze --fatal-infos` : aucun problème.
+- Contrôle par mutation (tests filtrés sur CA40, RM8 et CA7), 5 mutations, toutes détectées :
+  - M1, échec du marquage sans la règle RM57 (retour au défaut) : 2 rouges (CA40 « la file s'arrête », CA40 « au prochain événement ») ;
+  - M2, arrêt de la série sans rang en mémoire : 1 rouge (CA40 « au prochain événement ») ;
+  - M3, rang en mémoire sans arrêt de la série : 2 rouges (les deux mêmes) ;
+  - M4, garde-fou RM8 : après un marquage en échec, l'entrée est analysée : 4 rouges (les quatre tests CA40 et RM8) ;
+  - M5, garde-fou RM8 : détecteur ignoré : 7 rouges (les trois CA7 et les quatre CA40 et RM8).
+
+### Décisions
+
+- Rang commun aux deux échecs (écriture du résultat et marquage) : une entrée en détresse et une entrée ordinaire en échec passent l'une après l'autre, la plus anciennement en échec d'abord (agent, par délégation de Yanis du 2026-10-16).
+
+### Corrections et limites
+
+- Test humain difficile à provoquer : `markSkipped` n'échoue que sur une erreur de la base (disque plein, base verrouillée). Scénario proposé dans la PR.
+
+### Prochaine étape
+
+- Revues `reviewer` et `security-reviewer`, puis PR en brouillon.

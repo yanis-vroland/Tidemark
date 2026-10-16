@@ -64,9 +64,9 @@ class AnalysisQueue extends ChangeNotifier {
   bool _background = false;
   Future<void>? _stopping;
 
-  /// Entrées dont l'écriture du résultat a échoué (CA36) : aux séries suivantes,
-  /// elles passent après les autres. En mémoire seulement ; une écriture réussie
-  /// les en retire.
+  /// Entrées dont l'écriture du résultat (CA39) ou le marquage « non analysée »
+  /// (CA40) a échoué : aux séries suivantes, elles passent après les autres. En
+  /// mémoire seulement ; une écriture réussie les en retire.
   final Set<int> _saveFailed = <int>{}; // ordre d'échec (LinkedHashSet)
 
   /// L'écriture d'un résultat a échoué pendant ce passage : la file s'arrête
@@ -222,6 +222,10 @@ class AnalysisQueue extends ChangeNotifier {
           try {
             await repository.markSkipped([entry.id]);
           } catch (_) {
+            // Marquage impossible : l'entrée reste « en attente », sans jamais
+            // atteindre le modèle ; même règle que l'écriture du résultat
+            // impossible (RM57, CA40).
+            _recordWriteFailure(entry.id);
             break;
           }
           continue;
@@ -302,14 +306,22 @@ class AnalysisQueue extends ChangeNotifier {
       // Écriture impossible : l'entrée reste « en attente » (CA8) ; la file s'arrête
       // jusqu'au prochain événement, sans la reprendre dans cette série (CA36).
       // En fin d'ordre : la plus récemment en échec passera après les autres.
-      _saveFailed
-        ..remove(entryId)
-        ..add(entryId);
-      _writeFailed = true;
+      _recordWriteFailure(entryId);
       return false;
     }
     _saveFailed.remove(entryId);
     return true;
+  }
+
+  /// Écriture impossible pour [entryId] (résultat, CA39, ou marquage « non
+  /// analysée », CA40) : la file s'arrête jusqu'au prochain événement, sans tenir
+  /// compte de ceux reçus pendant ce passage, et l'entrée passe en fin d'ordre :
+  /// la plus récemment en échec passera après les autres.
+  void _recordWriteFailure(int entryId) {
+    _saveFailed
+      ..remove(entryId)
+      ..add(entryId);
+    _writeFailed = true;
   }
 
   /// Analyse avec un délai : au-delà, la génération est arrêtée et la file attend
