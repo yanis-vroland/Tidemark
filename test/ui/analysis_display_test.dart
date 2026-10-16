@@ -218,6 +218,17 @@ Future<void> finishAnalysis(
   await settle(tester);
 }
 
+/// Libellé du nœud sémantique ancêtre de [finder] (lui-même compris) qui porte le
+/// drapeau de région vive ; `null` s'il n'y en a aucun.
+String? liveRegionLabel(WidgetTester tester, Finder finder) {
+  SemanticsNode? node = tester.getSemantics(finder);
+  while (node != null) {
+    if (node.flagsCollection.isLiveRegion) return node.label;
+    node = node.parent;
+  }
+  return null;
+}
+
 double top(WidgetTester tester, Finder finder) => tester.getTopLeft(finder).dy;
 
 /// Couleur de fond de la puce qui porte [label] : celle du plus proche ancêtre qui
@@ -957,6 +968,75 @@ void main() {
         expect(finishedAnnouncements(announcements), isEmpty);
       },
     );
+
+    // Android : le libellé de la région vive est le texte de fin d'analyse ; les
+    // lignes « Émotions » et « Thèmes » restent lues séparément (non fusionnées).
+    platformSemanticsTestWidgets(
+      'CA28 : Android, de « en attente » à « étiquetée » : la région vive a '
+      'pour libellé « Analyse terminée. Émotions : fatigue, calme. Thèmes : '
+      'travail. », et les lignes restent lues séparément',
+      TargetPlatform.android,
+      (tester) async {
+        final s = await scenario('analyse en cours');
+        await show(tester, s.env.detail(s.entry));
+
+        await finishAnalysis(tester, s, Tagged(fatigueCalmeTravail));
+
+        final label = liveRegionLabel(tester, find.text('fatigue'));
+        expect(
+          label,
+          isNotNull,
+          reason: 'aucune région vive sur les étiquettes',
+        );
+        expect(label, contains(finishedTaggedText));
+        expect(
+          find.bySemanticsLabel('Émotions : fatigue, calme'),
+          findsOneWidget,
+        );
+        expect(find.bySemanticsLabel('Thèmes : travail'), findsOneWidget);
+      },
+    );
+
+    platformSemanticsTestWidgets(
+      'CA28 : Android, de « en attente » à « sans étiquette » : la région vive '
+      'a pour libellé « Analyse terminée. Aucune étiquette n\'a été proposée '
+      'pour cette entrée. »',
+      TargetPlatform.android,
+      (tester) async {
+        final s = await scenario('analyse en cours');
+        await show(tester, s.env.detail(s.entry));
+
+        await finishAnalysis(tester, s, const Untagged());
+
+        final label = liveRegionLabel(tester, find.text(noTagText));
+        expect(label, isNotNull, reason: 'aucune région vive sur le statut');
+        expect(label, contains(finishedUntaggedText));
+      },
+    );
+
+    // Rien à l'ouverture, même si l'entrée transmise par la liste était « en
+    // attente » alors que le journal la donne déjà étiquetée.
+    for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
+      platformSemanticsTestWidgets(
+        'CA28 : ${platform.name}, ouverture d\'un détail dont l\'entrée transmise '
+        'est « en attente » alors que le journal la donne déjà étiquetée : '
+        'rien n\'est annoncé',
+        platform,
+        (tester) async {
+          final announcements = captureAnnouncements(tester);
+          final env = UiEnv();
+          final stale = env.pending(DateTime(2026, 10, 14, 21, 40), bodyText);
+          expect(stale.analysisStatus, AnalysisStatus.pending);
+          await env.repo.saveAnalysis(stale.id, Tagged(fatigueCalmeTravail));
+
+          await show(tester, env.detail(stale));
+
+          expect(find.text('fatigue'), findsOneWidget);
+          expect(finishedAnnouncements(announcements), isEmpty);
+          expect(isAnnounced(tester, find.text('fatigue')), isFalse);
+        },
+      );
+    }
 
     // Revue de sécurité de la PR : rien n'est dit à voix haute quand le détail
     // n'est plus à l'écran (feuille ou écran ouvert par-dessus).

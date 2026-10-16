@@ -122,3 +122,22 @@ Suites des revues IA de la spec 004 (issues #29 à #33), défaut de la file d'an
 ### Prochaine étape
 
 - Tests rouges des points de la revue `reviewer` (subagent `test-writer`), puis corrections.
+
+## 2026-10-16 09:50
+
+### Fait
+
+- Tests écrits par le subagent `test-writer` pour les points de la revue `reviewer` : 5 rouges pour la bonne raison (deux entrées toujours en échec : `['TX','TY','TX','TX']` au lieu de `['TX','TY','TX','TY']` ; région vive Android sans « Analyse terminée. » dans son libellé, deux cas ; annonce à l'ouverture d'un détail transmis « en attente » mais déjà étiqueté, iOS et Android).
+- Test modifié (signalé) : « CA34 : un désabonnement qui lève… » exige désormais une fin normale de `stop()`, comme la spec ; vert.
+
+### Décisions
+
+- Aucune.
+
+### Corrections et limites
+
+- Relecture du `test-writer` : les échantillons du garde-fou llamadart ne peuvent pas être rouges avant implémentation au sens strict (la fonction est dans le test) ; les tests « détail couvert » et « app inactive » vérifient une absence et ne valent qu'avec le test positif iOS, vert.
+
+### Prochaine étape
+
+- Corriger : ordre des entrées en échec, libellé de la région vive, pas d'annonce à l'ouverture.
