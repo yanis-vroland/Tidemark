@@ -37,7 +37,7 @@ class FailSaveForRepository extends FakeEntryRepository {
   }
 }
 
-/// Dépôt dont `markSkipped` lève pour les entrées de [failMarkFor] (CA39) et
+/// Dépôt dont `markSkipped` lève pour les entrées de [failMarkFor] (CA40) et
 /// journalise ses appels. [beforeMark] permet d'injecter des événements du journal
 /// pendant le marquage, avant l'échec.
 class FailMarkForRepository extends FakeEntryRepository {
@@ -334,7 +334,7 @@ void main() {
     });
   });
 
-  group('CA39 : marquage « non analysée » impossible (détresse)', () {
+  group('CA40 : marquage « non analysée » impossible (détresse)', () {
     // Trois entrées en attente ; la plus récente (oct12) est en détresse et son
     // marquage échoue.
     ({FailMarkForRepository repo, Entry old, Entry mid, Entry distress})
@@ -347,7 +347,7 @@ void main() {
       return (repo: repo, old: old, mid: mid, distress: distress);
     }
 
-    test('CA39 : l\'entrée en détresse reste « en attente », son texte '
+    test('CA40 : l\'entrée en détresse reste « en attente », son texte '
         'n\'atteint jamais le modèle malgré les événements du journal pendant '
         'le marquage, et la file s\'arrête', () async {
       final s = seedThree();
@@ -387,7 +387,7 @@ void main() {
       expect(s.repo.saveAnalysisCalls, isEmpty);
     });
 
-    test('CA39 : au prochain événement, la nouvelle entrée et les deux plus '
+    test('CA40 : au prochain événement, la nouvelle entrée et les deux plus '
         'anciennes sont analysées avant que le marquage ne soit retenté, une '
         'seule fois pour cette série', () async {
       final s = seedThree();
@@ -433,7 +433,7 @@ void main() {
       expect(env.queue.currentEntryId, isNull);
     });
 
-    test('CA39 : quand le marquage réussit ensuite, l\'entrée passe en « non '
+    test('CA40 : quand le marquage réussit ensuite, l\'entrée passe en « non '
         'analysée », sans atteindre le modèle', () async {
       final s = seedThree();
       final env = QueueEnv(repo: s.repo);
