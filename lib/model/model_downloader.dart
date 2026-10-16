@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
@@ -38,10 +40,28 @@ abstract interface class ModelDownloader {
   Future<bool> verifyBeforeFirstLoad();
 }
 
-/// SHA-256 du fichier [path], en hexadécimal (spec 003, CA36).
-Future<String> sha256OfFile(String path) async {
-  // Squelette : à remplacer par un calcul dans un isolat.
-  return sha256.convert(File(path).readAsBytesSync()).toString();
+/// SHA-256 du fichier [path], en hexadécimal, calculé dans un isolat (spec 003,
+/// CA36) : le fil de l'interface ne lit ni ne hache 1,1 Go. Un fichier illisible
+/// lève [FileSystemException], transmise telle quelle par l'isolat.
+Future<String> sha256OfFile(String path) =>
+    Isolate.run(() => _sha256OfFileSync(path));
+
+/// Lecture et calcul synchrones, par blocs de 1 Mo : seulement dans un isolat.
+String _sha256OfFileSync(String path) {
+  final file = File(path).openSync();
+  try {
+    final digest = _DigestSink();
+    final hasher = sha256.startChunkedConversion(digest);
+    final buffer = Uint8List(1 << 20);
+    for (var read = file.readIntoSync(buffer); read > 0;) {
+      hasher.add(Uint8List.sublistView(buffer, 0, read));
+      read = file.readIntoSync(buffer);
+    }
+    hasher.close();
+    return digest.value.toString();
+  } finally {
+    file.closeSync();
+  }
 }
 
 /// Statuts HTTP de redirection suivis par le téléchargeur (CA8).
@@ -110,6 +130,16 @@ class HttpModelDownloader implements ModelDownloader {
 
   /// Complété par [cancel] : interrompt l'attente d'une réponse du transport.
   Completer<void> _cancelSignal = Completer<void>();
+
+  /// Empreinte du fichier définitif vérifiée pendant ce lancement (CA34, CA35).
+  bool _verified = false;
+
+  /// Calcul de [verifyBeforeFirstLoad] en cours, partagé par les appels simultanés.
+  Future<bool>? _verifying;
+
+  /// Changé à chaque effacement ou relecture du fichier définitif : un calcul
+  /// commencé avant ne compte plus (CA35).
+  int _fileGeneration = 0;
 
   File get _finalFile => File('${folder.path}/${source.fileName}');
   File get _partFile => File('${folder.path}/${source.fileName}.part');
@@ -225,6 +255,10 @@ class HttpModelDownloader implements ModelDownloader {
       } on FileSystemException {
         throw const _Failure(DownloadFailure.storage);
       }
+      // Empreinte vérifiée juste avant le renommage : rien à recalculer avant
+      // le premier chargement de ce lancement (CA35).
+      _fileGeneration++;
+      _verified = true;
       _set(ModelReady(path: _finalFile.path));
     } on _Cancelled {
       await file?.close();
@@ -325,8 +359,15 @@ class HttpModelDownloader implements ModelDownloader {
     await running;
   }
 
+  /// Le fichier définitif change ou disparaît : son empreinte est à revérifier.
+  void _forgetVerification() {
+    _fileGeneration++;
+    _verified = false;
+  }
+
   @override
   Future<void> checkAtStartup() async {
+    _forgetVerification();
     try {
       await _deletePart();
       final file = _finalFile;
@@ -345,6 +386,7 @@ class HttpModelDownloader implements ModelDownloader {
 
   @override
   Future<void> deleteModel() async {
+    _forgetVerification();
     await cancel();
     try {
       if (await _finalFile.exists()) await _finalFile.delete();
@@ -360,11 +402,12 @@ class HttpModelDownloader implements ModelDownloader {
     if (_state is! ModelReady) return;
     final file = _finalFile;
     try {
-      final digest = await sha256.bind(file.openRead()).first;
-      if (digest.toString() == source.sha256) return;
+      if (await hashFile(file.path) == source.sha256) return;
+      _forgetVerification();
       await file.delete();
     } on FileSystemException {
       // Illisible : traité comme une empreinte fausse.
+      _forgetVerification();
       try {
         if (await file.exists()) await file.delete();
       } on FileSystemException {
@@ -375,8 +418,40 @@ class HttpModelDownloader implements ModelDownloader {
   }
 
   @override
-  Future<bool> verifyBeforeFirstLoad() async {
-    // Squelette : comportement d'avant l'ADR-004, la taille seule.
-    return _state is ModelReady;
+  Future<bool> verifyBeforeFirstLoad() {
+    if (_state is! ModelReady) return Future.value(false);
+    if (_verified) return Future.value(true);
+    return _verifying ??= _verifyOnce().whenComplete(() => _verifying = null);
+  }
+
+  /// Calcule l'empreinte du fichier définitif : juste, elle est gardée pour le
+  /// lancement ; fausse ou fichier illisible, le fichier est effacé et le modèle
+  /// est absent (CA34) ; autre erreur, rien n'est gardé ni effacé (CA35).
+  Future<bool> _verifyOnce() async {
+    final generation = _fileGeneration;
+    final file = _finalFile;
+    bool matches;
+    try {
+      matches = await hashFile(file.path) == source.sha256;
+    } on FileSystemException {
+      matches = false;
+    } catch (_) {
+      return false;
+    }
+    // Modèle effacé ou retéléchargé pendant le calcul : ce résultat ne vaut plus.
+    if (generation != _fileGeneration || _state is! ModelReady) return false;
+    if (matches) {
+      _verified = true;
+      return true;
+    }
+    _forgetVerification();
+    try {
+      if (await file.exists()) await file.delete();
+    } on FileSystemException {
+      // Effacement impossible : le modèle est absent quand même, et la taille ou
+      // l'empreinte décideront au démarrage suivant.
+    }
+    _set(const ModelAbsent());
+    return false;
   }
 }

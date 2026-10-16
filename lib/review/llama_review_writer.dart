@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:llamadart/llamadart.dart' as llama;
 
+import '../analysis/llama_mood_analyzer.dart' show silenceLlamaLogs;
+
 import 'review_writer.dart';
 import 'weekly_review.dart';
 
@@ -26,6 +28,10 @@ class LlamaReviewWriter implements ReviewWriter {
   @override
   Future<ReviewDraft> write(ReviewFacts facts) async {
     _cancelled = false;
+    // Journaux de `llamadart` à `none` avant tout chargement (ADR-004, décision 4).
+    try {
+      await silenceLlamaLogs();
+    } catch (_) {}
     if (!modelFile.existsSync()) return const ModelMissing();
     final engine = llama.LlamaEngine(llama.LlamaBackend());
     _engine = engine;

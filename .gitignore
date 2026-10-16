@@ -24,6 +24,10 @@ coverage/
 **/ios/Flutter/flutter_export_environment.sh
 xcuserdata/
 
+# Archives de llama.cpp vérifiées par scripts/fetch-llama-native.sh (ADR-004) :
+# téléchargées, jamais versionnées
+/.llamadart-native/
+
 # Modèles d'IA locaux : téléchargés, jamais versionnés
 *.gguf
 *.task

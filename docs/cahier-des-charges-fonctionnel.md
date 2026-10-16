@@ -80,6 +80,7 @@ Chaque règle est numérotée (RM1, RM2…) et renvoie vers la spec qui l'a intr
 | Modèle local | en téléchargement | prêt | Fichier complet et empreinte vérifiée | App |
 | Modèle local | en téléchargement | absent | Échec réseau, empreinte fausse ou annulation ; un nouveau téléchargement repart de zéro (RM26) | App, la personne |
 | Modèle local | prêt | absent | Suppression totale | La personne |
+| Modèle local | prêt | absent | Empreinte fausse ou fichier illisible, constatés avant le premier chargement du lancement (RM11, [spec 003](specs/003-telechargement-du-modele.md) CA34, [ADR-004](adr/004-integrite-du-moteur-et-du-modele.md)) ou après un échec de chargement (CA32) : fichier effacé, retéléchargement possible | App |
 | Données de l'app | présentes | suppression en cours | La personne écrit « SUPPRIMER » et confirme (RM42) | La personne |
 | Données de l'app | suppression en cours | absentes (premier lancement) | Toutes les étapes faites, y compris après une reprise au démarrage (RM43) | App |
 | Analyse d'une entrée | en attente | étiquetée | Le modèle rend une sortie conforme au schéma | App |

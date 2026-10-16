@@ -281,7 +281,7 @@ Future<Journal> openJournal({Directory? folder, KeyStore? keyStore}) async {
   // Vérifie la clé dès le démarrage, plutôt qu'à la première lecture.
   await db.countEntries();
   // Un seul accès au modèle pour l'étiquetage et le bilan : jamais deux
-  // générations ni deux modèles en mémoire (ADR-005, proposé).
+  // générations ni deux modèles en mémoire (ADR-005).
   final gate = ModelGate();
   final modelFile = File('${dir.path}/models/${qwenModelSource.fileName}');
   return Journal(
