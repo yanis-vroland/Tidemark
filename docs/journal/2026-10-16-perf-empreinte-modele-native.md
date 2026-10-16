@@ -94,3 +94,22 @@ Critères : F1 appel de `sha256OfFile` avec `{path}` ; F2 empreinte native égal
 ### Prochaine étape
 
 - PR en brouillon, puis commentaire « Réponse à la revue IA ».
+
+## 2026-10-16 12:10
+
+### Fait
+
+- PR #44 ouverte en brouillon sur `main` ; commentaire « Réponse à la revue IA » publié et lié depuis la description.
+
+### Décisions
+
+- PR en brouillon : le test humain reste à faire (agent, selon la règle du 2026-10-16).
+
+### Corrections et limites
+
+- Les fichiers `pr.md` et `mutate.py` du scratchpad partagé de la session existaient déjà (autres agents) et ont été écrasés avant d'être renommés ; sans effet sur le dépôt.
+- Test humain : à faire par Yanis (scénario dans la PR).
+
+### Prochaine étape
+
+- Test humain par Yanis sur l'iPhone 15 Pro et l'émulateur `tidemark_api35` : chronométrer le premier étiquetage après un lancement. Puis reporter la mesure dans l'ADR-004 et la spec 003. Rebaser si la PR #40 est mergée avant. Ajuster ensuite la phrase des « Limites » du README (proposition dans la PR).
