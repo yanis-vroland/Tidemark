@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,11 +9,17 @@ import 'analysis/llama_mood_analyzer.dart';
 import 'analysis/mood_analyzer.dart';
 import 'distress/startup_screening.dart';
 import 'entries/entry_repository.dart';
+import 'model/gated_mood_analyzer.dart';
 import 'model/model_downloader.dart';
+import 'model/model_gate.dart';
 import 'model/model_source.dart';
 import 'model/model_transport.dart';
 import 'export/journal_export.dart';
 import 'export/share_sheet.dart';
+import 'review/gated_review_writer.dart';
+import 'review/llama_review_writer.dart';
+import 'review/review_narrator.dart';
+import 'review/review_writer.dart';
 import 'settings/settings_repository.dart';
 import 'storage/app_database.dart';
 import 'storage/app_storage.dart';
@@ -34,12 +41,34 @@ import 'wipe/journal_wiper.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final storage = await AppStorage.system();
+  // Un flux neuf à chaque ouverture : il n'accepte qu'un abonné, la file
+  // d'analyse de l'app précédente.
   runApp(
     AppHost(
-      initial: await startApp(storage: storage),
-      restart: ({required wiped}) => startApp(storage: storage, wiped: wiped),
+      initial: await startApp(
+        storage: storage,
+        lifecycle: appLifecycleStates(),
+      ),
+      restart: ({required wiped}) => startApp(
+        storage: storage,
+        lifecycle: appLifecycleStates(),
+        wiped: wiped,
+      ),
     ),
   );
+}
+
+/// Cycle de vie de l'app, observé par la file d'analyse (spec 004, CA32, CA33).
+/// L'écoute commence avec le premier abonné et s'arrête avec lui.
+Stream<AppLifecycleState> appLifecycleStates() {
+  AppLifecycleListener? listener;
+  late final StreamController<AppLifecycleState> controller;
+  controller = StreamController<AppLifecycleState>(
+    onListen: () =>
+        listener = AppLifecycleListener(onStateChange: controller.add),
+    onCancel: () => listener?.dispose(),
+  );
+  return controller.stream;
 }
 
 /// Journal ouvert : ses entrées et les réglages, sur la même base chiffrée.
@@ -50,6 +79,7 @@ class Journal {
     required this.downloader,
     this.analyzer,
     this.close,
+    this.reviewWriter,
   });
 
   final EntryRepository entries;
@@ -57,6 +87,9 @@ class Journal {
 
   /// Analyseur du modèle local (spec 004) ; `null` : aucune analyse.
   final MoodAnalyzer? analyzer;
+
+  /// Rédacteur du bilan (spec 006) ; `null` : bilan sans texte.
+  final ReviewWriter? reviewWriter;
 
   /// Modèle local, dans le dossier `models/` à côté de la base (spec 003).
   final ModelDownloader downloader;
@@ -66,7 +99,9 @@ class Journal {
 }
 
 /// Application de démarrage : le journal ouvert, ou l'écran d'erreur qui
-/// correspond à la cause (CA35). [open] est injectable pour les tests.
+/// correspond à la cause (CA35). [open] est injectable pour les tests ;
+/// [lifecycle] est le cycle de vie de l'app, donné à la file d'analyse (spec 004,
+/// CA32, CA33).
 ///
 /// Avec [storage] (spec 005) : purge des fichiers temporaires d'export, reprise
 /// d'une suppression totale interrompue, marqueur d'installation, puis ouverture
@@ -78,6 +113,7 @@ Future<Widget> startApp({
   AppStorage? storage,
   ShareSheet shareSheet = const SharePlusShareSheet(),
   bool wiped = false,
+  Stream<AppLifecycleState>? lifecycle,
 }) async {
   if (open == null && storage == null) {
     storage = await AppStorage.system();
@@ -125,10 +161,16 @@ Future<Widget> startApp({
             repository: journal.entries,
             analyzer: analyzer,
             downloader: journal.downloader,
+            lifecycle: lifecycle,
           )..start());
     var queueStopped = false;
+    final writer = journal.reviewWriter;
+    final narrator = writer == null
+        ? null
+        : ReviewNarrator(writer: writer, downloader: journal.downloader);
     return TidemarkApp(
       repository: journal.entries,
+      reviewNarrator: narrator,
       settings: journal.settings,
       downloader: journal.downloader,
       analysisQueue: queue,
@@ -206,6 +248,10 @@ Future<Journal> openJournal({Directory? folder, KeyStore? keyStore}) async {
   final db = await AppDatabase.openEncrypted(file, key);
   // Vérifie la clé dès le démarrage, plutôt qu'à la première lecture.
   await db.countEntries();
+  // Un seul accès au modèle pour l'étiquetage et le bilan : jamais deux
+  // générations ni deux modèles en mémoire (ADR-005, proposé).
+  final gate = ModelGate();
+  final modelFile = File('${dir.path}/models/${qwenModelSource.fileName}');
   return Journal(
     entries: DriftEntryRepository(db),
     settings: DriftSettingsRepository(db),
@@ -213,8 +259,10 @@ Future<Journal> openJournal({Directory? folder, KeyStore? keyStore}) async {
       transport: IoModelTransport(),
       folder: Directory('${dir.path}/models'),
     ),
-    analyzer: LlamaMoodAnalyzer(
-      modelFile: File('${dir.path}/models/${qwenModelSource.fileName}'),
+    analyzer: GatedMoodAnalyzer(LlamaMoodAnalyzer(modelFile: modelFile), gate),
+    reviewWriter: GatedReviewWriter(
+      LlamaReviewWriter(modelFile: modelFile),
+      gate,
     ),
     close: db.close,
   );
@@ -228,6 +276,7 @@ class TidemarkApp extends StatelessWidget {
     required this.downloader,
     this.dialer = const UrlLauncherDialer(),
     this.analysisQueue,
+    this.reviewNarrator,
     this.clock,
     this.data,
     this.wiped = false,
@@ -249,6 +298,10 @@ class TidemarkApp extends StatelessWidget {
   /// aucune analyse affichée.
   final AnalysisQueue? analysisQueue;
 
+  /// Mise en mots du bilan de la semaine (spec 006) ; `null` : bilan sans
+  /// rédacteur.
+  final ReviewNarrator? reviewNarrator;
+
   /// Date et heure locales ; [DateTime.now] par défaut.
   final DateTime Function()? clock;
 
@@ -266,6 +319,7 @@ class TidemarkApp extends StatelessWidget {
         clock: clock ?? DateTime.now,
         data: data,
         wiped: wiped,
+        narrator: reviewNarrator,
       ),
     );
     final queue = analysisQueue;

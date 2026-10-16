@@ -266,6 +266,46 @@ void main() {
       });
     });
 
+    group('CA11 : seule une entrée « en attente » reçoit un résultat', () {
+      test('une entrée « non analysée » (détresse) reste sans étiquette et '
+          'garde son statut', () async {
+        final saved = await repo.addEntry(mood: 3, text: 'Texte.');
+        await repo.markSkipped([saved.id]);
+
+        await repo.saveAnalysis(saved.id, Tagged(fatigueCalmeTravail));
+
+        final entry = await single(repo, saved.id);
+        expect(entry.analysisStatus, AnalysisStatus.skipped);
+        expect(entry.tags, isEmpty);
+        expect(await countTags(db), 0);
+      });
+
+      test('une entrée déjà « étiquetée » garde ses étiquettes', () async {
+        final saved = await repo.addEntry(mood: 3, text: 'Texte.');
+        await repo.saveAnalysis(saved.id, Tagged([emotion('joie')]));
+
+        await repo.saveAnalysis(saved.id, Tagged(fatigueCalmeTravail));
+
+        final entry = await single(repo, saved.id);
+        expect(entry.analysisStatus, AnalysisStatus.tagged);
+        expect(entry.tags, [emotion('joie')]);
+      });
+
+      test(
+        'une entrée « sans étiquette » ne devient pas « étiquetée »',
+        () async {
+          final saved = await repo.addEntry(mood: 3, text: 'Texte.');
+          await repo.saveAnalysis(saved.id, const Untagged());
+
+          await repo.saveAnalysis(saved.id, Tagged(fatigueCalmeTravail));
+
+          final entry = await single(repo, saved.id);
+          expect(entry.analysisStatus, AnalysisStatus.untagged);
+          expect(entry.tags, isEmpty);
+        },
+      );
+    });
+
     group('CA17 : cascade et clés étrangères', () {
       test('CA17 : supprimer une entrée supprime ses étiquettes, pas celles '
           'des autres', () async {
