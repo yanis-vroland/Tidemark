@@ -38,13 +38,10 @@ class EntryDetailScreen extends StatefulWidget {
 
 class _EntryDetailScreenState extends State<EntryDetailScreen> {
   /// L'entrée affichée, observée seule (issue #39) et créée une fois : une
-  /// reconstruction ne réabonne pas l'écran (issue #32). Chaque émission est
-  /// enveloppée, pour qu'une entrée supprimée (`null`) compte comme une donnée
-  /// reçue, comme quand l'écran observait tout le journal.
-  late Stream<(Entry?,)> _entry = _watch();
+  /// reconstruction ne réabonne pas l'écran (issue #32).
+  late Stream<Entry?> _entry = _watch();
 
-  Stream<(Entry?,)> _watch() =>
-      widget.repository.watchEntry(widget.entry.id).map((entry) => (entry,));
+  Stream<Entry?> _watch() => widget.repository.watchEntry(widget.entry.id);
 
   @override
   void didUpdateWidget(EntryDetailScreen oldWidget) {
@@ -188,10 +185,14 @@ class _EntryDetailScreenState extends State<EntryDetailScreen> {
                     ],
                     // L'entrée relue à chaque changement : ses étiquettes
                     // apparaissent dès que l'analyse se termine (CA18).
-                    StreamBuilder<(Entry?,)>(
+                    StreamBuilder<Entry?>(
+                      // Une autre entrée repart de zéro : jamais les étiquettes
+                      // de la précédente, ni une fin d'analyse annoncée à tort
+                      // (CA28).
+                      key: ValueKey(entry.id),
                       stream: _entry,
                       builder: (context, snapshot) => EntryTagsSection(
-                        entry: snapshot.data?.$1 ?? entry,
+                        entry: snapshot.data ?? entry,
                         downloader: widget.downloader,
                         // L'entrée vient du journal, pas de la liste : seule une
                         // transition vue ici est une fin d'analyse (CA28).
