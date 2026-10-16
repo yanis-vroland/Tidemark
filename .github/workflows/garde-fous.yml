@@ -29,6 +29,7 @@ jobs:
           tests/hooks.sh tests/pre-commit.sh tests/verifier-revue-ia.sh
           tests/session-start.sh tests/verifier-journal.sh tests/quality-hooks.sh
           tests/verifier-modeles.sh tests/restrict-learnings.sh
+          scripts/verifier-noms-exclus.sh tests/verifier-noms-exclus.sh
 
       - name: Tests des hooks de Claude Code
         run: bash tests/hooks.sh
@@ -50,6 +51,9 @@ jobs:
 
       - name: Test de la vérification du modèle des subagents
         run: bash tests/verifier-modeles.sh
+
+      - name: Test du garde-fou des noms exclus
+        run: bash tests/verifier-noms-exclus.sh
 
       - name: Modèle déclaré par chaque subagent (spec 007)
         run: .github/scripts/verifier-modeles.sh
@@ -83,6 +87,26 @@ jobs:
         run: >-
           .github/scripts/verifier-journal.sh
           "origin/${{ github.base_ref }}" HEAD
+
+  noms-exclus:
+    name: Noms exclus
+    # Aucun nom de client ni d'employeur réel dans les fichiers suivis ni dans les
+    # commits de la PR (CLAUDE.md de l'espace de travail). La liste vient du secret
+    # EXCLUDED_NAMES et n'est jamais affichée ; sans lui, le job échoue. Un secret
+    # n'est pas transmis à une PR ouverte depuis un fork : le dépôt n'en reçoit pas.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Sur un push sur main, la plage origin/main..HEAD est vide : seuls les
+      # fichiers sont vérifiés.
+      - name: Fichiers suivis et commits de la PR
+        env:
+          EXCLUDED_NAMES: ${{ secrets.EXCLUDED_NAMES }}
+          BASE_REF: ${{ github.base_ref }}
+        run: scripts/verifier-noms-exclus.sh "origin/${BASE_REF:-main}..HEAD"
 
   secrets:
     name: Détection de secrets
