@@ -16,6 +16,7 @@ import '../analysis_scope.dart';
 import '../widgets/entry_tags_section.dart' show analysingText;
 import '../widgets/loading_note.dart';
 import '../widgets/mood_dot.dart';
+import '../widgets/my_data_section.dart';
 import '../widgets/tag_chip.dart';
 import 'entry_detail_screen.dart';
 import 'entry_form_screen.dart';
@@ -31,8 +32,17 @@ class EntryListScreen extends StatefulWidget {
     required this.downloader,
     this.dialer = const UrlLauncherDialer(),
     required this.clock,
+    this.data,
+    this.wiped = false,
     this.narrator,
   });
+
+  /// Export et suppression totale, passés aux Réglages (spec 005).
+  final DataActions? data;
+
+  /// Une suppression totale vient de réussir : message de fin au-dessus de la
+  /// liste vide (CA18).
+  final bool wiped;
 
   final EntryRepository repository;
 
@@ -58,6 +68,10 @@ class EntryListScreen extends StatefulWidget {
 
 class _EntryListScreenState extends State<EntryListScreen> {
   late final Stream<List<Entry>> _entries = widget.repository.watchEntries();
+
+  /// Message de fin de la suppression totale : affiché jusqu'à la première
+  /// entrée, jamais de nouveau ensuite (CA18, CA19).
+  late bool _wiped = widget.wiped;
 
   /// Sans rédacteur fourni, le bilan s'affiche sans texte (modèle absent).
   late final ReviewNarrator _narrator =
@@ -100,6 +114,7 @@ class _EntryListScreenState extends State<EntryListScreen> {
       builder: (_) => SettingsScreen(
         settings: widget.settings,
         downloader: widget.downloader,
+        data: widget.data,
       ),
     ),
   );
@@ -122,6 +137,7 @@ class _EntryListScreenState extends State<EntryListScreen> {
           stream: _entries,
           builder: (context, snapshot) {
             final entries = snapshot.data;
+            if (entries != null && entries.isNotEmpty) _wiped = false;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -131,7 +147,10 @@ class _EntryListScreenState extends State<EntryListScreen> {
                       : entries == null
                       ? _Loading(onOpenSettings: _openSettings)
                       : entries.isEmpty
-                      ? _EmptyState(onOpenSettings: _openSettings)
+                      ? _EmptyState(
+                          onOpenSettings: _openSettings,
+                          wiped: _wiped,
+                        )
                       : _EntryList(
                           onOpenSettings: _openSettings,
                           onOpenReview: _openReview,
@@ -250,23 +269,61 @@ class _ReadError extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.onOpenSettings});
+  const _EmptyState({required this.onOpenSettings, this.wiped = false});
 
   final VoidCallback onOpenSettings;
+
+  /// Message de fin d'une suppression totale au-dessus de l'état vide (CA18).
+  final bool wiped;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final colors = context.colors;
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: TidemarkSpacing.space4),
       children: [
         _Title(onOpenSettings: onOpenSettings),
+        if (wiped) ...[
+          const SizedBox(height: TidemarkSpacing.space2),
+          // Annoncé dès son apparition (CA33).
+          Semantics(
+            liveRegion: true,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: colors.tideSoft,
+                borderRadius: BorderRadius.circular(TidemarkRadius.radiusMd),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(TidemarkSpacing.space4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Toutes tes données ont été supprimées',
+                      style: TidemarkTypography.headline.copyWith(
+                        color: colors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: TidemarkSpacing.space1),
+                    Text(
+                      'Ton journal repart de zéro, sur ce téléphone.',
+                      style: TidemarkTypography.body.copyWith(
+                        color: colors.ink,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
         const SizedBox(height: TidemarkSpacing.space8),
         Text('Ta première entrée apparaîtra ici', style: text.titleLarge),
         const SizedBox(height: TidemarkSpacing.space2),
         Text(
           'Note ton humeur en quelques secondes. Tout reste sur ton téléphone.',
-          style: text.bodyLarge?.copyWith(color: context.colors.inkMuted),
+          style: text.bodyLarge?.copyWith(color: colors.inkMuted),
         ),
       ],
     );

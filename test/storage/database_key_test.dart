@@ -16,6 +16,10 @@ class InMemoryKeyStore implements KeyStore {
     writes++;
     stored = key;
   }
+
+  // Ajouté par la spec 005 : le contrat KeyStore gagne deleteAll.
+  @override
+  Future<void> deleteAll() async => stored = null;
 }
 
 final sixtyFourHex = RegExp(r'^[0-9a-fA-F]{64}$');

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:characters/characters.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import '../analysis/mood_analyzer.dart';
 import '../distress/distress_detector.dart';
@@ -86,6 +87,11 @@ class AppDatabase extends _$AppDatabase {
   /// Base en mémoire, non chiffrée, pour les tests.
   factory AppDatabase.memory() => AppDatabase._(NativeDatabase.memory());
 
+  /// Base sur [executor], pour simuler une panne dans les tests.
+  @visibleForTesting
+  factory AppDatabase.withExecutor(QueryExecutor executor) =>
+      AppDatabase._(executor);
+
   /// Ouvre (ou crée) la base chiffrée [file] avec la clé [key] (64 caractères
   /// hexadécimaux). Échoue au premier accès si la clé n'est pas celle de la base,
   /// ou si le moteur SQLite n'a pas le chiffrement.
@@ -105,6 +111,24 @@ class AppDatabase extends _$AppDatabase {
       },
     );
     return AppDatabase._(executor);
+  }
+
+  Future<void>? _closing;
+
+  /// Ferme la base une seule fois : un second appel attend la même fermeture
+  /// (suppression totale puis fermeture par l'appelant), au lieu de rester
+  /// bloqué sur un isolat déjà arrêté. Une fermeture en échec peut être
+  /// retentée (« Réessayer » de la suppression, CA21).
+  @override
+  Future<void> close() => _closing ??= _closeOnce();
+
+  Future<void> _closeOnce() async {
+    try {
+      await super.close();
+    } catch (_) {
+      _closing = null;
+      rethrow;
+    }
   }
 
   @override
@@ -237,6 +261,19 @@ class DriftEntryRepository implements EntryRepository {
       utcOffset: now.timeZoneOffset,
       analysisStatus: analysisStatus,
     );
+  }
+
+  @override
+  Future<List<Entry>> allEntriesWithTags() async {
+    final query =
+        db.select(db.entries).join([
+          leftOuterJoin(db.tags, db.tags.entryId.equalsExp(db.entries.id)),
+        ])..orderBy([
+          OrderingTerm.asc(db.entries.createdAt),
+          OrderingTerm.asc(db.entries.id),
+          OrderingTerm.asc(db.tags.position),
+        ]);
+    return _withTags(await query.get());
   }
 
   @override

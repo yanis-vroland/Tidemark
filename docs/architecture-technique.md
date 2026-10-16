@@ -23,6 +23,12 @@ flowchart LR
   writer --> gate
   gate --> engine[llamadart : llama.cpp]
   engine --> model[(Qwen2.5-1.5B-Instruct Q4_K_M, GGUF, sur le téléphone)]
+  ui --> export[JournalExport]
+  export --> share[ShareSheet : feuille de partage du système]
+  ui --> wiper[JournalWiper : suppression totale]
+  wiper --> db
+  wiper --> key
+  wiper --> model
 ```
 
 - **`MoodAnalyzer`** : interface qui isole le modèle local. Une implémentation factice sert aux tests et à la CI ; l'implémentation réelle repose sur `llamadart` 0.12.0, version épinglée exactement ([ADR-001](adr/001-moteur-ia-local.md)).
@@ -70,15 +76,15 @@ Schéma en version 4 : la version 2 crée la table `settings` (spec 002), la ver
 
 La table des étiquettes, liée aux entrées par clé étrangère avec suppression en cascade, arrive au lot G.
 
-Fichiers de l'app, prévus par la [spec 005](specs/005-export-et-suppression-totale.md) (à mettre en œuvre au lot H) :
+Fichiers de l'app ([spec 005](specs/005-export-et-suppression-totale.md)) ; dossier de la base et cache de l'app réunis dans `AppStorage` (`lib/storage/app_storage.dart`) :
 
 | Chemin | Rôle |
 | --- | --- |
 | `Application Support/tidemark/journal.db` (et `-wal`, `-shm`, `-journal`) | Base chiffrée. |
 | `Application Support/tidemark/installed` | Marqueur d'installation, fichier vide (RM45). |
 | `Application Support/tidemark/wipe-pending` | Marqueur de suppression totale en cours (RM43). |
-| `Application Support/tidemark/model/` | Modèle local et téléchargement partiel (lot G). |
-| `<cache>/tidemark-export/`, `<cache>/share_plus/` (Android) | Fichier d'export temporaire, purgé au démarrage et avant chaque export (RM41). |
+| `Application Support/tidemark/models/` | Modèle local et téléchargement partiel (spec 003). |
+| `<cache>/tidemark-export/`, `<cache>/share_plus/` (Android) | Fichier d'export temporaire, purgé au démarrage et avant chaque export (RM41). `<cache>` : `getTemporaryDirectory` (Library/Caches sur iOS, `cacheDir` sur Android), non sauvegardé. |
 
 ## Contrats entre composants
 
@@ -86,7 +92,7 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 
 | Contrat | Producteur | Consommateurs | Format | Fichier |
 | --- | --- | --- | --- | --- |
-| `EntryRepository` | `DriftEntryRepository` ; `FakeEntryRepository` dans `test/support/` | Écrans, garde-fou (`saveEntryWithGuard`), vérification au démarrage | Interface Dart : `watchEntries`, `addEntry(mood, text, status)`, `deleteEntry`, `latestEntries(count)`, `pendingEntriesWithText`, `markSkipped(ids)`, `saveAnalysis(entryId, result)` (spec 004 : étiquettes et statut « étiquetée » dans une même transaction, ou statut « sans étiquette » ; sans effet si l'entrée n'existe plus ou n'est plus « en attente ») | `lib/entries/entry_repository.dart` |
+| `EntryRepository` | `DriftEntryRepository` ; `FakeEntryRepository` dans `test/support/` | Écrans, garde-fou (`saveEntryWithGuard`), vérification au démarrage | Interface Dart : `watchEntries`, `addEntry(mood, text, status)`, `deleteEntry`, `latestEntries(count)`, `pendingEntriesWithText`, `markSkipped(ids)`, `saveAnalysis(entryId, result)` (spec 004 : étiquettes et statut « étiquetée » dans une même transaction, ou statut « sans étiquette » ; sans effet si l'entrée n'existe plus ou n'est plus « en attente »), `allEntriesWithTags` (export, de la plus ancienne à la plus récente) | `lib/entries/entry_repository.dart` |
 | `SettingsRepository` | `DriftSettingsRepository` ; `FakeSettingsRepository` dans `test/support/` | `SettingsScreen`, garde-fou | Interface Dart : `watchLowMoodSensitivity`, `readLowMoodSensitivity`, `setLowMoodSensitivity` | `lib/settings/settings_repository.dart` |
 | `DistressDetector` | Code Dart pur, liste de termes reprise de la spec 002 (vérifiée par un test) | Garde-fou à l'enregistrement, vérification au démarrage, analyse (lot G, juste avant chaque appel au modèle) | `detectInText(text)`, `detectLowMoodSeries(latest, sensitivity)` | `lib/distress/` |
 | `ModelDownloader` | `HttpModelDownloader` ; `FakeModelDownloader` dans `test/support/` | Écran du modèle, Réglages, saisie (proposition), démarrage, suppression totale (lot H), analyse (lot G) | Interface Dart : `watch`, `current`, `start`, `cancel`, `checkAtStartup`, `deleteModel`, `verifyAfterLoadFailure` ; état `ModelState` (`ModelAbsent`, `ModelDownloading`, `ModelReady`) | `lib/model/model_downloader.dart` |
@@ -98,8 +104,10 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 | `ModelGate` | `lib/model/model_gate.dart` | `GatedMoodAnalyzer`, `GatedReviewWriter`, créés ensemble dans `openJournal` | `acquire({abandon})` rend la fonction de libération, dans l'ordre d'arrivée ([ADR-005](adr/005-partage-du-modele-local.md), proposé) | `lib/model/model_gate.dart` |
 | `LocalEngine` | Implémentation sur `llamadart` (seul code qui touche au modèle) ; moteurs factices dans les tests | `LlamaMoodAnalyzer` | Interface Dart : `generate(text)` (consigne et schéma de la spec 004), `cancelGeneration`, `dispose` ; `cancel()` de l'analyseur attend la génération, 5 s au plus, puis libère le moteur (spec 004, CA35) | `lib/analysis/llama_mood_analyzer.dart` |
 | Cycle de vie de l'app | `appLifecycleStates()` (`AppLifecycleListener`) dans `main` ; flux factice dans les tests | `AnalysisQueue` (spec 004, CA32, CA33) | `Stream<AppLifecycleState>` passé à `startApp` : `hidden`, `paused`, `detached` interrompent la file, `resumed` la relance | `lib/main.dart` |
-| Fichier d'export, version 1 (prévu, lot H) | `JournalExporter` | La personne, hors de l'app (lecture, archivage) | JSON versionné par `formatVersion` ; tout changement l'augmente | Section « Format » de la [spec 005](specs/005-export-et-suppression-totale.md) |
-| `ShareSheet` (prévu, lot H) | Implémentation sur `share_plus` (ADR-003) ; implémentation factice pour les tests | Réglages (export) | Interface Dart : `shareFile(file, mimeType)` ouvre la feuille de partage du système | [spec 005](specs/005-export-et-suppression-totale.md), « Données » |
+| Fichier d'export, version 1 | `JournalExporter` (`JournalExport` l'écrit dans le cache et le passe à `ShareSheet`) | La personne, hors de l'app (lecture, archivage) | JSON versionné par `formatVersion` ; tout changement l'augmente | Section « Format » de la [spec 005](specs/005-export-et-suppression-totale.md) |
+| `ShareSheet` | `SharePlusShareSheet` (`share_plus` 13.3.1, ADR-003) ; `FakeShareSheet` dans `test/support/` | `JournalExport` (Réglages, « Exporter mes données ») | Interface Dart : `shareFile(file, mimeType)` ouvre la feuille de partage du système et rend la main à sa fermeture | `lib/export/share_sheet.dart` |
+| `KeyStore` | `SecureKeyStore` (`flutter_secure_storage`) ; trousseaux en mémoire dans les tests | `openJournal`, `JournalWiper`, marqueur d'installation | Interface Dart : `read`, `write(key)`, `deleteAll` | `lib/storage/database_key.dart` |
+| `WipeFiles` | `IoWipeFiles` (`dart:io`) ; variantes en échec dans les tests | `JournalWiper`, marqueur d'installation | Interface Dart : `createFile`, `deleteFile`, `deleteDirectory`, idempotents | `lib/wipe/journal_wiper.dart` |
 
 ## Conventions d'API
 
@@ -120,11 +128,9 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
   - LiteRT-LM, retenu par défaut par le même hook (empreinte épinglée), sans usage dans Tidemark ; sa présence dans l'APK et l'IPA n'est pas vérifiée.
 
   Le modèle GGUF, lu par llama.cpp, n'est pas revérifié avant chargement (spec 003, décision 5). Constats détaillés et parades proposées : [ADR-004](adr/004-integrite-du-moteur-et-du-modele.md), **proposé**, non mis en œuvre.
-- **Export (prévu, lot H)** : seule voie de sortie d'une donnée de la personne, en clair, par la feuille de partage et sur son appui seulement (RM1, RM23, RM41, [ADR-003](adr/003-export-par-la-feuille-de-partage.md), proposé). Fichier temporaire dans le cache, effacé après le partage ; dossiers temporaires purgés au démarrage et avant chaque export.
-- **Réseau** : aucun accès réseau dans l'app à ce jour. Le seul prévu est le téléchargement du modèle local, depuis Hugging Face, sans donnée de la personne ([spec 003](specs/003-telechargement-du-modele.md), RM30) ; il sera décrit ici avec son implémentation.
-- **Export (prévu, lot H)** : seule voie de sortie d'une donnée de la personne, en clair, par la feuille de partage et sur son appui seulement (RM1, RM23, RM41, [ADR-003](adr/003-export-par-la-feuille-de-partage.md)). Fichier temporaire dans le cache, effacé après le partage ; dossiers temporaires purgés au démarrage et avant chaque export.
-- **Suppression totale (prévue, lot H)** : base effacée avant la clé (`KeyStore.deleteAll`), jamais l'inverse ; marqueur `wipe-pending` et reprise au démarrage (RM43, [spec 005](specs/005-export-et-suppression-totale.md)).
-- **Marqueur d'installation (prévu, lot H)** : la parade de l'ADR-002 est précisée par la [spec 005](specs/005-export-et-suppression-totale.md) (RM45) : sans marqueur, la clé restée dans le trousseau n'est effacée que si aucune base n'existe, pour ne pas rendre illisible le journal d'une installation antérieure au marqueur.
+- **Export** : seule voie de sortie d'une donnée de la personne, en clair, par la feuille de partage et sur son appui seulement (RM1, RM23, RM41, [ADR-003](adr/003-export-par-la-feuille-de-partage.md)). `share_plus` n'ouvre aucune connexion ; seul `lib/export/share_sheet.dart` l'importe, et seul `JournalExport` appelle `shareFile` (garde-fou de `test/guards/`). Fichier temporaire dans le cache, effacé à la fermeture de la feuille ; dossiers temporaires purgés au démarrage, avant chaque export et après un export en échec.
+- **Suppression totale** : marqueur `wipe-pending`, puis file d'analyse arrêtée (modèle libéré), téléchargement annulé et base fermée, base effacée (`-wal`, `-shm`, `-journal`, puis `journal.db`), clé (`KeyStore.deleteAll`), dossier `models/`, dossiers temporaires d'export, marqueur effacé ; la clé toujours après la base. Tant que `wipe-pending` existe, la base n'est pas ouverte : la suppression reprend au démarrage (RM43, [spec 005](specs/005-export-et-suppression-totale.md)). Après une suppression, `AppHost` rejoue `startApp`, qui ouvre une base neuve avec une clé neuve.
+- **Marqueur d'installation** : la parade de l'ADR-002 est précisée par la [spec 005](specs/005-export-et-suppression-totale.md) (RM45) : sans marqueur, la clé restée dans le trousseau n'est effacée que si aucune base n'existe, pour ne pas rendre illisible le journal d'une installation antérieure au marqueur.
 
 ## Infrastructure
 
