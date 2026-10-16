@@ -233,19 +233,19 @@ void main() {
     });
   });
 
-  group('CA37 : le premier du mois s\'écrit « 1er »', () {
-    test('CA37 : jour de la semaine et date : « Dimanche 1er novembre »', () {
+  group('CA38 : le premier du mois s\'écrit « 1er »', () {
+    test('CA38 : jour de la semaine et date : « Dimanche 1er novembre »', () {
       expect(weekdayAndDate(DateTime(2026, 11, 1)), 'Dimanche 1er novembre');
     });
 
-    test('CA37 : intertitre de la liste : « Dimanche 1er novembre »', () {
+    test('CA38 : intertitre de la liste : « Dimanche 1er novembre »', () {
       expect(
         dayLabel(DateTime(2026, 11, 1), DateTime(2026, 11, 10, 9)),
         'Dimanche 1er novembre',
       );
     });
 
-    test('CA37 : intertitre d\'une autre année : « Mercredi 1er janvier '
+    test('CA38 : intertitre d\'une autre année : « Mercredi 1er janvier '
         '2025 »', () {
       expect(
         dayLabel(DateTime(2025, 1, 1), DateTime(2026, 10, 14, 21, 40)),
@@ -253,7 +253,7 @@ void main() {
       );
     });
 
-    test('CA37 : date complète du détail : « Mercredi 1er janvier 2025 »', () {
+    test('CA38 : date complète du détail : « Mercredi 1er janvier 2025 »', () {
       expect(fullDateLabel(DateTime(2025, 1, 1)), 'Mercredi 1er janvier 2025');
       expect(
         fullDateLabel(DateTime(2026, 11, 1)),
@@ -261,7 +261,7 @@ void main() {
       );
     });
 
-    test('CA37 : le lendemain n\'est pas touché : « Lundi 2 novembre »', () {
+    test('CA38 : le lendemain n\'est pas touché : « Lundi 2 novembre »', () {
       expect(
         dayLabel(DateTime(2026, 11, 2), DateTime(2026, 11, 10, 9)),
         'Lundi 2 novembre',
@@ -269,7 +269,7 @@ void main() {
       expect(weekdayAndDate(DateTime(2026, 11, 2)), 'Lundi 2 novembre');
     });
 
-    test('CA37 : le 11 et le 21 restent en chiffres seuls', () {
+    test('CA38 : le 11 et le 21 restent en chiffres seuls', () {
       expect(weekdayAndDate(DateTime(2026, 11, 11)), 'Mercredi 11 novembre');
       expect(weekdayAndDate(DateTime(2026, 11, 21)), 'Samedi 21 novembre');
     });

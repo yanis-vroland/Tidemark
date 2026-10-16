@@ -64,14 +64,14 @@ class AnalysisQueue extends ChangeNotifier {
   bool _background = false;
   Future<void>? _stopping;
 
-  /// Entrées dont l'écriture du résultat a échoué (CA36) : aux séries suivantes,
+  /// Entrées dont l'écriture du résultat a échoué (CA39) : aux séries suivantes,
   /// elles passent après les autres. En mémoire seulement ; une écriture réussie
   /// les en retire.
   final Set<int> _saveFailed = <int>{}; // ordre d'échec (LinkedHashSet)
 
   /// L'écriture d'un résultat a échoué pendant ce passage : la file s'arrête
   /// jusqu'au prochain événement, sans tenir compte de ceux reçus pendant ce
-  /// passage (CA36).
+  /// passage (CA39).
   bool _writeFailed = false;
 
   /// Nombre de mises en arrière-plan : un résultat obtenu pendant que ce nombre a
@@ -210,7 +210,7 @@ class AnalysisQueue extends ChangeNotifier {
         _saveFailed.retainAll(pending.map((e) => e.id));
         if (pending.isEmpty || !_canRun) break;
         // La plus récente d'abord : celle qu'on vient d'écrire passe devant (CA13) ;
-        // celles dont l'écriture a échoué passent après les autres (CA36).
+        // celles dont l'écriture a échoué passent après les autres (CA39).
         // Entre deux entrées en échec, la plus anciennement en échec d'abord :
         // aucune n'est délaissée.
         final failures = _saveFailed.toList();
@@ -255,7 +255,7 @@ class AnalysisQueue extends ChangeNotifier {
         _done.complete();
         // Après un échec d'écriture, les événements reçus pendant ce passage (dont
         // ceux de ses propres écritures) ne relancent pas la file : sinon, elle
-        // reprendrait la même entrée en boucle (CA36).
+        // reprendrait la même entrée en boucle (CA39).
         final again = _again && !_writeFailed;
         _again = false;
         if (again) _kick();
@@ -280,7 +280,7 @@ class AnalysisQueue extends ChangeNotifier {
       if (!verified) {
         // Empreinte fausse : modèle absent, l'entrée reste « en attente » et la
         // file attend un nouveau téléchargement (CA12). Erreur du calcul :
-        // pas de nouvel essai immédiat, seulement au prochain événement (CA36).
+        // pas de nouvel essai immédiat, seulement au prochain événement (CA39).
         _again = false;
         return false;
       }
@@ -308,7 +308,7 @@ class AnalysisQueue extends ChangeNotifier {
       await repository.saveAnalysis(entryId, result);
     } catch (_) {
       // Écriture impossible : l'entrée reste « en attente » (CA8) ; la file s'arrête
-      // jusqu'au prochain événement, sans la reprendre dans cette série (CA36).
+      // jusqu'au prochain événement, sans la reprendre dans cette série (CA39).
       // En fin d'ordre : la plus récemment en échec passera après les autres.
       _saveFailed
         ..remove(entryId)
