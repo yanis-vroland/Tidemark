@@ -115,3 +115,22 @@ Issue #39 : l'écran de détail observe une seule entrée (`EntryRepository.watc
 ### Prochaine étape
 
 - Mettre à jour la description de la PR et la réponse à la revue IA.
+
+## 2026-10-16 12:51
+
+### Fait
+
+- `main` fusionné dans la branche après le merge de la PR #41 (agent principal). Fusion sans conflit.
+- Commit de merge testé avant le push : `dart analyze --fatal-infos` et `dart format` sans remarque, `flutter test` au vert (1800 tests), dont le test CA34 qui échouait sur `main`.
+
+### Décisions
+
+- Fusion de `main` plutôt que rebase, le force-push étant interdit (agent, par délégation de Yanis du 2026-10-16).
+
+### Corrections et limites
+
+- Aucune nouvelle.
+
+### Prochaine étape
+
+- Inchangée : voir l'entrée précédente.
