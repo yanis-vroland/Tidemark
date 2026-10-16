@@ -986,6 +986,29 @@ void main() {
       },
     );
 
+    platformSemanticsTestWidgets(
+      'CA28 : iOS, la fin d\'analyse n\'est pas annoncée quand l\'app n\'est '
+      'pas au premier plan (état inactive : appel entrant, centre de contrôle)',
+      TargetPlatform.iOS,
+      (tester) async {
+        final announcements = captureAnnouncements(tester);
+        final s = await scenario('analyse en cours');
+        await show(tester, s.env.detail(s.entry));
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.inactive,
+        );
+        addTearDown(
+          () => tester.binding.handleAppLifecycleStateChanged(
+            AppLifecycleState.resumed,
+          ),
+        );
+
+        await finishAnalysis(tester, s, Tagged(fatigueCalmeTravail));
+
+        expect(finishedAnnouncements(announcements), isEmpty);
+      },
+    );
+
     for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
       platformSemanticsTestWidgets(
         'CA28 : ${platform.name}, l\'ouverture du détail d\'une entrée déjà '

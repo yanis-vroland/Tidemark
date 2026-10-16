@@ -117,9 +117,17 @@ class AnalysisQueue extends ChangeNotifier {
 
   Future<void> _stop() async {
     _stopped = true;
-    await _lifecycle?.cancel();
-    await _model?.cancel();
-    await _entries?.cancel();
+    // Chaque désabonnement est tenté, même si un autre échoue : l'arrêt va
+    // toujours jusqu'à la libération du modèle.
+    for (final subscription in <StreamSubscription<Object?>?>[
+      _lifecycle,
+      _model,
+      _entries,
+    ]) {
+      try {
+        await subscription?.cancel();
+      } catch (_) {}
+    }
     await _cancelAnalysis();
     await _done.future;
     // Filet : rien ne tourne, mais le modèle serait resté chargé.
