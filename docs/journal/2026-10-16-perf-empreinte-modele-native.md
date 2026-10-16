@@ -51,3 +51,23 @@ Critères : F1 appel de `sha256OfFile` avec `{path}` ; F2 empreinte native égal
 ### Prochaine étape
 
 - Revues `reviewer` et `security-reviewer`, puis PR en brouillon.
+
+## 2026-10-16 12:10
+
+### Fait
+
+- Revues `reviewer` et `security-reviewer` reçues. Tests renforcés d'après leurs points (agent principal) : F10 (canal muet → repli après un délai borné, 60 s par défaut), empreinte attendue jamais envoyée au canal, voie native de `modelSha256OfFile` lui-même, source du téléchargeur de l'app identique à `qwenModelSource`, `verifyAfterLoadFailure` par le canal (F8e, F8f), lecture des sources natives sans les commentaires (enregistrement iOS et Android, `queue.async`, `makeBackgroundTaskQueue()`, `catch (…: Throwable)` sur Android). Champ `nativeTimeout` ajouté au squelette pour que les tests compilent.
+- Tests rouges : `+33 -2` (F10 : le canal muet n'est jamais abandonné, délai du test dépassé ; Android : `catch (e: Exception)` seulement).
+- Tests de cette PR retouchés, non encore mergés : test en double du nom du canal retiré, commentaire faux du cas F6 retiré, tests statiques F9 réécrits (plus stricts).
+
+### Décisions
+
+- Délai de 60 s sur l'appel natif, puis repli Dart (suggestion de la revue sécurité, agent, par délégation de Yanis du 2026-10-16).
+
+### Corrections et limites
+
+- Test humain : à faire par Yanis.
+
+### Prochaine étape
+
+- Délai et `Throwable`, docs selon les revues, puis PR en brouillon et réponse aux revues.

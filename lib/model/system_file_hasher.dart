@@ -22,6 +22,7 @@ class SystemFileHasher {
     required this.expected,
     this.channel = modelHashChannel,
     this.fallback = sha256OfFile,
+    this.nativeTimeout = const Duration(seconds: 60),
   });
 
   /// Empreinte attendue, en hexadécimal minuscule.
@@ -30,6 +31,9 @@ class SystemFileHasher {
 
   /// Calcul Dart, dans un isolat ([sha256OfFile] par défaut).
   final Future<String> Function(String path) fallback;
+
+  /// Délai au-delà duquel le canal muet passe la main au repli.
+  final Duration nativeTimeout;
 
   Future<String> call(String path) async {
     Object? digest;
