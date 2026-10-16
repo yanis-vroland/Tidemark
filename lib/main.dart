@@ -16,6 +16,7 @@ import 'model/model_downloader.dart';
 import 'model/model_gate.dart';
 import 'model/model_source.dart';
 import 'model/model_transport.dart';
+import 'model/system_file_hasher.dart';
 import 'review/gated_review_writer.dart';
 import 'review/llama_review_writer.dart';
 import 'review/review_narrator.dart';
@@ -290,6 +291,8 @@ Future<Journal> openJournal({Directory? folder, KeyStore? keyStore}) async {
     downloader: HttpModelDownloader(
       transport: IoModelTransport(),
       folder: Directory('${dir.path}/models'),
+      // Bibliothèque du système d'abord, calcul Dart en repli (ADR-004, option F).
+      hashFile: modelSha256OfFile,
     ),
     analyzer: GatedMoodAnalyzer(LlamaMoodAnalyzer(modelFile: modelFile), gate),
     reviewWriter: GatedReviewWriter(
