@@ -1,6 +1,6 @@
 # Spec 006 : bilan de la semaine
 
-Statut : validée (Yanis, merge de la PR #17, 2026-10-14 ; décisions métier déléguées à l'agent)
+Statut : validée (Yanis, merge de la PR #17, 2026-10-14 ; décisions métier déléguées à l'agent). Complétée le 2026-10-16 par `feat/integrite-moteur-modele` (empreinte du modèle vérifiée avant la mise en mots, CA37, décision n° 14 ; agent, par délégation de Yanis, 2026-10-16), à valider par Yanis avec sa PR.
 Date : 2026-10-14
 
 ## Besoin
@@ -277,6 +277,7 @@ Le texte validé n'est jamais enregistré dans la base. Il est gardé en mémoir
 - CA25 : Étant donné les deux listes de cette spec, quand les tests s'exécutent, alors les listes du code sont identiques aux blocs « Liste des mots de nombre » et « Liste des expressions interdites » de ce fichier (même ensemble d'expressions, lignes `#` et vides ignorées), et chaque expression, insérée dans une phrase fictive, fait rejeter la sortie.
 - CA26 : Étant donné une sortie non conforme au schéma JSON, un texte vide, un texte de plus de 300 caractères visibles, une erreur du modèle ou aucune réponse en 30 secondes, quand le bilan s'affiche, alors il s'affiche sans texte, avec le même message que CA22, sans plantage, et la sortie brute n'est ni affichée ni enregistrée.
 - CA27 : Étant donné le modèle absent (pas téléchargé, ou en cours de téléchargement), quand le bilan d'une semaine d'au moins 3 entrées s'affiche, alors le rédacteur n'est pas appelé, et la carte montre « Pas de texte : le modèle local n'est pas sur ce téléphone. Les chiffres sont calculés sans lui. » ; l'écran ne propose pas le téléchargement (RM18 reste la seule porte d'entrée). Étant donné un rédacteur appelé qui rend quand même `ModelMissing` (modèle supprimé entre-temps), alors la carte montre ce même message ; `WriterFailed` donne celui de CA22.
+- CA37 : Étant donné le modèle prêt et une semaine d'au moins 3 entrées, non sensible, quand la mise en mots commence, alors `ModelDownloader.verifyBeforeFirstLoad()` (spec 003, CA34) est appelé avant le rédacteur. S'il rend `false`, le rédacteur n'est pas appelé et la carte montre le message de CA27 ; la carte montre « Mise en mots sur ton téléphone… » pendant le calcul, qui ne compte pas dans les 30 secondes de CA26. Si la mise en mots est abandonnée pendant le calcul (écran quitté, autre semaine, suppression totale), le rédacteur n'est pas appelé.
 - CA28 : Étant donné un texte validé pour une semaine, quand la personne change de semaine puis revient, sans entrée ajoutée ni supprimée, alors le même texte s'affiche sans nouvel appel au rédacteur. Le texte n'est jamais écrit dans la base (RM54).
 - CA34 : Étant donné un texte en mémoire pour une semaine non sensible, quand une entrée à 1 y est ajoutée un jour déjà noté sans changer les faits du bilan, alors le texte n'est plus affiché, la carte montre le message de CA20 et le rédacteur n'est pas appelé ; même vérification dans un second cas, avec une entrée en détresse d'humeur 3. Après la suppression de cette entrée, revenir sur la semaine relance la mise en mots : le texte effacé n'est pas réutilisé.
 - CA35 : Étant donné 11 entrées de somme 38 (moyenne 3,4545…), quand le bilan s'affiche, alors « Humeur moyenne » vaut « 3,5 » et le rédacteur reçoit `averageMoodLabel` « Neutre », arrondi depuis la moyenne exacte ; la tendance transmise suit le signe de l'évolution affichée (CA14).
@@ -332,6 +333,7 @@ Jetons : la maquette n'utilise que les jetons de la charte, à quatre exceptions
 - Toutes les entrées sans texte : les chiffres s'affichent ; sans étiquette, `topTagLabels` est vide et la section montre CA13 ; le texte peut être généré si la semaine n'est pas sensible.
 - Modèle occupé par l'étiquetage d'une entrée : la mise en mots attend son tour, dans la limite des 30 secondes (CA26).
 - La personne quitte l'écran pendant la mise en mots : la génération est abandonnée, rien n'est gardé.
+- Premier bilan du lancement : l'empreinte du modèle est d'abord recalculée (spec 003, quelques secondes), sauf si l'étiquetage l'a déjà fait ; empreinte fausse, modèle effacé et message de CA27 (CA37).
 
 ## Hors périmètre
 
@@ -359,3 +361,4 @@ Aucune. Décisions prises par l'agent, à la demande de Yanis (2026-10-14) :
 11. **Arrondis** : libellé transmis au modèle depuis la moyenne exacte, tendance depuis les moyennes affichées (CA35).
 12. **Impératifs** : injonctions courantes ajoutées à la liste ; les autres impératifs sont une limite assumée, documentée par CA36, plutôt qu'une analyse grammaticale fragile.
 13. **`ModelMissing` et `WriterFailed`** : messages de CA27 et de CA22.
+14. **Empreinte du modèle vérifiée avant la mise en mots** (agent, par délégation de Yanis, 2026-10-16, en application de l'[ADR-004](../adr/004-integrite-du-moteur-et-du-modele.md) accepté par Yanis le 2026-10-16, option E) : le bilan charge le modèle comme l'étiquetage, et le lecteur GGUF ne lit jamais un fichier non vérifié (CA37). Le calcul, partagé avec l'étiquetage et fait une fois par lancement, est hors du délai de 30 secondes : il ne fait pas partie de la réponse du rédacteur. Le rédacteur fixe aussi le niveau des journaux de `llamadart` à `none` avant de charger le modèle (ADR-004, décision 4).
