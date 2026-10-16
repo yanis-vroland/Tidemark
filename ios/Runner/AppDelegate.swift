@@ -31,5 +31,9 @@ import UIKit
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    // SHA-256 du modèle par CryptoKit (ADR-004, option F).
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "ModelHashChannel") {
+      ModelHashChannel.register(with: registrar.messenger())
+    }
   }
 }
