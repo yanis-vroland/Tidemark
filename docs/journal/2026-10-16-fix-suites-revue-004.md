@@ -79,3 +79,22 @@ Suites des revues IA de la spec 004 (issues #29 à #33), défaut de la file d'an
 ### Prochaine étape
 
 - Revues `reviewer` et `security-reviewer`, puis PR en brouillon.
+
+## 2026-10-16 09:50
+
+### Fait
+
+- Revue `security-reviewer` : aucun point bloquant ; un « à corriger » (garde-fou llamadart limité aux fichiers qui écrivent `import 'package:llamadart/`), quatre suggestions (contournements par alias, référence sans appel, `LlamaModel.new`, `setLoraSource`, `loadMultimodalProjectorSource` ; `//` ou `/*` dans une chaîne ; annonce iOS quand le détail est couvert ; `stop()` qui s'arrête à la première étape en échec).
+- Tests rouges écrits par l'agent (pas de `test-writer` pour ces suites de revue, tests courts tirés du rapport) : 11 échantillons du garde-fou (réexport, `part`, import conditionnel, alias, référence sans appel, `LlamaModel.new`, `setLoraSource`, `loadMultimodalProjectorSource`, `//` et `/*` dans une chaîne), rouges ; `stop()` avec un désabonnement qui lève : rouge (modèle jamais libéré) ; annonce iOS avec un écran par-dessus le détail : rouge (annonce envoyée).
+
+### Décisions
+
+- Toutes les suggestions de la revue de sécurité sont suivies, sauf la liste fermée des fichiers qui importent llamadart : un autre agent réorganise le chargeur (`feat/integrite-moteur-modele`) ; le garde-fou analyse plutôt tout fichier qui mentionne `package:llamadart` et refuse son réexport (agent, par délégation de Yanis du 2026-10-16).
+
+### Corrections et limites
+
+- Aucune.
+
+### Prochaine étape
+
+- Corriger, relancer les mutations, puis traiter la revue `reviewer`.

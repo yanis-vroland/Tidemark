@@ -264,6 +264,24 @@ Future<bool> dial(String n) => launchUrl(Uri(scheme: 'tel', path: n));
           "await engine.loadModel('https://x/m.gguf');",
       'LlamaModel avec une source passée par une variable':
           'final m = llama.LlamaModel(source);',
+      'loadModelFromUrl référencée sans appel':
+          'final load = engine.loadModelFromUrl;\nawait load(u);',
+      'setLoraSource': 'await engine.setLoraSource(src);',
+      'loadMultimodalProjectorSource':
+          'await engine.loadMultimodalProjectorSource(src);',
+      'LlamaModel.new avec une variable':
+          'final m = llama.LlamaModel.new(src);',
+      'alias de type de ModelSource':
+          'typedef Src = llama.ModelSource;\nfinal s = Src.url(u);',
+      'ModelSource.url après une adresse sur la même ligne':
+          "final u = Uri.parse('https://h/m.gguf'); "
+          'final m = llama.LlamaModel(llama.ModelSource.url(u));',
+      'ModelSource.url après un /* dans une chaîne':
+          "final g = 'models/*.gguf';\n"
+          'final m = llama.LlamaModel(llama.ModelSource.url(u));\n'
+          "final h = '*/';",
+      'part dans un fichier llamadart': "part 'loader_part.dart';",
+      'llamadart réexporté': "export 'package:llamadart/llamadart.dart';",
       'projecteur passé par une variable':
           'final m = llama.LlamaModel(llama.ModelSource.path(p), '
           'projector: other);',
@@ -273,6 +291,25 @@ Future<bool> dial(String n) => launchUrl(Uri(scheme: 'tel', path: n));
         expect(llamadartViolations('$import$body'), isNotEmpty);
       });
     }
+
+    test('issue #31 : un fichier qui ne fait que réexporter llamadart, sans '
+        'import, est refusé', () {
+      expect(
+        llamadartViolations("export 'package:llamadart/llamadart.dart';"),
+        isNotEmpty,
+      );
+    });
+
+    test('issue #31 : un import conditionnel de llamadart est analysé', () {
+      expect(
+        llamadartViolations(
+          "import 'stub.dart' if (dart.library.io) "
+          "'package:llamadart/llamadart.dart' as llama;\n"
+          'final s = llama.ModelSource.url(u);',
+        ),
+        isNotEmpty,
+      );
+    });
 
     test('issue #31 : admet une source locale, ModelSource.path', () {
       expect(
