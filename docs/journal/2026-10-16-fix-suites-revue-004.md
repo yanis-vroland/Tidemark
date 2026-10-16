@@ -98,3 +98,27 @@ Suites des revues IA de la spec 004 (issues #29 à #33), défaut de la file d'an
 ### Prochaine étape
 
 - Corriger, relancer les mutations, puis traiter la revue `reviewer`.
+
+## 2026-10-16 09:40
+
+### Fait
+
+- Suites de la revue de sécurité :
+  - garde-fou llamadart : tout fichier qui mentionne `package:llamadart` est analysé (import conditionnel, réexport) ; réexport et `part` refusés ; `ModelSource` admis seulement suivi de `.path(` (alias et variables refusés) ; `loadModel*`, `setLoraSource`, `loadMultimodalProjectorSource` refusés même sans appel ; `LlamaModel.new` traité ; `withoutComments` respecte les chaînes (un `//` ou `/*` dans une chaîne n'ouvre plus de commentaire) ;
+  - `stop()` : chaque désabonnement est tenté, même si un autre lève ; l'arrêt va jusqu'à la libération du modèle ;
+  - annonce iOS seulement si le détail est l'écran courant et l'app au premier plan (`resumed`) ; test de l'état `inactive` ajouté après la correction, vert dès son ajout.
+- Revue `reviewer` reçue : aucun bloquant ; points traités à l'entrée suivante.
+- Spec 004 complétée : CA28 (libellé de la région vive sur Android, rien à l'ouverture ni quand le détail est couvert), CA34 (désabonnement en échec), CA36 (deux entrées toujours en échec, reprises chacune à son tour).
+- Tests verts (`test/analysis`, `test/guards`, `test/ui/analysis_display_test.dart`).
+
+### Décisions
+
+- `stop()` se termine normalement même si un désabonnement lève (agent, par délégation de Yanis du 2026-10-16).
+
+### Corrections et limites
+
+- Les interpolations `${…}` contenant des chaînes ne sont pas suivies par `withoutComments` : limite écrite dans son commentaire.
+
+### Prochaine étape
+
+- Tests rouges des points de la revue `reviewer` (subagent `test-writer`), puis corrections.

@@ -30,11 +30,48 @@ final forbidden = <String, RegExp>{
   'package:dio': RegExp(r'package:dio\b'),
 };
 
-/// Remplace les commentaires par des espaces, en gardant les retours à la ligne.
-String withoutComments(String source) => source.replaceAllMapped(
-  RegExp(r'/\*[\s\S]*?\*/|//[^\n]*'),
-  (m) => m[0]!.replaceAll(RegExp(r'[^\n]'), ' '),
-);
+/// Remplace les commentaires par des espaces, en gardant les retours à la ligne
+/// et les chaînes de caractères : un `//` ou un `/*` dans une chaîne (« https://… »,
+/// « models/*.gguf ») n'ouvre pas de commentaire. Limite : les chaînes imbriquées
+/// dans une interpolation `${…}` ne sont pas suivies.
+String withoutComments(String source) {
+  String blank(String text) => text.replaceAll(RegExp(r'[^\n]'), ' ');
+  final out = StringBuffer();
+  final n = source.length;
+  var i = 0;
+  while (i < n) {
+    if (source.startsWith('//', i)) {
+      final end = source.indexOf('\n', i);
+      final stop = end < 0 ? n : end;
+      out.write(blank(source.substring(i, stop)));
+      i = stop;
+    } else if (source.startsWith('/*', i)) {
+      final end = source.indexOf('*/', i + 2);
+      final stop = end < 0 ? n : end + 2;
+      out.write(blank(source.substring(i, stop)));
+      i = stop;
+    } else if (source[i] == "'" || source[i] == '"') {
+      final raw = i > 0 && source[i - 1] == 'r';
+      final quote = source.startsWith(source[i] * 3, i)
+          ? source[i] * 3
+          : source[i];
+      var j = i + quote.length;
+      while (j < n && !source.startsWith(quote, j)) {
+        if (quote.length == 1 && source[j] == '\n') break;
+        j += !raw && source[j] == r'\' ? 2 : 1;
+      }
+      final stop = j < n && source.startsWith(quote, j)
+          ? j + quote.length
+          : (j < n ? j : n);
+      out.write(source.substring(i, stop));
+      i = stop;
+    } else {
+      out.write(source[i]);
+      i++;
+    }
+  }
+  return out.toString();
+}
 
 /// Ce que [source] fait d'interdit : noms de [forbidden] trouvés, et usages de
 /// `url_launcher` autres que `launchUrl(Uri(scheme: 'tel', …))`.
@@ -388,26 +425,40 @@ Future<bool> dial(String n) => launchUrl(Uri(scheme: 'tel', path: n));
   });
 }
 
-/// Ce qu'un fichier qui importe `package:llamadart` fait d'interdit : toute source
-/// de modèle autre que `ModelSource.path(` (adresse, Hugging Face, `parse`, source
-/// passée par une variable, méthodes `loadModel*`). Commentaires ignorés ; un
-/// fichier sans cet import n'est pas concerné (la classe `ModelSource` de l'app,
-/// `lib/model/model_source.dart`, porte le même nom). Issue #31.
+/// Ce qu'un fichier qui mentionne `package:llamadart` (import, import conditionnel,
+/// réexport) fait d'interdit : toute source de modèle autre que
+/// `ModelSource.path(` (adresse, Hugging Face, `parse`, alias, source passée par une
+/// variable), les méthodes du moteur qui acceptent une adresse ou une autre source
+/// (`loadModel*`, `setLoraSource`, `loadMultimodalProjectorSource`), le réexport de
+/// llamadart et les fichiers `part`, que le balayage ne relierait pas. Commentaires
+/// ignorés ; un fichier qui ne mentionne pas llamadart n'est pas concerné (la
+/// classe `ModelSource` de l'app, `lib/model/model_source.dart`, porte le même
+/// nom). Issue #31.
 List<String> llamadartViolations(String source) {
   final code = withoutComments(source);
-  if (!RegExp(r'''import\s+['"]package:llamadart/''').hasMatch(code)) {
-    return const [];
-  }
+  if (!code.contains('package:llamadart')) return const [];
   const localSource = r'(\w+\s*\.\s*)?ModelSource\s*\.\s*path\s*\(';
   final found = <String>[
-    for (final m in RegExp(r'\bModelSource\s*\.\s*(\w+)').allMatches(code))
-      if (m[1] != 'path') 'llamadart : ModelSource.${m[1]}',
-    // Méthodes du moteur qui acceptent une adresse au lieu d'un chemin.
-    if (RegExp(r'\bloadModel\w*\s*\(').hasMatch(code)) 'llamadart : loadModel*',
+    if (RegExp(r'''\bexport\s+['"]package:llamadart''').hasMatch(code))
+      'llamadart : réexport',
+    if (RegExp(r'^\s*part\b', multiLine: true).hasMatch(code))
+      'llamadart : part',
+    // `ModelSource` n'apparaît que suivi de `.path(` : ni autre fabrique, ni
+    // alias, ni variable typée.
+    for (final m in RegExp(
+      r'\bModelSource\b(?!\s*\.\s*path\s*\()',
+    ).allMatches(code))
+      'llamadart : ModelSource autre que path (${m.start})',
+    // Méthodes du moteur qui acceptent une adresse ou une autre source, appelées
+    // ou seulement référencées.
+    for (final m in RegExp(
+      r'\b(loadModel\w*|setLoraSource|loadMultimodalProjectorSource)\b',
+    ).allMatches(code))
+      'llamadart : ${m[1]}',
     // Le modèle (et son projecteur) reçoit sa source directement de
     // `ModelSource.path(`, jamais d'une variable construite ailleurs.
     for (final m in RegExp(
-      r'\bLlamaModel\s*\(\s*(?!' + localSource + r')',
+      r'\bLlamaModel\b(?!\s*(\.\s*new\s*)?\(\s*' + localSource + r')',
     ).allMatches(code))
       'llamadart : LlamaModel sans ModelSource.path (${m.start})',
     for (final m in RegExp(

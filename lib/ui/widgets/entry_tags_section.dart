@@ -82,6 +82,11 @@ class _EntryTagsSectionState extends State<EntryTagsSection> {
       final direction = Directionality.of(context);
       final message = analysisFinishedMessage(entry);
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Rien n'est dit à voix haute si le détail n'est plus à l'écran : écran
+        // quitté, feuille ou écran par-dessus, app pas au premier plan.
+        if (!mounted || ModalRoute.of(context)?.isCurrent == false) return;
+        final lifecycle = WidgetsBinding.instance.lifecycleState;
+        if (lifecycle != null && lifecycle != AppLifecycleState.resumed) return;
         unawaited(SemanticsService.sendAnnouncement(view, message, direction));
       });
     }
