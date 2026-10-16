@@ -96,16 +96,16 @@ Mise en œuvre : 1, 3 et 4 ne changent aucun comportement observable (PR `chore`
 
 ## Mise en œuvre de l'option F (2026-10-16)
 
-Décision : agent, par délégation de Yanis du 2026-10-16, sans attendre la mesure sur l'iPhone. Motif : sur le Mac M3, avec un vrai fichier de 1,1 Go, le calcul Dart de l'option E a pris 9,4 à 14,8 s (journal de `feat/integrite-moteur-modele`), déjà au niveau du seuil de 10 s fixé pour l'iPhone, dont les cœurs sont de la même génération.
+Statut : accepté (agent, par délégation de Yanis du 2026-10-16), à confirmer par Yanis avec la PR. Décision prise sans attendre la mesure sur l'iPhone que demandait le point 2 de la décision. Motif : sur le Mac M3, avec un vrai fichier de 1,1 Go, le calcul Dart de l'option E a pris 9,4 à 14,8 s (journal de `feat/integrite-moteur-modele`), déjà au niveau du seuil de 10 s fixé pour l'iPhone, dont les cœurs sont de la même génération.
 
 Mise en œuvre (branche `perf/empreinte-modele-native`) :
 
 - **iOS** : `ios/Runner/ModelHashChannel.swift`, canal `dev.tidemark/model_hash`, méthode `sha256OfFile({path})`. Calcul par CryptoKit (`SHA256`), plutôt que CommonCrypto que citait l'option : même bibliothèque du système (corecrypto), API non dépréciée, sans pointeur à manier ; mesuré un peu plus rapide sur le Mac (ci-dessous). Lecture en flux par blocs de 4 Mo, chaque bloc libéré aussitôt (`autoreleasepool`), sur une file d'arrière-plan, réponse sur le fil principal. Enregistré par `AppDelegate.didInitializeImplicitFlutterEngine`.
-- **Android** : `MainActivity.kt`, même canal et même méthode, `MessageDigest.getInstance("SHA-256")` (fournisseur du système), blocs de 4 Mo, sur une file d'arrière-plan du moteur Flutter (`makeBackgroundTaskQueue`).
-- **Dart** : `SystemFileHasher` (`lib/model/system_file_hasher.dart`), passé à `HttpModelDownloader` par `openJournal` (`hashFile: modelSha256OfFile`). Le calcul Dart de l'option E (`sha256OfFile`, dans un isolat) reste le repli : canal absent (tests, ordinateur), erreur du canal, réponse d'un autre type.
-- **Le natif ne peut dire que « oui »** : seule une réponse native égale à l'empreinte attendue est crue. Une réponse différente est recalculée en Dart avant toute décision : un défaut du code natif ne fait jamais effacer un bon modèle de 1,1 Go, et un fichier réellement modifié est refusé comme avec E (effacé, modèle `absent`), au coût du calcul Dart, dans ce seul cas.
+- **Android** : `MainActivity.kt`, même canal et même méthode, `MessageDigest.getInstance("SHA-256")` (fournisseur du système), blocs de 4 Mo, sur une file d'arrière-plan du moteur Flutter (`makeBackgroundTaskQueue`) ; toute erreur, y compris une `Error` comme un manque de mémoire, donne une réponse d'erreur.
+- **Dart** : `SystemFileHasher` (`lib/model/system_file_hasher.dart`), passé à `HttpModelDownloader` par `openJournal` (`hashFile: modelSha256OfFile`) ; il sert à `verifyBeforeFirstLoad` et à `verifyAfterLoadFailure`. Le calcul Dart de l'option E (`sha256OfFile`, dans un isolat) reste le repli : canal absent (tests, ordinateur), erreur du canal, réponse d'un autre type, pas de réponse après 60 s.
+- **Le natif ne peut dire que « oui »** : seule une réponse native égale à l'empreinte attendue est crue, et l'empreinte attendue ne transite jamais par le canal (seul le chemin y passe) : le natif ne peut pas la renvoyer sans l'avoir calculée. Une réponse différente est recalculée en Dart avant toute décision : un défaut du code natif ne fait jamais effacer un bon modèle de 1,1 Go, et un fichier réellement modifié est refusé comme avec E (effacé, modèle `absent`), au coût du calcul Dart, dans ce seul cas.
 - **Aucune dépendance nouvelle** : CryptoKit et `java.security` font partie des systèmes.
-- **Tests** : `test/model/system_file_hasher_test.dart` simule le canal (`setMockMethodCallHandler`) ; aucun test n'exécute le code natif. Contrôle par mutation : réponse native crue sans comparaison, repli supprimé (deux variantes), comparaison du téléchargeur neutralisée, câblage retiré de `openJournal`, canal non enregistré sur iOS : chaque mutation fait échouer au moins un test.
+- **Tests** : `test/model/system_file_hasher_test.dart` simule le canal (`setMockMethodCallHandler`) ; aucun test n'exécute le code natif. Le code natif n'est protégé que par une lecture de ses sources, commentaires retirés : nom du canal et de la méthode, enregistrement (`ModelHashChannel.register(` dans `AppDelegate.swift`, `configureFlutterEngine` et `MethodChannel(` dans `MainActivity.kt`), fil d'arrière-plan (`queue.async`, `makeBackgroundTaskQueue()`) et `catch (…: Throwable)`. Ces lectures ne prouvent ni l'exactitude du calcul ni le fil réellement utilisé. Contrôle par mutation, quinze mutations, toutes tuées : réponse native crue sans comparaison, repli supprimé (deux variantes), comparaison du téléchargeur neutralisée, câblage retiré d'`openJournal`, `modelSha256OfFile` sans voie native ou avec une empreinte attendue vide, empreinte attendue envoyée au canal, délai retiré, enregistrement iOS retiré ou commenté, calcul iOS hors de `queue.async`, Android sans file d'arrière-plan, sans `configureFlutterEngine` ou n'attrapant que `Exception`.
 
 Mesures du 2026-10-16, Mac M3, fichier aléatoire de 1 117 320 736 octets (contenu réel, pas un fichier creux), trois tours où chaque outil passe à tour de rôle. Le poste était chargé par d'autres constructions (charge moyenne de 13 à 15 pendant la série, jusqu'à 100 juste avant) : les écarts entre tours viennent de là.
 
@@ -117,14 +117,14 @@ Mesures du 2026-10-16, Mac M3, fichier aléatoire de 1 117 320 736 octets (conte
 | `shasum -a 256` | 4,35 s | 6,16 s | 4,12 s |
 | Java 17 sur macOS, `MessageDigest` (même boucle que `MainActivity.kt`) | 6,85 s | 9,79 s | 8,22 s |
 
-Les cinq calculs donnent la même empreinte. Une série précédente, poste plus chargé encore, a donné 1,12 à 1,41 s pour CryptoKit et 1,43 à 4,94 s pour CommonCrypto. Le gain mesuré sur le Mac pour iOS est de l'ordre de dix fois.
+Les cinq calculs donnent la même empreinte. Une série précédente, poste plus chargé encore, a donné 1,12 à 1,41 s pour CryptoKit et 1,43 à 4,94 s pour CommonCrypto. Le gain mesuré sur le Mac pour iOS va de dix fois (tour 1) à vingt fois (tour 3) selon la charge du poste, CryptoKit restant vers 1 s ; à confirmer sur l'iPhone.
 
 Limites :
 
 - **iPhone 15 Pro : non mesuré**, à mesurer par Yanis au test humain (premier étiquetage après un lancement).
 - **Android : non mesuré.** La ligne Java ne vaut pas pour Android : sur Android, `MessageDigest` passe par Conscrypt (BoringSSL), qui utilise les instructions SHA des processeurs ARMv8, alors que le Java 17 du Mac utilise ici son implémentation interne. Le gain sur Android est donc attendu, pas prouvé ; l'émulateur, lui, mesure surtout le processeur du Mac.
-- Le code natif n'est couvert par aucun test automatique : seules sa présence, le nom du canal et son enregistrement sont vérifiés par lecture des sources. Son exactitude repose sur la mesure ci-dessus (même empreinte que `shasum`) et sur le test humain ; un défaut ne pourrait que ralentir (repli Dart), jamais faire accepter un fichier modifié ou effacer un bon modèle.
-- Temps de contrôle à temps d'usage : inchangé par rapport à E.
+- Le code natif n'est exécuté par aucun test automatique (voir « Tests »). Son exactitude repose sur la mesure ci-dessus (même empreinte que `shasum`) et sur le test humain. Un défaut du natif ne peut jamais faire accepter un fichier modifié ni effacer un bon modèle. Il peut en revanche ralentir (repli Dart), retarder la vérification jusqu'au délai de 60 s, ou faire planter l'app s'il échappe à la gestion d'erreur (un plantage du code natif lui-même, par exemple).
+- Écart entre contrôle et usage (TOCTOU) : inchangé par rapport à E.
 
 ## Conséquences
 
