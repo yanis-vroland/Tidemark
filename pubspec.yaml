@@ -40,11 +40,20 @@ flutter:
       fonts:
         - asset: assets/fonts/Figtree-Variable.ttf
 
-# Base chiffrée par SQLite3MultipleCiphers (ADR-002) : le hook de sqlite3 télécharge
-# ce binaire au build, vérifié par empreinte SHA-256. Le hook de llamadart, lui,
-# télécharge llama.cpp sans contrôle d'empreinte (ADR-004, proposé). Aucun accès
-# réseau de l'app (RM1).
+# Binaires natifs, tous vérifiés par empreinte SHA-256 avant d'entrer dans l'app ;
+# aucun accès réseau de l'app (RM1).
+# - SQLite3MultipleCiphers (ADR-002) : téléchargé par le hook de sqlite3, qui vérifie
+#   son empreinte au téléchargement et à chaque réutilisation du cache.
+# - llama.cpp (ADR-004, option A) : le hook de llamadart ne télécharge rien. Il
+#   extrait, à chaque construction, les archives de .llamadart-native/, déposées et
+#   vérifiées par scripts/fetch-llama-native.sh (empreintes épinglées dans
+#   scripts/llama-native.sha256). Sans ce dossier, la construction échoue.
+# - Un seul moteur natif embarqué, llama.cpp : LiteRT-LM, retenu par défaut par le
+#   hook, n'a aucun usage dans Tidemark (ADR-004, décision 3).
 hooks:
   user_defines:
     sqlite3:
       source: sqlite3mc
+    llamadart:
+      llamadart_native_path: .llamadart-native/
+      llamadart_native_runtimes: llama_cpp

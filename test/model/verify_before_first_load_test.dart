@@ -359,6 +359,38 @@ void main() {
       expect(filesIn(models), isEmpty);
     });
 
+    // Ajouté par l'agent principal après le contrôle par mutation : sans ce
+    // test, ignorer un effacement suivi d'un retéléchargement pendant le calcul
+    // survivait (le nouveau fichier aurait été effacé à tort).
+    test('CA35 : modèle effacé puis retéléchargé pendant le calcul : le '
+        'résultat du calcul commencé avant est ignoré, le nouveau fichier est '
+        'gardé et le modèle reste ready', () async {
+      final gate = Completer<void>();
+      probe.behavior = (path, call) async {
+        await gate.future;
+        return '0' * 64;
+      };
+      models.createSync(recursive: true);
+      finalFile().writeAsBytesSync(modelBytes);
+      final downloader = build(
+        FakeModelTransport([FakeModelTransport.ok(chunksOf(modelBytes, 100))]),
+      );
+      await downloader.checkAtStartup();
+
+      final verification = downloader.verifyBeforeFirstLoad();
+      await pumpEventQueue();
+      expect(probe.calls, 1);
+      await downloader.deleteModel();
+      await downloader.start();
+      expect(downloader.current, isA<ModelReady>());
+      gate.complete();
+
+      expect(await verification, isFalse);
+      expect(downloader.current, isA<ModelReady>());
+      expect(finalFile().readAsBytesSync(), modelBytes);
+      expect(await downloader.verifyBeforeFirstLoad(), isTrue);
+    });
+
     test('CA35 : après une empreinte fausse, retéléchargement : rend true '
         'sans nouveau calcul', () async {
       final downloader = await readyWith(wrongBytes);
