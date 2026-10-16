@@ -4,6 +4,8 @@
 // `TagChip` et `LoadingNote` sont décrits dans docs/maquettes/000-charte/components/.
 // File d'analyse réglée à la main (`StubAnalysisQueue`) : ces tests ne dépendent pas de
 // la file réelle.
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'
     show TargetPlatform, debugDefaultTargetPlatformOverride;
@@ -952,6 +954,34 @@ void main() {
 
         expect(find.text(noTagText), findsOneWidget);
         expect(isAnnounced(tester, find.text(noTagText)), isTrue);
+        expect(finishedAnnouncements(announcements), isEmpty);
+      },
+    );
+
+    // Revue de sécurité de la PR : rien n'est dit à voix haute quand le détail
+    // n'est plus à l'écran (feuille ou écran ouvert par-dessus).
+    platformSemanticsTestWidgets(
+      'CA28 : iOS, la fin d\'analyse n\'est pas annoncée quand un autre écran '
+      'couvre le détail',
+      TargetPlatform.iOS,
+      (tester) async {
+        final announcements = captureAnnouncements(tester);
+        final s = await scenario('analyse en cours');
+        await show(tester, s.env.detail(s.entry));
+        unawaited(
+          tester
+              .state<NavigatorState>(find.byType(Navigator).last)
+              .push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const Scaffold(body: Text('Par-dessus')),
+                ),
+              ),
+        );
+        await settle(tester);
+        expect(find.text('Par-dessus'), findsOneWidget);
+
+        await finishAnalysis(tester, s, Tagged(fatigueCalmeTravail));
+
         expect(finishedAnnouncements(announcements), isEmpty);
       },
     );

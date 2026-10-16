@@ -147,6 +147,10 @@ class CancelCountingRepository extends FakeEntryRepository {
   /// test, pour ne pas faire attendre les `tearDown`).
   bool hangLaterCancels = true;
 
+  /// `cancel()` lève : un désabonnement en échec ne doit pas empêcher le reste
+  /// de l'arrêt (revue de sécurité de la PR).
+  bool throwOnCancel = false;
+
   @override
   Stream<List<Entry>> watchEntries() =>
       _CancelCountingStream(super.watchEntries(), this);
@@ -184,6 +188,7 @@ class _CancelCountingSubscription implements StreamSubscription<List<Entry>> {
   @override
   Future<void> cancel() {
     _owner.cancelCalls++;
+    if (_owner.throwOnCancel) throw StateError('désabonnement impossible');
     if (_owner.cancelCalls > 1 && _owner.hangLaterCancels) {
       return Completer<void>().future;
     }
@@ -651,6 +656,21 @@ void main() {
       );
       expect(s.analyzer.cancelCalls, cancelsBefore);
       expect(s.analyzer.releaseCalls, releasesBefore);
+    });
+
+    test('CA34 : un désabonnement qui lève n\'empêche pas le reste de '
+        'l\'arrêt : génération annulée, modèle libéré', () async {
+      final s = await startedQueue();
+      s.repo.throwOnCancel = true;
+      addTearDown(() => s.repo.throwOnCancel = false);
+
+      await s.env.queue
+          .stop()
+          .then<void>((_) {}, onError: (Object _) {})
+          .timeout(const Duration(seconds: 2));
+
+      expect(s.analyzer.cancelCalls, greaterThanOrEqualTo(1));
+      expect(s.analyzer.releaseCalls, greaterThanOrEqualTo(1));
     });
   });
 
