@@ -167,3 +167,21 @@ Suites des revues IA de la spec 004 (issues #29 à #33), défaut de la file d'an
 ### Prochaine étape
 
 - Ouvrir la PR en brouillon, puis publier la réponse aux revues IA.
+
+## 2026-10-16 09:58
+
+### Fait
+
+- PR #37 ouverte en brouillon sur `main` (`Closes #29` à `#33`) ; commentaire « Réponse à la revue IA » publié, et lié depuis la description.
+
+### Décisions
+
+- PR en brouillon : son test humain reste à faire (agent, selon la règle du 2026-10-16).
+
+### Corrections et limites
+
+- Test humain : à faire par Yanis (VoiceOver et TalkBack pour CA28, dates du 1er du mois) ; scénarios dans la PR.
+
+### Prochaine étape
+
+- Après le merge de la PR #35 : rebaser, retirer « À mettre en œuvre » de RM57, RM60 et RM61 dans le cahier des charges. Puis test humain par Yanis.
