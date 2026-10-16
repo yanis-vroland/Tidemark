@@ -80,6 +80,7 @@ class Journal {
     this.analyzer,
     this.close,
     this.reviewWriter,
+    this.gate,
   });
 
   final EntryRepository entries;
@@ -96,6 +97,10 @@ class Journal {
 
   /// Ferme la base (suppression totale, spec 005) ; `null` : rien à fermer.
   final Future<void> Function()? close;
+
+  /// Accès exclusif au modèle, partagé par l'analyseur et le rédacteur (ADR-005) ;
+  /// la suppression totale le prend avant d'effacer le modèle (spec 005).
+  final ModelGate? gate;
 }
 
 /// Application de démarrage : le journal ouvert, ou l'écran d'erreur qui
@@ -265,6 +270,7 @@ Future<Journal> openJournal({Directory? folder, KeyStore? keyStore}) async {
       gate,
     ),
     close: db.close,
+    gate: gate,
   );
 }
 

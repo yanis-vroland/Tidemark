@@ -77,3 +77,31 @@ Implémentation jusqu'au vert, puis contrôle par mutation des garde-fous et rev
 ### Prochaine étape
 
 Contrôle par mutation des garde-fous, revues `reviewer` et `security-reviewer`, documents de référence, PR.
+
+## 2026-10-16 09:40
+
+### Fait
+
+- Contrôle par mutation (script hors dépôt, 31 mutations, chacune appliquée puis restaurée ; `git diff` vide à la fin) : 30 tuées, 1 survivante.
+  - Suppression : clé effacée avant la base (18 tests en échec), marqueur non écrit (19), échec du marqueur ignoré (2), journal non fermé avant la base (22), `-wal` oublié (29), modèle non effacé (27), fichiers temporaires non effacés (27), marqueur jamais effacé (25), erreur de la clé ignorée (4), `IoWipeFiles.deleteFile` sans effet (27).
+  - Démarrage : pas de reprise (15), base ouverte malgré une reprise en échec (10), pas de purge (1), pas de marqueur d'installation (4).
+  - Marqueur d'installation : clé effacée alors que la base existe (3), clé restante jamais effacée (4), erreur propagée (3).
+  - Export : fichier non effacé après le partage (5), pas de purge avant l'export (1) ni après un échec (1), erreur avalée (5), purge sans effet (6), étiquettes non triées (2), `createdAt` au décalage de la machine (3), `share_plus` importé hors de `share_sheet.dart` (1).
+  - Écrans : confirmation sensible à la casse (5), sans le mot (8), retour permis pendant la suppression (11) ou l'export (1), export possible sur un journal vide (3).
+  - **Survivante** : « file d'analyse non arrêtée avant la suppression ». Couverte par le test de non-régression ci-dessous.
+- Intégration de `origin/main` (PR #24 à #27) par un merge, sans force-push. Conflits résolus en gardant les deux contenus : `lib/main.dart` (cycle de vie de la file, `ModelGate`, bilan ; un flux de cycle de vie neuf à chaque réouverture par `AppHost`, car il n'accepte qu'un abonné), `entry_list_screen.dart`, `architecture-technique.md` (lignes « prévu, lot H » devenues obsolètes retirées). 1 648 tests verts après le merge.
+- Tests de non-régression de la suppression face au modèle partagé (`test/startup/wipe_releases_model_test.dart`), 5 en échec avant correction : mise en mots du bilan abandonnée avant l'effacement du modèle, attente du verrou `ModelGate`, verrou gardé après la suppression, textes du bilan oubliés (`ReviewNarrator.forget`, squelette sans effet). Le test « file arrêtée et modèle libéré » passe déjà : il tue la mutation survivante.
+- `Journal.gate` ajouté ; `RecordingWipeFiles.onCall` ajouté au harnais pour observer l'état au moment de l'effacement du modèle.
+
+### Décisions
+
+- Demande de l'agent coordinateur : merge de `origin/main` plutôt que rebase, pour éviter un force-push (coordinateur).
+- Spec 006 : le texte du bilan n'est gardé qu'en mémoire (« La suppression totale n'a donc rien de plus à effacer ») ; la suppression l'oublie quand même (`ReviewNarrator.forget`), l'app effacée restant en mémoire jusqu'à son remplacement (agent).
+
+### Corrections et limites
+
+- Aucune.
+
+### Prochaine étape
+
+Correction : la fermeture du journal arrête la file, oublie le bilan, annule le téléchargement, prend le verrou du modèle (et le garde), puis ferme la base.
