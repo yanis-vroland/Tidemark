@@ -14,6 +14,15 @@ const analysisInstruction =
     'au moins une étiquette en tout. Ne donne aucun conseil. Réponds seulement par '
     'l\'objet JSON demandé.';
 
+/// Fixe les journaux de `llamadart` à `none`, côté Dart et côté natif, avant
+/// chaque chargement du modèle (ADR-004, décision 4) : ni le texte d'une entrée
+/// ni la sortie du modèle ne peuvent apparaître dans un journal (RM9), même si
+/// une version future change la valeur par défaut. Pur Dart sans moteur vivant.
+Future<void> silenceLlamaLogs() => llama.LlamaLogging.configure(
+  level: llama.LlamaLogLevel.none,
+  nativeLevel: llama.LlamaLogLevel.none,
+);
+
 /// Moteur chargé, vu par [LlamaMoodAnalyzer] : la seule couture avec `llamadart`,
 /// pour que la logique de l'analyseur (annulation, CA35) soit testée sur un moteur
 /// factice, sans jamais charger de modèle.
@@ -120,6 +129,7 @@ class LlamaMoodAnalyzer implements MoodAnalyzer {
   Future<bool> prepare() async {
     if (_engine != null) return true;
     try {
+      await silenceLlamaLogs();
       _engine = await loader(modelFile, _layers);
       return true;
     } catch (_) {

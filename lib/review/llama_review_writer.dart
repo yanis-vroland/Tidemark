@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:llamadart/llamadart.dart' as llama;
 
+import '../analysis/llama_mood_analyzer.dart' show silenceLlamaLogs;
+
 import 'review_writer.dart';
 import 'weekly_review.dart';
 
@@ -10,7 +12,11 @@ import 'weekly_review.dart';
 /// exclusif au modèle est tenu par `GatedReviewWriter` (ADR-005). Jamais exécuté
 /// par les tests ni par la CI : vérifié au test humain.
 class LlamaReviewWriter implements ReviewWriter {
-  LlamaReviewWriter({required this.modelFile, this.gpuLayers});
+  LlamaReviewWriter({
+    required this.modelFile,
+    this.gpuLayers,
+    this.silenceLogs = silenceLlamaLogs,
+  });
 
   /// Fichier GGUF du modèle local (spec 003).
   final File modelFile;
@@ -21,11 +27,21 @@ class LlamaReviewWriter implements ReviewWriter {
   llama.LlamaEngine? _engine;
   bool _cancelled = false;
 
+  /// Fixe les journaux de `llamadart` à `none` ; remplacé dans les tests.
+  final Future<void> Function() silenceLogs;
+
   int get _layers => gpuLayers ?? (Platform.isIOS ? 99 : 0);
 
   @override
   Future<ReviewDraft> write(ReviewFacts facts) async {
     _cancelled = false;
+    // Journaux de `llamadart` à `none` avant tout chargement (ADR-004, décision 4).
+    // Échec : aucun chargement, comme l'analyseur (RM9, RM53).
+    try {
+      await silenceLogs();
+    } catch (_) {
+      return const WriterFailed();
+    }
     if (!modelFile.existsSync()) return const ModelMissing();
     final engine = llama.LlamaEngine(llama.LlamaBackend());
     _engine = engine;

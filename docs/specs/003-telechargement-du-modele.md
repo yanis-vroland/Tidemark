@@ -1,6 +1,6 @@
 # Spec 003 : téléchargement du modèle local
 
-Statut : validée (Yanis, merge de la PR #18, 2026-10-14 ; décisions métier déléguées à l'agent)
+Statut : validée (Yanis, merge de la PR #18, 2026-10-14 ; décisions métier déléguées à l'agent). Complétée le 2026-10-16 par `feat/integrite-moteur-modele` (vérification avant le premier chargement, CA34 à CA36, décision n° 11 ; agent, par délégation de Yanis, 2026-10-16), à valider par Yanis avec sa PR.
 Date : 2026-10-14
 
 ## Besoin
@@ -66,7 +66,21 @@ C'est le seul accès réseau de l'app (RM1). Ce lot ne fait encore aucune analys
 | `downloading` | Transfert ou vérification en cours | Progression, puis Vérification |
 | `ready` | Fichier vérifié, à son nom définitif | Prêt |
 
-Transitions : celles du cahier des charges (« Statuts et transitions »). Un échec ou une annulation ramène à `absent` et efface le fichier temporaire. Au démarrage, l'état se déduit des fichiers : fichier définitif présent et de la bonne taille → `ready` (l'empreinte n'est pas recalculée, elle l'a été avant le renommage) ; sinon → `absent`.
+Transitions : celles du cahier des charges (« Statuts et transitions »). Un échec ou une annulation ramène à `absent` et efface le fichier temporaire. Au démarrage, l'état se déduit des fichiers : fichier définitif présent et de la bonne taille → `ready` ; sinon → `absent`. L'empreinte n'est pas recalculée au démarrage, mais avant la première lecture du fichier par le moteur (« Vérification avant le premier chargement »).
+
+### Vérification avant le premier chargement ([ADR-004](../adr/004-integrite-du-moteur-et-du-modele.md), option E)
+
+Le lecteur GGUF de llama.cpp est du code natif en C++ : un fichier modifié de même taille pourrait exploiter une faille de ce lecteur avec les droits de l'app. La taille ne suffit donc plus.
+
+- **Une fois par lancement**, avant la première lecture du fichier par le moteur (étiquetage, spec 004, ou bilan, spec 006), `ModelDownloader.verifyBeforeFirstLoad()` recalcule le SHA-256 du fichier définitif et le compare à `ModelSource`. Le résultat juste est gardé en mémoire pour le reste du lancement : les chargements suivants ne recalculent rien.
+- **Empreinte juste** : le modèle reste `ready`, le chargement peut avoir lieu.
+- **Empreinte fausse, ou fichier illisible** : le fichier est effacé, le modèle repasse à `absent` (sans cause d'échec affichée, comme après CA32), et aucun chargement n'a lieu. La personne peut le retélécharger (CA23).
+- **Autre erreur du calcul** (mémoire, isolat interrompu) : aucun chargement, le fichier est gardé, le modèle reste `ready`, et le calcul sera retenté au prochain chargement demandé. Rien n'est gardé en mémoire.
+- **Fichier téléchargé pendant ce lancement** : déjà vérifié avant son renommage (CA14) ; il compte comme vérifié, sans nouveau calcul.
+- **Hors du fil de l'interface** : le calcul tourne dans un isolat (`Isolate.run`), jamais sur le fil de l'interface : l'écran ne se fige pas. Deux demandes simultanées (étiquetage et bilan) partagent le même calcul.
+- **Modèle effacé pendant le calcul** (suppression totale, spec 005) : le résultat est ignoré, le modèle reste `absent`.
+- Coût : mesuré le 2026-10-16 sur un Mac M3, avec le calcul de l'app dans un isolat, sur un vrai fichier de 1,1 Go : 9,4 à 14,8 s (l'ADR-004 annonçait 6,7 à 7,0 s, mesurés sur un fichier creux, sans lecture du disque). Sur l'iPhone 15 Pro, **estimé** à 10 à 15 s, à mesurer au test humain, comme sur l'émulateur Android. Seule la première analyse (ou le premier bilan) du lancement est retardée d'autant. Le seuil de 10 s qui ferait passer à l'option F (calcul par la bibliothèque du système) sera probablement dépassé.
+- **Calcul orphelin** : un arrêt de la file ou une suppression totale pendant le calcul n'attend pas sa fin (spec 004, CA37), mais l'isolat continue de lire le fichier, déjà délié, jusqu'au bout (une dizaine de secondes) ; la place n'est rendue qu'à la fin. Limite assumée.
 
 ## Critères d'acceptation
 
@@ -107,6 +121,9 @@ Transitions : celles du cahier des charges (« Statuts et transitions »). Un é
 - CA21 : Étant donné un fichier temporaire laissé par un téléchargement interrompu (app fermée, téléphone éteint), quand l'app démarre, alors il est effacé et le modèle est `absent` ; aucun téléchargement ne reprend de lui-même et la proposition ne s'ouvre pas.
 - CA22 : Étant donné le fichier définitif présent, quand l'app démarre, alors le modèle est `ready` s'il a la taille de `ModelSource` ; sinon il est effacé et le modèle est `absent`.
 - CA32 : Étant donné le modèle `ready` qui ne peut pas être chargé par l'analyseur (spec 004), quand `ModelDownloader.verifyAfterLoadFailure()` est appelé, alors l'empreinte du fichier est recalculée une fois : fausse, le fichier est effacé et le modèle repasse à `absent` (la personne peut le retélécharger) ; juste, le modèle reste `ready`.
+- CA34 : Étant donné le modèle `ready` au démarrage (CA22), quand `verifyBeforeFirstLoad()` est appelé pour la première fois du lancement, alors l'empreinte du fichier est recalculée : juste, il rend `true` et le modèle reste `ready` ; fausse (fichier de la bonne taille, contenu modifié) ou fichier illisible, il rend `false`, le fichier est effacé et le modèle repasse à `absent`, sans cause d'échec. Avec un modèle `absent` ou `downloading`, il rend `false` sans rien calculer.
+- CA35 : Étant donné une première vérification juste, quand `verifyBeforeFirstLoad()` est appelé de nouveau pendant le même lancement, alors il rend `true` sans recalculer l'empreinte ; deux appels simultanés ne font qu'un seul calcul ; un modèle téléchargé et vérifié pendant le lancement (CA14) rend `true` sans nouveau calcul. Après `deleteModel()`, ou si le modèle est effacé pendant le calcul, il rend `false` et le modèle reste `absent`. Une erreur du calcul autre qu'un fichier illisible rend `false`, garde le fichier et le modèle `ready`, et l'appel suivant recalcule.
+- CA36 : Étant donné le calcul de l'empreinte d'un fichier, quand il tourne, alors il s'exécute dans un isolat : pendant le calcul d'un fichier de plusieurs dizaines de mégaoctets, le fil principal continue de traiter ses événements (un minuteur périodique s'y déclenche) ; le même calcul sert à `verifyAfterLoadFailure()` (CA32).
 
 ### Réglages
 
@@ -139,6 +156,7 @@ Fixées par cette spec, puis reportées dans l'architecture technique avec l'imp
   - `FakeModelDownloader` dans `test/support/`, pour les écrans.
 - **Transport** (`ModelTransport`) : `get(Uri url, Map<String, String> headers)` rend le statut HTTP, l'en-tête `Location` et un flux d'octets. Implémentation `IoModelTransport` sur `dart:io` `HttpClient`, avec `followRedirects = false` (l'app suit les redirections elle-même, CA8), `autoUncompress = false`, sans cookie ni proxy ajouté, et `userAgent` remplacé par `Tidemark`. `FakeModelTransport` dans `test/support/` pour tous les tests du téléchargeur : **aucune requête vers Internet dans les tests**. Seul le test de `IoModelTransport` (CA31) ouvre une connexion, vers un serveur local lancé par le test sur `127.0.0.1`. Les tests utilisent un dossier temporaire du système de fichiers.
 - **Vérification après échec de chargement** : `ModelDownloader.verifyAfterLoadFailure()` (CA32), appelée par la file d'analyse (spec 004).
+- **Vérification avant le premier chargement** : `Future<bool> ModelDownloader.verifyBeforeFirstLoad()` (CA34 à CA36), appelée par la file d'analyse (spec 004) et par la mise en mots du bilan (spec 006) avant toute lecture du modèle par le moteur. Le SHA-256 est calculé par `sha256OfFile(String path)` (`lib/model/model_downloader.dart`), dans un isolat ; `HttpModelDownloader` reçoit ce calcul en paramètre, pour que les tests le remplacent.
 - **Réglages** (`SettingsRepository`, spec 002) : nouvelle valeur « proposition du modèle déjà affichée » (`watchModelOfferShown`, `setModelOfferShown`), colonne ajoutée à la table `settings` par une migration (version suivante du schéma). Effacée avec la base à la suppression totale (lot H).
 - **Android** : la permission `android.permission.INTERNET` passe dans le manifeste principal (`android/app/src/main/AndroidManifest.xml`) ; elle n'était jusqu'ici que dans les manifestes de débogage et de profil. Elle ne sert qu'à `IoModelTransport` (CA25).
 - **iOS** : aucune exception ATS : tout est en HTTPS.
@@ -165,6 +183,7 @@ Jetons manquants, à ajouter à la charte, à `tokens.json` et au test de fidél
 - App mise en arrière-plan : le système peut suspendre le transfert ; au retour, le délai de 30 s sans octet déclenche l'échec « réseau ». L'écran de progression prévient avant (« Garde Tidemark ouvert… »).
 - App fermée ou téléphone éteint pendant le téléchargement : CA21 au démarrage suivant.
 - Fichier définitif effacé par le système ou à la main : CA22, l'état redevient `absent`.
+- Fichier définitif modifié sans changer de taille (appareil rooté ou jailbreaké, conteneur d'une version de développement remplacé, stockage corrompu) : refusé avant tout chargement (CA34), effacé, modèle `absent`. Un remplacement entre la vérification et le chargement, ou entre deux chargements du même lancement (après une libération du modèle, ou pour un bilan), passerait : il exige un accès en écriture au conteneur pendant que l'app tourne, c'est-à-dire un appareil déjà compromis, hors du modèle de menace (ADR-004). Limite assumée, signalée par la revue de sécurité du 2026-10-16.
 - Révision Hugging Face supprimée ou fichier déplacé : échec « réseau » (404). Il faudra une nouvelle version de l'app avec une nouvelle `ModelSource`. Limite écrite dans le README (lot J).
 - Serveur compromis qui sert un autre fichier : refusé par l'empreinte (CA15), quel que soit l'hôte.
 - Stockage plein : détecté seulement à l'écriture (CA18), sans vérification préalable de la place libre, qui demanderait un paquet natif de plus.
@@ -185,9 +204,10 @@ Aucune. Décisions prises par l'agent, à la demande de Yanis (2026-10-14) :
 2. **Proposition automatique une seule fois**, puis accès par les Réglages et le détail d'une entrée en attente : pas de relance répétée sur un sujet sensible (RM31).
 3. **Confirmation avant l'annulation** : un appui malheureux ne doit pas coûter un gigaoctet de forfait (CA12).
 4. **Retour au journal pendant le téléchargement**, sans téléchargement en arrière-plan du système : plus simple, sans paquet natif ; la limite est dite à l'écran (RM32).
-5. **Empreinte vérifiée une fois**, avant le renommage, et pas à chaque démarrage : la taille suffit ensuite (CA22). Recalculer 1,1 Go à chaque lancement coûterait plusieurs secondes.
+5. **Empreinte vérifiée une fois**, avant le renommage, et pas à chaque démarrage : la taille suffit ensuite (CA22). Recalculer 1,1 Go à chaque lancement coûterait plusieurs secondes. **Révisée le 2026-10-16** (décision n° 11) : la taille suffit pour l'état affiché au démarrage, plus pour le chargement.
 6. **Pas de vérification de la place libre** avant le téléchargement : l'erreur d'écriture est traitée (CA18).
 7. **URL, commit et empreinte** fixés à l'implémentation et vérifiés par CA27 et par un téléchargement manuel consigné dans la PR : ils ne figurent pas dans l'ADR-001.
 8. **Hôtes admis précisés** après la revue IA de la PR #18 : `Location` relatif résolu, suffixes `.huggingface.co` et `.hf.co` comparés point compris ; pas d'ADR, la source étant déjà fixée par RM1 et l'ADR-001.
 9. **Fichier `ready` mais impossible à charger** : empreinte recalculée une fois, effacement si elle est fausse (CA32).
 10. **Test de `IoModelTransport` sur la boucle locale** admis (CA31) : c'est le seul moyen de vérifier ce qui part réellement sur le fil.
+11. **Empreinte recalculée une fois par lancement, avant le premier chargement** (agent, par délégation de Yanis, 2026-10-16, en application de l'[ADR-004](../adr/004-integrite-du-moteur-et-du-modele.md) accepté par Yanis le 2026-10-16, option E) : le lecteur GGUF de llama.cpp ne lit jamais un fichier non vérifié pendant le lancement (CA34 à CA36). Calcul dans un isolat, résultat gardé en mémoire pour le lancement, partagé entre étiquetage et bilan ; un fichier téléchargé pendant le lancement compte comme vérifié. Empreinte fausse : fichier effacé et modèle `absent`, comme CA32. Une erreur du calcul qui n'est pas une lecture impossible ne fait pas effacer 1,1 Go : le chargement est seulement refusé. Passage au calcul par la bibliothèque du système (option F) seulement si la mesure sur l'iPhone dépasse 10 s.
