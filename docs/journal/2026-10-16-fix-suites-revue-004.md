@@ -51,3 +51,31 @@ Suites des revues IA de la spec 004 (issues #29 à #33), défaut de la file d'an
 ### Prochaine étape
 
 - Implémenter : `stop()` idempotent, règle d'échec d'écriture, annonce de fin d'analyse, garde-fou llamadart (avec mutations), « 1er », flux créés une fois.
+
+## 2026-10-16 09:35
+
+### Fait
+
+- `AnalysisQueue.stop()` idempotent : le premier appel garde son futur, les suivants le rendent sans refaire l'arrêt (#33, CA34).
+- Échec d'écriture (CA36, RM57) : la file s'arrête ; les événements reçus pendant le passage en échec ne la relancent pas ; l'entrée en échec passe après les autres au passage suivant (rang en mémoire, effacé par une écriture réussie ou quand l'entrée n'est plus « en attente »).
+- Fin d'analyse annoncée (#29, CA28, RM60) : `EntryTagsSection` devient un `StatefulWidget` qui repère le passage d'« en attente » à « étiquetée » ou « sans étiquette » ; `SemanticsService.sendAnnouncement` sur iOS, région vive (`Semantics(container, liveRegion)`) sur le nouveau statut ailleurs.
+- Flux créés une fois (#32) : `EntryDetailScreen` devient un `StatefulWidget` qui garde `watchEntries()` ; l'état du modèle passe dans `_ModelStatus`, qui garde `watch()`.
+- « 1er » du mois (CA37, RM61) : `dayOfMonth` dans `lib/entries/day_grouping.dart`, repris par `lib/review/local_week.dart`.
+- Garde-fou llamadart (#31) : `llamadartViolations` implémentée (source autre que `ModelSource.path`, `loadModel*`, `LlamaModel` ou `projector` sans `ModelSource.path` direct) ; un échantillon « projecteur passé par une variable » ajouté après coup (vert dès son ajout, la règle étant écrite en même temps). Architecture technique complétée (section « Sécurité »).
+- Specs 004 et 006 : renvois à RM57, RM60 et RM61 (PR #35) ; règle d'échec d'écriture reformulée comme implémentée.
+- `flutter test` : 1 701 verts, 0 rouge, aussi avec `TZ=UTC` ; `dart analyze --fatal-infos` et `dart format` propres.
+- Contrôle par mutation, chaque protection désactivée une fois : 18 mutations, 18 détectées (`stop()` non mémorisé, relance après échec d'écriture, entrée en échec non reléguée, échec non mémorisé, annonce iOS absente, région vive Android absente, région vive aussi sur iOS, annonce aussi sur Android, annonce à l'ouverture, journal et modèle réabonnés à chaque construction, pas de « 1er », et les six règles du garde-fou llamadart : source autre que `path`, `loadModel*`, `LlamaModel` sans `path`, `projector` sans `path`, import non exigé, commentaires non retirés).
+
+### Décisions
+
+- Après un échec d'écriture, la file ignore tous les événements reçus pendant ce passage, y compris un enregistrement : la nouvelle entrée attend le prochain événement. C'est la règle « s'arrête jusqu'au prochain événement » ; distinguer les événements de la file de ceux de la personne compliquerait la file pour un cas rare (agent, par délégation de Yanis du 2026-10-16).
+- Règle « `ModelSource(` » retirée du garde-fou : le constructeur de `llamadart` est privé, et `ModelSource._` est déjà refusé par la règle des sources autres que `path` (agent, par délégation de Yanis du 2026-10-16).
+- Région vive sans libellé propre sur Android : les lignes « Émotions : … » et « Thèmes : … » restent lues séparément (CA28) ; à confirmer au test humain avec TalkBack (agent, par délégation de Yanis du 2026-10-16).
+
+### Corrections et limites
+
+- Test humain : à faire par Yanis (VoiceOver et TalkBack pour CA28, dates du 1er du mois).
+
+### Prochaine étape
+
+- Revues `reviewer` et `security-reviewer`, puis PR en brouillon.

@@ -2,6 +2,8 @@
 /// dimanche 23:59, en jours locaux.
 library;
 
+import '../entries/day_grouping.dart' show dayOfMonth;
+
 /// Semaine du lundi au dimanche, en dates locales (glossaire : `LocalWeek`). Les
 /// jours sont des dates civiles, sans heure ni fuseau : un changement d'heure ne
 /// décale rien.
@@ -66,7 +68,8 @@ const _months = [
   'décembre',
 ];
 
-String _dayMonth(DateTime day) => '${day.day} ${_months[day.month - 1]}';
+String _dayMonth(DateTime day) =>
+    '${dayOfMonth(day.day)} ${_months[day.month - 1]}';
 
 String _dayMonthYear(DateTime day) => '${_dayMonth(day)} ${day.year}';
 
@@ -99,7 +102,7 @@ String weekRangeLabel(LocalWeek week, {required int currentYear}) {
   final sunday = week.sunday;
   if (withYear) return (_dayMonthYear(monday), _dayMonthYear(sunday));
   final from = monday.month == sunday.month
-      ? '${monday.day}'
+      ? dayOfMonth(monday.day)
       : _dayMonth(monday);
   return (from, _dayMonth(sunday));
 }

@@ -12,7 +12,7 @@ import '../widgets/mood_dot.dart';
 
 /// Détail d'une entrée et sa suppression (spec 001). Aucun moyen de la modifier
 /// (RM15).
-class EntryDetailScreen extends StatelessWidget {
+class EntryDetailScreen extends StatefulWidget {
   const EntryDetailScreen({
     super.key,
     required this.entry,
@@ -31,6 +31,23 @@ class EntryDetailScreen extends StatelessWidget {
   /// Date et heure locales, pour n'afficher l'année que si elle diffère de l'année
   /// en cours (maquette) ; [DateTime.now] par défaut.
   final DateTime Function()? clock;
+
+  @override
+  State<EntryDetailScreen> createState() => _EntryDetailScreenState();
+}
+
+class _EntryDetailScreenState extends State<EntryDetailScreen> {
+  /// Le journal observé, créé une fois : une reconstruction ne réabonne pas
+  /// l'écran (issue #32).
+  late Stream<List<Entry>> _entries = widget.repository.watchEntries();
+
+  @override
+  void didUpdateWidget(EntryDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.repository != widget.repository) {
+      _entries = widget.repository.watchEntries();
+    }
+  }
 
   Future<void> _confirmDelete(BuildContext context) async {
     final colors = context.colors;
@@ -81,7 +98,7 @@ class EntryDetailScreen extends StatelessWidget {
     );
     if (confirmed != true || !context.mounted) return;
     try {
-      await repository.deleteEntry(entry.id);
+      await widget.repository.deleteEntry(widget.entry.id);
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -98,6 +115,7 @@ class EntryDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final entry = widget.entry;
     final local = entry.localCreatedAt;
     final text = entry.text;
     return Scaffold(
@@ -123,7 +141,7 @@ class EntryDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: TidemarkSpacing.space4),
                     Text(
-                      local.year == (clock ?? DateTime.now)().year
+                      local.year == (widget.clock ?? DateTime.now)().year
                           ? weekdayAndDate(local)
                           : fullDateLabel(local),
                       style: Theme.of(context).textTheme.titleLarge,
@@ -165,14 +183,14 @@ class EntryDetailScreen extends StatelessWidget {
                     // L'entrée relue à chaque changement : ses étiquettes
                     // apparaissent dès que l'analyse se termine (CA18).
                     StreamBuilder<List<Entry>>(
-                      stream: repository.watchEntries(),
+                      stream: _entries,
                       builder: (context, snapshot) => EntryTagsSection(
                         entry:
                             snapshot.data
                                 ?.where((e) => e.id == entry.id)
                                 .firstOrNull ??
                             entry,
-                        downloader: downloader,
+                        downloader: widget.downloader,
                       ),
                     ),
                   ],
