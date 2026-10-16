@@ -139,3 +139,22 @@ Issue #38 : quand le marquage « non analysée » d'une entrée en détresse éc
 ### Prochaine étape
 
 - Inchangée : voir l'entrée précédente.
+
+## 2026-10-16 13:10
+
+### Fait
+
+- `main` fusionné dans la branche après le merge des PR #40 et #45 (agent principal). Fusion sans conflit.
+- Commit de merge testé avant le push : analyse et format sans remarque, `flutter test` au vert (1805 tests).
+
+### Décisions
+
+- Fusion de `main` plutôt que rebase, le force-push étant interdit (agent, par délégation de Yanis du 2026-10-16).
+
+### Corrections et limites
+
+- Aucune nouvelle.
+
+### Prochaine étape
+
+- Inchangée : voir l'entrée précédente.
