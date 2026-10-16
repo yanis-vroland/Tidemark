@@ -38,7 +38,7 @@ DateTime _civilDay(DateTime date) =>
     DateTime.utc(date.year, date.month, date.day);
 
 /// Quantième du mois selon l'usage français : « 1er », puis « 2 », « 3 »…
-/// (spec 006, CA37).
+/// (spec 006, CA38).
 String dayOfMonth(int day) => day == 1 ? '1er' : '$day';
 
 /// Jour de la semaine et date, sans l'année : « Mercredi 14 octobre »,
