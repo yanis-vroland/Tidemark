@@ -23,3 +23,25 @@ Issue #38 : quand le marquage « non analysée » d'une entrée en détresse éc
 ### Prochaine étape
 
 - Tests rouges (subagent `test-writer`), commit séparé, puis implémentation.
+
+## 2026-10-16 14:45
+
+### Fait
+
+- Tests écrits par le subagent `test-writer`, avant toute implémentation, dans `test/analysis/analysis_queue_test.dart`, groupe « CA39 » (faux `FailMarkForRepository` : `markSkipped` lève pour des entrées données, compte ses appels, peut injecter des événements du journal pendant le marquage). Sur 52 tests du fichier, 2 rouges pour la bonne raison :
+  - « CA39 : … la file s'arrête » : `markSkipped` appelé 44 fois au lieu d'une pour l'entrée en détresse (la file reboucle sur elle à chaque événement reçu pendant le passage) ;
+  - « CA39 : au prochain événement… » : 2 marquages au lieu d'un dès la première série (l'événement du démarrage relance la même entrée).
+  - Verts dès maintenant, gardés pour le contrôle par mutation : « CA39 : quand le marquage réussit ensuite… » et « RM8 : quel que soit le nombre d'événements… » (le texte de détresse n'atteint jamais le modèle).
+- Relus avant l'implémentation : les deux rouges vérifient le nombre de marquages, l'ordre des analyses et l'absence du texte de détresse dans `FakeMoodAnalyzer.received`.
+
+### Décisions
+
+- Garde-fous propres aux tests, acceptés (agent, par délégation de Yanis du 2026-10-16) : au-delà de 30 marquages, le faux cède la main 20 ms, et les tests CA39 attendent un délai fixe plutôt que `whenIdle`, pour qu'une file qui reboucle fasse échouer le test au lieu de le figer.
+
+### Corrections et limites
+
+- `.llamadart-native/` absent du worktree : récupéré par `scripts/fetch-llama-native.sh macos-arm64` (empreinte vérifiée), ignoré par git.
+
+### Prochaine étape
+
+- Implémentation dans `lib/analysis/analysis_queue.dart`, puis contrôle par mutation.
