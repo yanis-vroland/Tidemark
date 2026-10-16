@@ -52,3 +52,28 @@ Tests de la spec 005 par le subagent `test-writer`, committés seuls et rouges ;
 ### Prochaine étape
 
 Implémentation jusqu'au vert, puis contrôle par mutation des garde-fous et revues.
+
+## 2026-10-16 08:19
+
+### Fait
+
+- Implémentation de la spec 005 : `JournalExporter` (JSON version 1), `JournalExport` (purge, lecture, fichier dans `<cache>/tidemark-export/`, feuille de partage, effacement dans tous les cas), `SharePlusShareSheet`, `JournalWiper` (marqueur, fermeture du journal, base, clé, `models/`, dossiers temporaires, marqueur effacé), `checkInstallMarker`, `DriftEntryRepository.allEntriesWithTags`, `AppHost`.
+- Écrans : section « Mes données » des Réglages, `WipeConfirmationScreen`, message de fin sur la liste vide, `StartupErrorApp` (bouton « Tout supprimer et repartir de zéro », cas « La suppression n'est pas terminée », écran qui défile). Boutons `DangerButton` et `QuietButton` (texte et bordure, fond `surface-raised`), jetons de la charte seulement.
+- `startApp` : purge des fichiers temporaires d'export, reprise de `wipe-pending`, marqueur d'installation, puis ouverture ; export et suppression branchés dans les Réglages.
+- `AppDatabase.close` rendu idempotent : un second appel attend la même fermeture au lieu de rester bloqué.
+- `flutter test` : 1 263 verts, 0 rouge (aussi avec `TZ=UTC`) ; `dart analyze --fatal-infos` et `dart format` propres.
+
+### Décisions
+
+- La file d'analyse n'est arrêtée qu'une fois par suppression, même si celle-ci est reprise après un échec de fermeture de la base : un second `AnalysisQueue.stop()` peut ne jamais rendre la main. `lib/analysis/` n'est pas modifié (un autre agent y travaille) ; le point est signalé dans la PR (agent).
+- Libellé du champ de confirmation : texte visible fusionné dans le nœud du champ (`MergeSemantics`), plutôt qu'un `labelText` qui aurait doublé le texte (agent).
+
+### Corrections et limites
+
+- Deux retouches de harnais, sans assertion modifiée, signalées dans la PR :
+  - `test/ui/wipe_flow_test.dart` : la fermeture des bases en fin de test se fait dans le temps simulé, en alternant temps réel et temps simulé, et seule la file de l'app affichée est arrêtée (celle de l'app effacée l'est déjà) ; sinon le test restait bloqué indéfiniment ;
+  - `test/support/wipe_harness.dart` : `scrollTo` fait un `pump` après `scrollUntilVisible`, dont le `ensureVisible` final ne met pas la page en forme quand la cible est déjà construite (écrans non paresseux).
+
+### Prochaine étape
+
+Contrôle par mutation des garde-fous, revues `reviewer` et `security-reviewer`, documents de référence, PR.

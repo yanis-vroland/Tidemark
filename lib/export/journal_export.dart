@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import '../entries/entry_repository.dart';
@@ -23,8 +24,11 @@ List<Directory> exportTemporaryFolders(Directory cache) => [
 
 /// Vide les dossiers temporaires d'export (CA10) ; un dossier absent compte comme
 /// vidé. Lève une exception si un dossier ne peut pas être effacé.
-Future<void> purgeExportTemporaryFiles(Directory cache) =>
-    throw UnimplementedError();
+Future<void> purgeExportTemporaryFiles(Directory cache) async {
+  for (final folder in exportTemporaryFolders(cache)) {
+    if (await folder.exists()) await folder.delete(recursive: true);
+  }
+}
 
 /// L'export n'a pas abouti (CA11) : aucun fichier n'a été partagé, aucun fichier
 /// temporaire ne reste.
@@ -63,5 +67,38 @@ class JournalExport {
   /// Purge, lit, écrit le fichier, ouvre la feuille de partage, puis efface le
   /// fichier, que la personne ait partagé ou annulé. Lève [ExportFailure] sur
   /// toute erreur, après avoir effacé les fichiers temporaires.
-  Future<void> run() => throw UnimplementedError();
+  Future<void> run() async {
+    final start = clock();
+    File? file;
+    try {
+      await purgeExportTemporaryFiles(cacheFolder);
+      // Toute erreur de lecture fait échouer l'export, sans fichier partiel.
+      final all = await entries.allEntriesWithTags();
+      final sensitivity = await settings.readLowMoodSensitivity();
+      final json = exporter.buildExport(
+        entries: all,
+        sensitivity: sensitivity,
+        exportedAt: start,
+      );
+      final folder = exportTemporaryFolders(cacheFolder).first;
+      await folder.create(recursive: true);
+      file = File('${folder.path}/${exportFileName(start)}');
+      // UTF-8 sans BOM.
+      await file.writeAsBytes(utf8.encode(json), flush: true);
+      await shareSheet.shareFile(file, mimeType: exportMimeType);
+    } catch (error) {
+      // Aucun fichier temporaire ne reste, pas même la copie de `share_plus`.
+      try {
+        await purgeExportTemporaryFiles(cacheFolder);
+      } catch (_) {}
+      throw ExportFailure(error);
+    } finally {
+      // Feuille fermée, partage fait ou annulé : le fichier en clair est effacé
+      // (RM41). La copie de `share_plus` reste lisible par l'app de destination
+      // jusqu'au prochain démarrage ou au prochain export (CA10).
+      try {
+        if (file != null && await file.exists()) await file.delete();
+      } catch (_) {}
+    }
+  }
 }

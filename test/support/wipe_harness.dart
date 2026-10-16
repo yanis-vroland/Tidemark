@@ -433,6 +433,10 @@ Future<void> scrollTo(WidgetTester tester, Finder target) async {
     200,
     scrollable: find.byType(Scrollable).first,
   );
+  // `scrollUntilVisible` finit par un `ensureVisible` sans image : quand la cible
+  // est déjà construite (écran non paresseux), la mise en page doit suivre avant
+  // le test de toucher.
+  await tester.pump();
   expect(target.hitTestable(), findsOneWidget, reason: '$target atteignable');
 }
 

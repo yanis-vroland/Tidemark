@@ -1,6 +1,7 @@
 // Parcours complets de la suppression totale (spec 005 ; CA17 à CA19, CA22, CA23, CA27,
 // CA28, CA33) : Réglages, confirmation, puis liste vide avec le message de fin, sur la
 // vraie base chiffrée d'un dossier temporaire, sous `AppHost` et `startApp`.
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -79,6 +80,10 @@ class Flow {
     for (final app in opened) {
       if (app is TidemarkApp) {
         try {
+          // La file d'analyse de l'app rouverte écoute encore la base : sans
+          // l'arrêter, la fermeture attend un minuteur du temps simulé. Celle
+          // de l'app effacée est déjà arrêtée par la suppression.
+          if (identical(app, opened.last)) await app.analysisQueue?.stop();
           await (app.repository as DriftEntryRepository).db.close();
         } catch (_) {}
       }
@@ -101,10 +106,17 @@ void flowTest(
       // fermer, sinon la fermeture attend un minuteur du temps simulé.
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(seconds: 1));
-      await tester.runAsync(() async {
-        await Future<void>.delayed(const Duration(milliseconds: 25));
-        await flow.closeAll();
-      });
+      // La base rouverte par `AppHost` l'a été dans le temps simulé : sa
+      // fermeture (et l'arrêt de sa file) se fait aussi dans le temps simulé,
+      // en alternant temps réel (isolat de la base) et temps simulé.
+      var closed = false;
+      unawaited(flow.closeAll().whenComplete(() => closed = true));
+      for (var i = 0; i < 200 && !closed; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 10)),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+      }
       await tester.pump(const Duration(seconds: 1));
       flow.env.dispose();
       semantics.dispose();

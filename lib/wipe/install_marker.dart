@@ -12,4 +12,17 @@ Future<void> checkInstallMarker({
   required Directory folder,
   required KeyStore keyStore,
   WipeFiles files = const IoWipeFiles(),
-}) => throw UnimplementedError();
+}) async {
+  try {
+    final marker = File('${folder.path}/installed');
+    if (await marker.exists()) return;
+    // Base présente sans marqueur : installation antérieure à la spec 005 ; lui
+    // retirer sa clé la rendrait illisible.
+    if (!await File('${folder.path}/journal.db').exists()) {
+      await keyStore.deleteAll();
+    }
+    await files.createFile(marker);
+  } catch (_) {
+    // Retenté au démarrage suivant ; l'app s'ouvre normalement (CA32).
+  }
+}

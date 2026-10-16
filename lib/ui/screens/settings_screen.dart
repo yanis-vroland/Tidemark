@@ -127,6 +127,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ModelSettingsSection(downloader: widget.downloader),
                     const SizedBox(height: TidemarkSpacing.space6),
                     _HelpSection(current: current, onChanged: _choose),
+                    if (widget.data case final data?) ...[
+                      const SizedBox(height: TidemarkSpacing.space4),
+                      MyDataSection(actions: data),
+                    ],
                   ],
                 ],
               ),
