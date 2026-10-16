@@ -45,3 +45,22 @@ Issue #38 : quand le marquage « non analysée » d'une entrée en détresse éc
 ### Prochaine étape
 
 - Implémentation dans `lib/analysis/analysis_queue.dart`, puis contrôle par mutation.
+
+## 2026-10-16 15:20
+
+### Fait
+
+- Critère renuméroté CA39 → CA40 dans la spec 004 et dans les noms des tests (seuls les noms changent, aucune vérification). Les tests ajoutés au commit `85eb2fa` sous « CA39 » sont donc les tests « CA40 ».
+
+### Décisions
+
+- Sur l'information de l'agent coordinateur : la PR #41 (`fix/arret-desabonnement`) renomme le second CA36 de la spec 004 (« écriture du résultat impossible ») en CA39. Le nouveau critère prend donc CA40, et la règle d'échec d'écriture est citée CA39 dans le code (agent, par délégation de Yanis du 2026-10-16). Remplace la décision « CA39 » de l'entrée de 14:00.
+
+### Corrections et limites
+
+- Tant que #41 n'est pas mergée, la spec de `main` nomme encore CA36 la règle d'échec d'écriture : rebase à prévoir après son merge.
+- `main` est rouge sur le test CA34 « un désabonnement qui lève… » (boucle perdue au merge `efd5edb`), corrigé par #41. Ce test échoue aussi ici ; la branche ne touche pas `_stop()`.
+
+### Prochaine étape
+
+- Commit de l'implémentation, contrôle par mutation, revues.
