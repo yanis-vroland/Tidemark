@@ -120,3 +120,22 @@ Issue #38 : quand le marquage « non analysée » d'une entrée en détresse éc
 ### Prochaine étape
 
 - Ouvrir la PR en brouillon, publier la réponse à la revue IA, puis passer à `refactor/watch-entry` (#39).
+
+## 2026-10-16 12:51
+
+### Fait
+
+- `main` fusionné dans la branche après le merge de la PR #41 (agent principal). Conflits résolus : dans `lib/analysis/analysis_queue.dart`, le code de cette branche (rang d'échec commun, CA39 et CA40) ; dans la spec 004, le statut et CA39 de `main`, complétés par la mention et le CA40 de cette branche.
+- Commit de merge testé avant le push : `dart analyze --fatal-infos` et `dart format` sans remarque, `flutter test` au vert (1781 tests), dont le test CA34 qui échouait sur `main`.
+
+### Décisions
+
+- Fusion de `main` plutôt que rebase, le force-push étant interdit (agent, par délégation de Yanis du 2026-10-16).
+
+### Corrections et limites
+
+- Aucune nouvelle.
+
+### Prochaine étape
+
+- Inchangée : voir l'entrée précédente.

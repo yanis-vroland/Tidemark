@@ -122,9 +122,17 @@ class AnalysisQueue extends ChangeNotifier {
   Future<void> _stop() async {
     _stopped = true;
     if (!_halted.isCompleted) _halted.complete();
-    await _lifecycle?.cancel();
-    await _model?.cancel();
-    await _entries?.cancel();
+    // Chaque désabonnement est tenté, même si un autre échoue : l'arrêt va
+    // toujours jusqu'à la libération du modèle.
+    for (final subscription in <StreamSubscription<Object?>?>[
+      _lifecycle,
+      _model,
+      _entries,
+    ]) {
+      try {
+        await subscription?.cancel();
+      } catch (_) {}
+    }
     await _cancelAnalysis();
     await _done.future;
     // Filet : rien ne tourne, mais le modèle serait resté chargé.
@@ -202,7 +210,7 @@ class AnalysisQueue extends ChangeNotifier {
         _failureOrder.retainAll(pending.map((e) => e.id));
         if (pending.isEmpty || !_canRun) break;
         // La plus récente d'abord : celle qu'on vient d'écrire passe devant (CA13) ;
-        // celles dont l'écriture a échoué passent après les autres (CA36).
+        // celles dont l'écriture a échoué passent après les autres (CA39).
         // Entre deux entrées en échec, la plus anciennement en échec d'abord :
         // aucune n'est délaissée.
         final failures = _failureOrder.toList();
@@ -253,7 +261,7 @@ class AnalysisQueue extends ChangeNotifier {
         _done.complete();
         // Après un échec d'écriture, les événements reçus pendant ce passage (dont
         // ceux de ses propres écritures) ne relancent pas la file : sinon, elle
-        // reprendrait la même entrée en boucle (CA36).
+        // reprendrait la même entrée en boucle (CA39).
         final again = _again && !_writeFailed;
         _again = false;
         if (again) _kick();
@@ -278,7 +286,7 @@ class AnalysisQueue extends ChangeNotifier {
       if (!verified) {
         // Empreinte fausse : modèle absent, l'entrée reste « en attente » et la
         // file attend un nouveau téléchargement (CA12). Erreur du calcul :
-        // pas de nouvel essai immédiat, seulement au prochain événement (CA36).
+        // pas de nouvel essai immédiat, seulement au prochain événement (CA39).
         _again = false;
         return false;
       }
@@ -306,7 +314,7 @@ class AnalysisQueue extends ChangeNotifier {
       await repository.saveAnalysis(entryId, result);
     } catch (_) {
       // Écriture impossible : l'entrée reste « en attente » (CA8) ; la file s'arrête
-      // jusqu'au prochain événement, sans la reprendre dans cette série (CA36).
+      // jusqu'au prochain événement, sans la reprendre dans cette série (CA39).
       // En fin d'ordre : la plus récemment en échec passera après les autres.
       _recordWriteFailure(entryId);
       return false;
