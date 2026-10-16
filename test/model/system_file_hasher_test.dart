@@ -1,12 +1,14 @@
 // Calcul de l'empreinte du modèle par la bibliothèque du système (ADR-004,
 // option F ; critères F1 à F9). Le canal est simulé : aucun vrai natif, aucun
 // réseau, aucun vrai modèle d'IA.
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/main.dart';
 import 'package:tidemark/model/model_downloader.dart';
+import 'package:tidemark/model/model_source.dart';
 import 'package:tidemark/model/model_state.dart';
 import 'package:tidemark/model/system_file_hasher.dart';
 import 'package:tidemark/storage/app_database.dart';
@@ -46,6 +48,13 @@ class _FallbackProbe {
     return sha256OfFile(path);
   }
 }
+
+/// Source [path] sans ses commentaires `//` : une ligne commentée ne compte pas.
+String _code(String path) =>
+    File(path)
+        .readAsLinesSync()
+        .map((line) => line.replaceFirst(RegExp(r'//.*'), ''))
+        .join('\n');
 
 const _expected =
     '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
@@ -150,7 +159,6 @@ void main() {
     for (final entry in malformed.entries) {
       test('F6 : réponse native mal formée (${entry.key}) : le repli '
           'décide', () async {
-        // Même `expected` mal formé ne doit jamais faire croire le natif.
         mockChannel((_) async => entry.value);
 
         expect(await hasher().call('/tmp/model.gguf'), _fallbackValue);
@@ -166,6 +174,40 @@ void main() {
       await hasher().call('/tmp/model.gguf');
 
       expect(fallback.calls, 1);
+    });
+
+    test('F1 : l\'empreinte attendue ne transite jamais par le canal (le natif '
+        'ne peut pas la renvoyer sans calcul)', () async {
+      mockChannel((_) async => _expected);
+
+      await hasher().call('/tmp/model.gguf');
+
+      final arguments = received.single.arguments as Map;
+      expect(arguments.keys, ['path']);
+      expect(arguments.values, isNot(contains(_expected)));
+    });
+
+    test('F10 : canal qui ne répond jamais : le repli décide après le délai '
+        'borné', () async {
+      final never = Completer<Object?>();
+      mockChannel((_) => never.future);
+      final bounded = SystemFileHasher(
+        expected: _expected,
+        fallback: fallback.call,
+        nativeTimeout: const Duration(milliseconds: 50),
+      );
+
+      expect(await bounded.call('/tmp/model.gguf'), _fallbackValue);
+
+      expect(fallback.paths, ['/tmp/model.gguf']);
+    });
+
+    test('F10 : délai par défaut large (60 s) : un calcul natif lent mais '
+        'réel n\'est pas abandonné trop tôt', () {
+      expect(
+        const SystemFileHasher(expected: _expected).nativeTimeout,
+        const Duration(seconds: 60),
+      );
     });
 
     test('F7 : FileSystemException du repli propagée telle quelle (fichier '
@@ -274,6 +316,29 @@ void main() {
       expect(fallback.calls, 0);
       expect(downloader.current, isA<ModelReady>());
     });
+
+    test('F8e : verifyAfterLoadFailure, canal qui rend une empreinte fausse, '
+        'fichier bon : fichier gardé, ModelReady', () async {
+      mockChannel((_) async => _otherWellFormed);
+      final downloader = await readyWith(modelBytes);
+
+      await downloader.verifyAfterLoadFailure();
+
+      expect(fallback.calls, 1);
+      expect(downloader.current, isA<ModelReady>());
+      expect(finalFile().readAsBytesSync(), modelBytes);
+    });
+
+    test('F8f : verifyAfterLoadFailure, canal en erreur, mauvais contenu : '
+        'fichier effacé, ModelAbsent', () async {
+      mockChannel((_) async => throw PlatformException(code: 'io'));
+      final downloader = await readyWith(wrongBytes);
+
+      await downloader.verifyAfterLoadFailure();
+
+      expect(downloader.current, isA<ModelAbsent>());
+      expect(finalFile().existsSync(), isFalse);
+    });
   });
 
   group('F9 : câblage', () {
@@ -300,33 +365,73 @@ void main() {
         ),
         isTrue,
       );
+      // `modelSha256OfFile` compare à l'empreinte de `qwenModelSource` : le
+      // téléchargeur doit vérifier contre la même source, sinon la voie rapide
+      // ne servirait plus jamais.
+      expect(downloader.source, same(qwenModelSource));
     });
 
-    test('F9 : le natif iOS déclare le canal et la méthode du Dart', () {
-      final swift = File('ios/Runner/ModelHashChannel.swift')
-          .readAsStringSync();
+    test('F9 : modelSha256OfFile prend la voie native pour l\'empreinte du '
+        'modèle de l\'app', () async {
+      // Chemin absent : le repli Dart lèverait FileSystemException.
+      mockChannel((_) async => qwenModelSource.sha256);
 
-      expect(swift, contains('dev.tidemark/model_hash'));
-      expect(swift, contains('sha256OfFile'));
+      expect(
+        await modelSha256OfFile('/tmp/tidemark_absent.gguf'),
+        qwenModelSource.sha256,
+      );
     });
 
-    test('F9 : AppDelegate enregistre le canal iOS sur le moteur', () {
-      final delegate = File('ios/Runner/AppDelegate.swift').readAsStringSync();
+    test('F9 : le natif iOS déclare le canal et la méthode de la constante '
+        'Dart, hors commentaires', () {
+      final swift = _code('ios/Runner/ModelHashChannel.swift');
 
-      expect(delegate, contains('ModelHashChannel.register('));
+      expect(swift, contains('"${modelHashChannel.name}"'));
+      expect(swift, contains('"sha256OfFile"'));
+      expect(swift, contains('FlutterMethodChannel('));
     });
 
-    test('F9 : le natif Android déclare le canal et la méthode du Dart', () {
-      final kotlin = File(
+    test('F9 : le calcul iOS tourne hors du fil principal', () {
+      final swift = _code('ios/Runner/ModelHashChannel.swift');
+
+      expect(
+        swift,
+        contains(RegExp(r'^\s*queue\.async\s*\{', multiLine: true)),
+      );
+    });
+
+    test('F9 : AppDelegate enregistre le canal iOS sur le moteur, hors '
+        'commentaires', () {
+      final delegate = _code('ios/Runner/AppDelegate.swift');
+
+      expect(
+        delegate,
+        contains(RegExp(r'^\s*ModelHashChannel\.register\(', multiLine: true)),
+      );
+    });
+
+    test('F9 : le natif Android déclare et enregistre le canal de la '
+        'constante Dart, sur une file d\'arrière-plan, hors commentaires', () {
+      final kotlin = _code(
         'android/app/src/main/kotlin/dev/tidemark/tidemark/MainActivity.kt',
-      ).readAsStringSync();
+      );
 
-      expect(kotlin, contains('dev.tidemark/model_hash'));
-      expect(kotlin, contains('sha256OfFile'));
+      expect(kotlin, contains('"${modelHashChannel.name}"'));
+      expect(kotlin, contains('"sha256OfFile"'));
+      expect(kotlin, contains('override fun configureFlutterEngine('));
+      expect(kotlin, contains('super.configureFlutterEngine(flutterEngine)'));
+      expect(kotlin, contains(RegExp(r'^\s*MethodChannel\(', multiLine: true)));
+      expect(kotlin, contains('makeBackgroundTaskQueue()'));
+      expect(kotlin, contains('.setMethodCallHandler'));
     });
 
-    test('F9 : les noms natifs sont ceux de la constante Dart', () {
-      expect(modelHashChannel.name, 'dev.tidemark/model_hash');
+    test('F9 : le natif Android répond même après une Error (pas seulement '
+        'une Exception)', () {
+      final kotlin = _code(
+        'android/app/src/main/kotlin/dev/tidemark/tidemark/MainActivity.kt',
+      );
+
+      expect(kotlin, contains(RegExp(r'catch \(\w+: Throwable\)')));
     });
   });
 }
