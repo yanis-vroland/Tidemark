@@ -51,3 +51,6 @@ xcuserdata/
 
 # Dossiers de travail des subagents de Claude Code (isolation worktree)
 .claude/worktrees/
+
+# App du spike du moteur d'IA (lot B) : jamais mergée, seuls l'ADR-001 et ses mesures le sont
+/spike/
