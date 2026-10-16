@@ -156,10 +156,10 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 
 | Phase | Fonctionnalité | Spec | Statut |
 | --- | --- | --- | --- |
-| MVP (lot E) | Saisie d'une entrée et liste des entrées, stockage local chiffré | [001](specs/001-saisie-et-liste-des-entrees.md) | spec validée (CA31 à CA36 en attente de validation) |
+| MVP (lot E) | Saisie d'une entrée et liste des entrées, stockage local chiffré | [001](specs/001-saisie-et-liste-des-entrees.md) | implémentée (PR #13) ; CA31 à CA36 en attente de validation |
 | MVP (lot F) | Détection de détresse et écran d'aide, réglage de la sensibilité | [002](specs/002-garde-fou-detresse.md) | implémentée (PR #19) |
 | MVP (lot G) | Téléchargement du modèle local | [003](specs/003-telechargement-du-modele.md) | implémentée (PR #22) |
-| MVP (lot G) | Étiquetage automatique | [004](specs/004-etiquetage-automatique.md) | spec validée |
+| MVP (lot G) | Étiquetage automatique | [004](specs/004-etiquetage-automatique.md) | implémentée (PR #23) |
 | MVP (lot H) | Export et suppression totale | [005](specs/005-export-et-suppression-totale.md) | spec validée |
 | Si le temps le permet (lot I) | Bilan de la semaine | [006](specs/006-bilan-de-la-semaine.md) | spec validée |
 
@@ -167,4 +167,10 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 
 Questions métier non tranchées. Une fois la réponse donnée, elle rejoint la section concernée, et la question est retirée.
 
-Aucune pour l'instant. La question « Entrée sans analyse » (2026-10-14, lot G) est tranchée par RM34.
+Points de la [spec 004](specs/004-etiquetage-automatique.md) que la spec ne fixe pas, et que l'implémentation (PR #23) a tranchés sans les écrire (relevé du 2026-10-15). Yanis avait délégué les décisions métier de cette spec à l'agent, mais ces choix ont été faits dans le code, sans passer par la spec ni par sa validation : ils remontent ici pour être confirmés et écrits dans la spec, ou changés. Le comportement actuel est décrit.
+
+- **Écriture du résultat qui échoue (CA8)** : la spec dit que l'entrée reste « en attente », sans dire quand elle est reprise. Aujourd'hui, la file s'arrête (`lib/analysis/analysis_queue.dart`, l. 158 à 163) et libère le modèle (l. 166 à 170) ; l'entrée est analysée de nouveau, par un nouvel appel au modèle, au prochain réveil de la file : tout changement de la liste des entrées (un enregistrement, une suppression), un changement d'état du modèle ou le lancement suivant. Si l'écriture échoue toujours, chaque changement du journal relance une analyse de la même entrée ; comme la file prend toujours la plus récente d'abord, aucune entrée plus ancienne n'est plus analysée. Faut-il réessayer ainsi, attendre le lancement suivant, ou limiter le nombre d'essais ?
+- **Ordre à égalité de date (RM34, CA6)** : la date de saisie est à la seconde, et la spec dit « la plus récente d'abord » sans traiter l'égalité. Aujourd'hui, à date égale, l'entrée de plus grand identifiant, donc la dernière enregistrée, passe d'abord (l. 130 à 133).
+- **Touche d'une puce dans la liste (CA26)** : la spec dit qu'il ne se passe rien. Dans le détail, c'est le cas. Dans la liste, les puces sont dans la carte : les toucher ouvre le détail, comme le reste de la carte ; la puce elle-même n'a aucune action. Est-ce le comportement voulu ?
+- **Annonce d'un changement de statut (CA28)** : la spec demande que, dans la section « Étiquettes » du détail, un changement de statut de l'analyse soit annoncé, sans dire lequel. Aujourd'hui, dans le détail, « Analyse en cours sur ton téléphone… » est une région dynamique (`liveRegion`), annoncée à son apparition ; l'arrivée des étiquettes ou de « Aucune étiquette n'a été proposée » n'a pas d'annonce propre. Quels changements annoncer ? Question voisine, hors du CA28 : dans la liste, la carte a un libellé unique qui masque ses éléments, et la mention d'analyse n'y est pas annoncée ; faut-il l'annoncer ?
+- **Libellé de carte avec étiquettes (CA27 et CA36 de la spec 001)** : CA36 borne l'extrait du texte à 120 caractères, CA27 ajoute « étiquettes : … » à la fin. Aujourd'hui, le libellé lit l'humeur, son chiffre, l'heure, l'extrait borné, puis toutes les étiquettes (jusqu'à 5). Faut-il borner le libellé complet ?
