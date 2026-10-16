@@ -158,3 +158,21 @@ Issue #38 : quand le marquage « non analysée » d'une entrée en détresse éc
 ### Prochaine étape
 
 - Inchangée : voir l'entrée précédente.
+
+## 2026-10-16 15:57
+
+### Fait
+
+- `main` fusionné dans la branche après le merge de la PR #42 (garde-fou des noms exclus), sans conflit (agent principal). Commit de merge testé avant le push : analyse sans remarque, `flutter test` au vert (1805 tests).
+
+### Décisions
+
+- Aucune nouvelle.
+
+### Corrections et limites
+
+- Aucune nouvelle.
+
+### Prochaine étape
+
+- Inchangée : voir l'entrée précédente.
