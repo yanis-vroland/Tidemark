@@ -169,6 +169,7 @@ Future<Widget> startApp({
             lifecycle: lifecycle,
           )..start());
     var queueStopped = false;
+    var gateHeld = false;
     final writer = journal.reviewWriter;
     final narrator = writer == null
         ? null
@@ -204,9 +205,32 @@ Future<Widget> startApp({
                       await queue?.stop();
                     } catch (_) {}
                   }
+                  // Mise en mots du bilan abandonnée, textes gardés oubliés.
+                  try {
+                    await narrator?.forget();
+                  } catch (_) {}
                   try {
                     await journal.downloader.cancel();
                   } catch (_) {}
+                  // Plus aucun moteur ne garde le fichier du modèle ouvert : le
+                  // verrou est pris, et gardé, pour que rien ne le recharge
+                  // pendant et après l'effacement (ADR-005). Toujours occupé
+                  // après le délai : l'étape échoue, « Réessayer » la rejoue.
+                  final gate = journal.gate;
+                  if (gate != null && !gateHeld) {
+                    final expired = Completer<void>();
+                    final timer = Timer(modelGateTimeout, expired.complete);
+                    final void Function()? release;
+                    try {
+                      release = await gate.acquire(abandon: expired.future);
+                    } finally {
+                      timer.cancel();
+                    }
+                    if (release == null) {
+                      throw StateError('Modèle local encore utilisé.');
+                    }
+                    gateHeld = true;
+                  }
                   await journal.close?.call();
                 },
               ),
@@ -223,6 +247,9 @@ Future<Widget> startApp({
     return const StartupErrorApp(keyMissing: false);
   }
 }
+
+/// Attente maximale du verrou du modèle par la suppression totale.
+const modelGateTimeout = Duration(seconds: 10);
 
 /// Suppression totale sur les emplacements de [storage].
 JournalWiper _wiperFor(

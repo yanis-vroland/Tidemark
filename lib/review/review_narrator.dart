@@ -127,7 +127,11 @@ class ReviewNarrator {
 
   /// Abandonne la mise en mots en cours et oublie tous les textes gardés en
   /// mémoire (suppression totale, spec 005).
-  Future<void> forget() async {}
+  Future<void> forget() async {
+    _generation++;
+    _kept.clear();
+    await _cancelWriter();
+  }
 
   /// Abandonne la mise en mots en cours : rien n'en est gardé.
   Future<void> cancel() async {
