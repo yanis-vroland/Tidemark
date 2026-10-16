@@ -59,3 +59,33 @@ Issue #39 : l'écran de détail observe une seule entrée (`EntryRepository.watc
 ### Prochaine étape
 
 - Revues `reviewer` et `security-reviewer`, puis PR prête (sans brouillon).
+
+## 2026-10-16 18:30
+
+### Fait
+
+- Revues `reviewer` et `security-reviewer`. Rien côté sécurité. Le `reviewer` relève un point bloquant, corrigé :
+  - **Le défaut.** Réutilisé pour une autre entrée, l'écran gardait la dernière donnée du flux précédent jusqu'à la première émission du nouveau flux. La section pouvait donc montrer les étiquettes de l'entrée précédente, voire annoncer à tort une fin d'analyse (CA28).
+  - **La correction.** Une clé `ValueKey(entry.id)` sur le `StreamBuilder` : une autre entrée repart de zéro, comme à l'ouverture d'un détail.
+  - **Le test.** « Réutilisé pour une autre entrée, l'écran n'affiche jamais les étiquettes de la précédente, même avant la première émission » (une seule image après le changement).
+- L'enveloppe `(Entry?,)` est retirée : l'écran observe directement `Stream<Entry?>`.
+  - Sans l'enveloppe, une entrée supprimée donne `live: false` au lieu de `true`.
+  - `live` ne sert qu'à annoncer une fin d'analyse, c'est-à-dire un passage d'« en attente » à un résultat pour la même entrée. Une entrée supprimée ne peut plus changer : la différence n'est pas observable. Avec la clé, l'enveloppe ne servait plus.
+- Test #32 (`entry_detail_subscriptions_test.dart`) laissé intact, comme demandé (« les tests existants du détail restent verts sans modification »). Il compte encore `watchEntries()` et ne passe que parce que le faux `watchEntry` s'appuie dessus. Pour couvrir le même cas sur la vraie opération, nouveau test « issue #32 et #39 : reconstruit par la file, le détail ne se réabonne pas à son entrée », qui compte `watchEntry`. Signalé dans la PR.
+- Suite complète : 1 798 tests verts et 1 rouge, en heure locale comme avec `TZ=UTC`. Le rouge est CA34, un défaut de `main` corrigé par #41.
+- Mutations, 8 en tout, toutes détectées : N1 à N7, avec N4 adaptée au nouveau code, plus N8 (sans clé sur l'id), qui fait échouer 1 test.
+
+### Décisions
+
+- Clé sur l'id plutôt que de filtrer la donnée par l'id. C'est la solution la plus simple : à l'ouverture d'un détail, l'état reste exactement le même (agent, par délégation de Yanis du 2026-10-16).
+- Retrait de l'enveloppe (agent, par délégation de Yanis du 2026-10-16, sur la remarque du `reviewer`).
+- La réutilisation de l'écran pour une autre entrée n'existe pas dans l'app : la liste pousse une nouvelle route à chaque ouverture. Elle reste couverte parce que `didUpdateWidget` la traite.
+
+### Corrections et limites
+
+- L'entrée de 17:45 affirmait un comportement identique dans le cas de réutilisation : c'était faux avant ce correctif.
+- Pour toute ouverture réelle d'un détail, le comportement est inchangé : test humain sans objet.
+
+### Prochaine étape
+
+- Ouvrir la PR prête et publier la réponse à la revue IA.

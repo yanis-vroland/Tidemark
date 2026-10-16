@@ -78,6 +78,61 @@ void main() {
     expect(repo.watchedIds, [entry.id]);
   });
 
+  testWidgets('issue #32 et #39 : reconstruit par la file, le détail ne '
+      'se réabonne pas à son entrée', (tester) async {
+    usePhoneScreen(tester);
+    final entry = repo.seed(
+      mood: 3,
+      text: 'Texte de l\'entrée affichée',
+      createdAt: DateTime(2026, 10, 14, 21, 40),
+    );
+    final other = repo.seed(
+      mood: 4,
+      text: 'Texte d\'une autre entrée',
+      createdAt: DateTime(2026, 10, 14, 18),
+    );
+
+    await tester.pumpWidget(detail(entry));
+    await settle(tester);
+    for (var i = 0; i < 3; i++) {
+      queue.setCurrent(other.id);
+      await settle(tester);
+      queue.setCurrent(null);
+      await settle(tester);
+    }
+
+    expect(repo.watchedIds, [entry.id]);
+  });
+
+  testWidgets('issue #39 : réutilisé pour une autre entrée, l\'écran '
+      'n\'affiche jamais les étiquettes de la précédente, même avant la '
+      'première émission', (tester) async {
+    usePhoneScreen(tester);
+    final first = repo.seed(
+      mood: 3,
+      text: 'Première entrée',
+      createdAt: DateTime(2026, 10, 14, 18),
+    );
+    await repo.saveAnalysis(first.id, Tagged([emotion('joie')]));
+    final second = repo.seed(
+      mood: 4,
+      text: 'Seconde entrée',
+      createdAt: DateTime(2026, 10, 14, 21, 40),
+    );
+
+    await tester.pumpWidget(detail(first));
+    await settle(tester);
+    expect(find.text('joie'), findsOneWidget);
+
+    // Une seule image : le nouveau flux n'a encore rien émis.
+    await tester.pumpWidget(detail(second));
+    expect(find.text('Seconde entrée'), findsOneWidget);
+    expect(find.text('joie'), findsNothing);
+
+    await settle(tester);
+    expect(find.text('joie'), findsNothing);
+  });
+
   testWidgets('issue #39 : le même écran réutilisé pour une autre entrée '
       'observe la nouvelle', (tester) async {
     usePhoneScreen(tester);
