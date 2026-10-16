@@ -37,6 +37,41 @@ class FailSaveForRepository extends FakeEntryRepository {
   }
 }
 
+/// Dépôt dont `markSkipped` lève pour les entrées de [failMarkFor] (CA39) et
+/// journalise ses appels. [beforeMark] permet d'injecter des événements du journal
+/// pendant le marquage, avant l'échec.
+class FailMarkForRepository extends FakeEntryRepository {
+  /// Identifiants des entrées dont le marquage « non analysée » échoue.
+  final Set<int> failMarkFor = {};
+
+  /// Appelé au début de chaque marquage qui va échouer.
+  Future<void> Function()? beforeMark;
+
+  /// Identifiants reçus par chaque appel à `markSkipped`, dans l'ordre.
+  final List<List<int>> markSkippedCalls = [];
+
+  /// Nombre d'appels à `markSkipped` qui concernaient [id].
+  int markCallsFor(int id) =>
+      markSkippedCalls.where((c) => c.contains(id)).length;
+
+  @override
+  Future<void> markSkipped(Iterable<int> ids) async {
+    final list = ids.toList();
+    markSkippedCalls.add(list);
+    // Garde-fou du test : une file qui reboucle sur le marquage ne doit pas
+    // monopoliser la boucle d'événements (ce qui figerait le test sans jamais
+    // le faire échouer). Au-delà de 30 appels, chaque appel cède la main.
+    if (markSkippedCalls.length > 30) {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
+    if (list.any(failMarkFor.contains)) {
+      await beforeMark?.call();
+      throw StateError('marquage impossible pour $list');
+    }
+    return super.markSkipped(list);
+  }
+}
+
 /// File et faux, avec l'arrêt de la file en fin de test.
 class QueueEnv {
   QueueEnv({
@@ -296,6 +331,148 @@ void main() {
 
       expect(env.analyzer.received, isEmpty);
       expect(env.status(saved), AnalysisStatus.skipped);
+    });
+  });
+
+  group('CA39 : marquage « non analysée » impossible (détresse)', () {
+    // Trois entrées en attente ; la plus récente (oct12) est en détresse et son
+    // marquage échoue.
+    ({FailMarkForRepository repo, Entry old, Entry mid, Entry distress})
+    seedThree() {
+      final repo = FailMarkForRepository();
+      final old = repo.seed(mood: 2, text: 'T10', createdAt: oct10);
+      final mid = repo.seed(mood: 3, text: 'T11', createdAt: oct11);
+      final distress = repo.seed(mood: 1, text: distressText, createdAt: oct12);
+      repo.failMarkFor.add(distress.id);
+      return (repo: repo, old: old, mid: mid, distress: distress);
+    }
+
+    test('CA39 : l\'entrée en détresse reste « en attente », son texte '
+        'n\'atteint jamais le modèle malgré les événements du journal pendant '
+        'le marquage, et la file s\'arrête', () async {
+      final s = seedThree();
+      s.repo.beforeMark = () async {
+        // Événements du journal pendant le marquage : une entrée sans texte
+        // ajoutée, puis supprimée.
+        final other = s.repo.seed(
+          mood: 3,
+          text: null,
+          createdAt: DateTime(2026, 10, 9, 9),
+        );
+        await s.repo.deleteEntry(other.id);
+      };
+      final env = QueueEnv(repo: s.repo);
+
+      await env.start();
+      await wait(const Duration(milliseconds: 300));
+
+      expect(env.analyzer.received, isNot(contains(distressText)));
+      expect(env.analyzer.received, isEmpty);
+      expect(
+        s.repo.saveAnalysisCalls.map((c) => c.entryId),
+        isNot(contains(s.distress.id)),
+      );
+      expect(env.status(s.distress), AnalysisStatus.pending);
+      expect(s.repo.markCallsFor(s.distress.id), 1);
+      expect(env.queue.currentEntryId, isNull);
+      // La file s'est arrêtée : les plus anciennes attendent le prochain
+      // événement.
+      expect(env.status(s.mid), AnalysisStatus.pending);
+      expect(env.status(s.old), AnalysisStatus.pending);
+
+      // Du temps passe, sans événement : rien de nouveau.
+      await wait(const Duration(milliseconds: 400));
+      expect(env.analyzer.received, isEmpty);
+      expect(s.repo.markCallsFor(s.distress.id), 1);
+      expect(s.repo.saveAnalysisCalls, isEmpty);
+    });
+
+    test('CA39 : au prochain événement, la nouvelle entrée et les deux plus '
+        'anciennes sont analysées avant que le marquage ne soit retenté, une '
+        'seule fois pour cette série', () async {
+      final s = seedThree();
+      final env = QueueEnv(
+        repo: s.repo,
+        analyzer: FakeMoodAnalyzer(
+          results: {
+            'T13': Tagged([emotion('joie')]),
+            'T11': Tagged([emotion('calme')]),
+          },
+        ),
+      );
+      await env.start();
+      await wait(const Duration(milliseconds: 300));
+      expect(s.repo.markCallsFor(s.distress.id), 1);
+      expect(env.analyzer.received, isEmpty);
+
+      // Nouvelle entrée en attente : un événement du journal.
+      final fresh = s.repo.seed(mood: 5, text: 'T13', createdAt: oct13);
+      await wait(const Duration(milliseconds: 300));
+
+      expect(env.analyzer.received, [
+        'T13',
+        'T11',
+        'T10',
+      ], reason: 'la nouvelle, puis oct11 et oct10 ; jamais la détresse');
+      expect(env.status(fresh), AnalysisStatus.tagged);
+      expect(env.tags(fresh), [emotion('joie')]);
+      expect(env.status(s.mid), AnalysisStatus.tagged);
+      expect(env.tags(s.mid), [emotion('calme')]);
+      expect(env.status(s.old), AnalysisStatus.untagged);
+      expect(env.status(s.distress), AnalysisStatus.pending);
+      expect(s.repo.markCallsFor(s.distress.id), 2);
+      expect(
+        s.repo.saveAnalysisCalls.map((c) => c.entryId),
+        isNot(contains(s.distress.id)),
+      );
+
+      // Une seule reprise : plus rien ne se passe ensuite.
+      await wait(const Duration(milliseconds: 400));
+      expect(env.analyzer.received, hasLength(3));
+      expect(s.repo.markCallsFor(s.distress.id), 2);
+      expect(env.queue.currentEntryId, isNull);
+    });
+
+    test('CA39 : quand le marquage réussit ensuite, l\'entrée passe en « non '
+        'analysée », sans atteindre le modèle', () async {
+      final s = seedThree();
+      final env = QueueEnv(repo: s.repo);
+      await env.start();
+      await wait(const Duration(milliseconds: 300));
+      expect(env.status(s.distress), AnalysisStatus.pending);
+
+      s.repo.failMarkFor.clear();
+      s.repo.seed(mood: 3, text: null, createdAt: DateTime(2026, 10, 9, 9));
+      await wait(const Duration(milliseconds: 300));
+
+      expect(env.status(s.distress), AnalysisStatus.skipped);
+      expect(env.analyzer.received, isNot(contains(distressText)));
+      expect(
+        s.repo.saveAnalysisCalls.map((c) => c.entryId),
+        isNot(contains(s.distress.id)),
+      );
+    });
+
+    test('RM8 : quel que soit le nombre d\'événements, avec un marquage qui '
+        'échoue toujours, le texte de détresse n\'atteint jamais le modèle et '
+        'rien n\'est enregistré pour lui', () async {
+      final s = seedThree();
+      final env = QueueEnv(repo: s.repo);
+      await env.start();
+
+      for (var day = 1; day <= 6; day++) {
+        s.repo.seed(mood: 3, text: null, createdAt: DateTime(2026, 10, day, 9));
+        await wait(const Duration(milliseconds: 80));
+        expect(env.analyzer.received, isNot(contains(distressText)));
+      }
+      await wait(const Duration(milliseconds: 300));
+
+      expect(env.analyzer.received, isNot(contains(distressText)));
+      expect(
+        s.repo.saveAnalysisCalls.map((c) => c.entryId),
+        isNot(contains(s.distress.id)),
+      );
+      expect(env.status(s.distress), AnalysisStatus.pending);
     });
   });
 
