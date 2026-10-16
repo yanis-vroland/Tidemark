@@ -87,6 +87,23 @@ class ReviewNarrator {
     final now = immediate(review);
     if (now is! NarrationWriting) return now;
     final generation = _generation;
+    // Empreinte du modèle vérifiée avant que le rédacteur le charge, une fois
+    // par lancement, hors du délai du rédacteur (CA37, ADR-004).
+    bool verified;
+    try {
+      verified = await downloader.verifyBeforeFirstLoad();
+    } catch (_) {
+      verified = false;
+    }
+    // Mise en mots abandonnée pendant le calcul : le rédacteur n'est pas appelé.
+    if (generation != _generation) return const NarrationWithheld();
+    if (!verified) {
+      // Empreinte fausse : modèle effacé, message de CA27 ; erreur du calcul
+      // avec le modèle gardé : bilan sans texte, message de CA22.
+      return downloader.current is ModelReady
+          ? const NarrationWithheld()
+          : const NarrationModelMissing();
+    }
     final draft = await _write(review.facts);
     switch (draft) {
       case ModelMissing():

@@ -1,0 +1,21 @@
+# Empreintes SHA-256 des archives de llama.cpp prises par le hook de llamadart
+# 0.12.0 (tag v0.6.0-2 de leehack/llamadart-native), ADR-004, option A.
+# Lues par scripts/fetch-llama-native.sh ; format de shasum -a 256.
+#
+# Relevées le 2026-10-16 : calculées sur les archives du cache de pub du poste
+# (~/.pub-cache/hosted/pub.dev/llamadart-0.12.0/.dart_tool/llamadart/native_bundles/
+# v0.6.0-2/, téléchargées le 2026-10-14 et le 2026-10-16), et identiques au champ
+# « digest » des assets publié par GitHub
+# (gh api repos/leehack/llamadart-native/releases/tags/v0.6.0-2).
+# linux-x64 (CI seulement) n'était pas dans le cache : empreinte de GitHub,
+# recalculée sur l'archive téléchargée le 2026-10-16.
+#
+# Montée de version de llamadart : relire le hook, puis remplacer ces lignes
+# (ADR-004, « Conséquences »).
+e227f5b3b72fe7c2d727a18a3b9172f6e186a609422f14b2abbcc5e48f855d6e  llamadart-native-android-arm64-v0.6.0-2.tar.gz
+d0c3bc9310109ef4e94a683674481b6be99e9b5a7a83167fad4c35ca001f6d60  llamadart-native-android-x64-v0.6.0-2.tar.gz
+3d709de622e218b4c9ea6e64a28ea9e00b4b6343953392635b9b4bd8961b773d  llamadart-native-ios-arm64-v0.6.0-2.tar.gz
+d47edd9a71a601a4b5f68cf637042ad6734c8c39ebfa9f7a1e107c50c85143bd  llamadart-native-ios-arm64-sim-v0.6.0-2.tar.gz
+052139c8c0166dae650db9faed4d59005574f19de3e9f945c65389666b5b2615  llamadart-native-ios-x86_64-sim-v0.6.0-2.tar.gz
+c28749b408e022f3a28337aa48d2aecdde4d8497eb0fc15e6888a706149da411  llamadart-native-linux-x64-v0.6.0-2.tar.gz
+fc4bf705c40a8958881f5f5ca99531a6afe2fa86ee9600e78a744e90b0bdd92c  llamadart-native-macos-arm64-v0.6.0-2.tar.gz

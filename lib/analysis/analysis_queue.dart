@@ -79,6 +79,10 @@ class AnalysisQueue extends ChangeNotifier {
   int _interruptions = 0;
   Completer<void> _done = Completer<void>()..complete();
 
+  /// Complété par [stop] : la file n'attend pas la fin du calcul de l'empreinte
+  /// (CA37).
+  final Completer<void> _halted = Completer<void>();
+
   /// Entrée en cours d'analyse, ou `null`.
   int? get currentEntryId => _current;
 
@@ -117,17 +121,10 @@ class AnalysisQueue extends ChangeNotifier {
 
   Future<void> _stop() async {
     _stopped = true;
-    // Chaque désabonnement est tenté, même si un autre échoue : l'arrêt va
-    // toujours jusqu'à la libération du modèle.
-    for (final subscription in <StreamSubscription<Object?>?>[
-      _lifecycle,
-      _model,
-      _entries,
-    ]) {
-      try {
-        await subscription?.cancel();
-      } catch (_) {}
-    }
+    if (!_halted.isCompleted) _halted.complete();
+    await _lifecycle?.cancel();
+    await _model?.cancel();
+    await _entries?.cancel();
     await _cancelAnalysis();
     await _done.future;
     // Filet : rien ne tourne, mais le modèle serait resté chargé.
@@ -264,6 +261,21 @@ class AnalysisQueue extends ChangeNotifier {
     final interruptions = _interruptions;
     bool interrupted() => _stopped || _interruptions != interruptions;
     if (!_prepared) {
+      // Empreinte vérifiée avant toute lecture du modèle par le moteur, calculée
+      // une fois par lancement par le téléchargeur (CA36, ADR-004) ; l'arrêt de
+      // la file n'attend pas la fin du calcul (CA37).
+      final verified = await Future.any([
+        downloader.verifyBeforeFirstLoad().catchError((Object _) => false),
+        _halted.future.then((_) => false),
+      ]);
+      if (interrupted()) return false;
+      if (!verified) {
+        // Empreinte fausse : modèle absent, l'entrée reste « en attente » et la
+        // file attend un nouveau téléchargement (CA12). Erreur du calcul :
+        // pas de nouvel essai immédiat, seulement au prochain événement (CA36).
+        _again = false;
+        return false;
+      }
       bool loaded;
       try {
         loaded = await analyzer.prepare();

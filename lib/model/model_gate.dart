@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 
-/// Accès exclusif au modèle local (ADR-005, proposé) : l'étiquetage (spec 004) et
+/// Accès exclusif au modèle local (ADR-005) : l'étiquetage (spec 004) et
 /// le bilan (spec 006) le partagent, et le moteur ne doit jamais exécuter deux
 /// générations à la fois, ni garder deux modèles en mémoire. Les demandes sont
 /// servies dans l'ordre d'arrivée.

@@ -1,6 +1,6 @@
 # ADR-004 : Intégrité du moteur natif et du modèle
 
-Statut : proposé (agent, 2026-10-15), à accepter par Yanis
+Statut : accepté (Yanis, 2026-10-16)
 Date : 2026-10-15
 
 Contexte : l'analyse des entrées passe par `llamadart` 0.12.0 (ADR-001), qui exécute llama.cpp, du code natif en C++, dans le processus de l'app. Ce code a les mêmes droits que Tidemark : il peut lire la clé de la base dans le trousseau ou le Keystore, le journal déchiffré, et ouvrir une connexion : sur Android, la permission `INTERNET` existe pour le téléchargement du modèle ; sur iOS, aucune permission n'est nécessaire. Le garde-fou de `test/guards/` (aucun `HttpClient` hors de `lib/model/`) ne lit que le Dart : il ne voit rien du code natif. Le modèle GGUF de 1,1 Go est lu par le même code natif. Deux constats de la relecture du 2026-10-15 montrent que ni le binaire natif ni le modèle ne sont vérifiés au moment où ils comptent.
@@ -85,7 +85,7 @@ Ce comportement est un choix validé, pas un oubli : la spec 003 (l. 69 et déci
 
 ## Décision
 
-Proposition de l'agent (2026-10-15), à trancher par Yanis :
+Proposition de l'agent (2026-10-15), acceptée par Yanis le 2026-10-16 telle quelle :
 
 1. **Moteur : option A**, avec le contrôle de B en CI. C'est la seule option qui couvre l'app réellement installée sur l'iPhone et Android, sans dépendance nouvelle. Le surcoût est une commande de plus, que le README rend explicite, et une liste de trois empreintes à mettre à jour à chaque montée de version de `llamadart` (montée déjà soumise à relecture par l'ADR-001).
 2. **Modèle : option E**, mesurée au test humain ; passage à F seulement si la mesure le justifie.
