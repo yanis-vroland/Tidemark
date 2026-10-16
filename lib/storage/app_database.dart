@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:characters/characters.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import '../analysis/mood_analyzer.dart';
 import '../distress/distress_detector.dart';
@@ -85,6 +86,11 @@ class AppDatabase extends _$AppDatabase {
 
   /// Base en mémoire, non chiffrée, pour les tests.
   factory AppDatabase.memory() => AppDatabase._(NativeDatabase.memory());
+
+  /// Base sur [executor], pour simuler une panne dans les tests.
+  @visibleForTesting
+  factory AppDatabase.withExecutor(QueryExecutor executor) =>
+      AppDatabase._(executor);
 
   /// Ouvre (ou crée) la base chiffrée [file] avec la clé [key] (64 caractères
   /// hexadécimaux). Échoue au premier accès si la clé n'est pas celle de la base,
