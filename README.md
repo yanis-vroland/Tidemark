@@ -8,7 +8,9 @@ Projet de démonstration, fictif, planifié sur 3 semaines (13 octobre → 3 nov
 
 ## Démo
 
-> **GIF sur l'iPhone 15 Pro : à venir, filmé par Yanis.**
+<p align="center"><img src="docs/demo/tidemark.gif" width="320" alt="Démo : écran de lancement avec le logo, liste vide, saisie d'une entrée « Bien » avec un court texte, analyse sur le téléphone, puis les étiquettes solitude, joie, nature et travail apparaissent ; le détail de l'entrée les range en émotions et thèmes, avec la mention « Analysé sur ton téléphone »."></p>
+
+<p align="center"><em>Une entrée, étiquetée par le modèle local Qwen2.5-1.5B, sans réseau. Enregistré sur le simulateur iOS (iPhone 17 Pro, processeur du Mac) avec le vrai modèle ; l'attente de l'analyse, 13 s sur le simulateur, est accélérée 4 fois, et le téléchargement du modèle est coupé.</em></p>
 
 Captures de l'app réelle sur l'émulateur Android (Pixel 7, API 35), modèle local chargé :
 
