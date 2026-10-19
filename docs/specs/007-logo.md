@@ -1,6 +1,6 @@
 # Spec 007 : logo
 
-Statut : brouillon ; logo C choisi par Yanis le 2026-10-19, critères à valider avec la PR
+Statut : validée (logo C choisi par Yanis, critères validés par Yanis, 2026-10-19)
 Date : 2026-10-19
 
 ## Besoin

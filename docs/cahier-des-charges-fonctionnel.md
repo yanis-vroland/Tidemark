@@ -177,7 +177,7 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 | MVP (lot G) | Étiquetage automatique | [004](specs/004-etiquetage-automatique.md) | livrée (PR #23, test humain positif le 2026-10-19) |
 | MVP (lot H) | Export et suppression totale | [005](specs/005-export-et-suppression-totale.md) | livrée (PR #28, test humain positif le 2026-10-19) |
 | Si le temps le permet (lot I) | Bilan de la semaine | [006](specs/006-bilan-de-la-semaine.md) | livrée (PR #27, test humain positif le 2026-10-19) |
-| Publication | Logo : icône, écran de lancement, état vide de la liste | [007](specs/007-logo.md) | spec brouillon, implémentée dans la PR en cours |
+| Publication | Logo : icône, écran de lancement, état vide de la liste | [007](specs/007-logo.md) | spec validée ; implémentée dans la PR en cours, test humain en attente |
 
 ## Questions ouvertes
 
