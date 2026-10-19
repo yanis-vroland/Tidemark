@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Logo Tidemark, trois propositions</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&amp;family=Figtree:wght@400;500;600&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1280px; height: 760px; box-sizing: border-box; padding: 48px; display: flex; flex-direction: column; gap: 32px; background: #f3f6f5; color: #13272c; font-family: Figtree, system-ui, sans-serif;">
+  <div style="display: flex; flex-direction: column; gap: 8px;">
+    <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 34px; line-height: 38px; letter-spacing: -0.5px;">Logo Tidemark</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 22px; color: #4b5e64;">Tuile <code>tide</code> identique dans les deux thèmes, symbole <code>on-tide</code>, accent sable <code>mood-4</code>. Trait de 3,2 sur 48, extrémités arrondies.</p>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; flex-grow: 1;">
+    <sc-for list="{{options}}" as="o" hint-placeholder-count="3">
+      <div style="display: flex; flex-direction: column; gap: 20px; padding: 24px; border-radius: 16px; background: #ffffff;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <h2 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 22px; line-height: 28px;">{{o.title}}</h2>
+          <sc-if value="{{o.recommended}}" hint-placeholder-val="{{false}}">
+            <span style="padding: 4px 12px; border-radius: 999px; background: #dbeae9; font-size: 13px; font-weight: 600; line-height: 18px; color: #1d5f6b;">Retenue</span>
+          </sc-if>
+        </div>
+        <div style="display: flex; align-items: flex-end; gap: 16px;">
+          <dc-import name="Logo" variant="{{o.id}}" size="{{big}}" hint-size="140px,140px"></dc-import>
+          <dc-import name="Logo" variant="{{o.id}}" size="{{s60}}" hint-size="60px,60px"></dc-import>
+          <dc-import name="Logo" variant="{{o.id}}" size="{{s40}}" hint-size="40px,40px"></dc-import>
+          <dc-import name="Logo" variant="{{o.id}}" size="{{s24}}" hint-size="24px,24px"></dc-import>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <dc-import name="Logo" variant="{{o.id}}" size="{{s40}}" hint-size="40px,40px"></dc-import>
+          <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 28px; line-height: 32px; letter-spacing: -0.5px;">Tidemark</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 16px; background: #0e191c; color: #e4eeec;">
+          <dc-import name="Logo" variant="{{o.id}}" size="{{s40}}" hint-size="40px,40px"></dc-import>
+          <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 28px; line-height: 32px; letter-spacing: -0.5px; flex-grow: 1;">Tidemark</span>
+          <dc-import name="Logo" variant="{{o.id}}" size="{{s40}}" mono="{{yes}}" hint-size="40px,40px"></dc-import>
+        </div>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #4b5e64;">{{o.caption}}</p>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":760}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      big: 140, s60: 60, s40: 40, s24: 24, yes: true,
+      options: [
+        { id: 'a', title: 'A · Laisses', recommended: false, caption: 'Trois lignes de marée de plus en plus courtes, la dernière en sable : les jours qui se déposent, comme sur la couverture de la charte.' },
+        { id: 'b', title: 'B · Lune et marée', recommended: false, caption: 'La lune en sable au-dessus de deux vagues : la marée suit la lune, l’humeur suit ses cycles. Lisible dès 24 px.' },
+        { id: 'c', title: 'C · T de marée', recommended: true, caption: 'Un T dont la barre est une vague ; le point sable marque la laisse au pied de la lettre.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

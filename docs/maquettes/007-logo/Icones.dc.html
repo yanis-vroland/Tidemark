@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Icône sur l'écran d'accueil</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 393px; height: 852px; box-sizing: border-box; padding: 96px 28px 40px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 96px; row-gap: 12px; column-gap: 8px; background: #2b3a3f; color: #ffffff; font-family: Figtree, system-ui, sans-serif;">
+  <sc-for list="{{apps}}" as="a" hint-placeholder-count="12">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <sc-if value="{{a.logo}}" hint-placeholder-val="{{false}}">
+        <dc-import name="Logo" variant="{{a.variant}}" size="{{s}}" hint-size="60px,60px"></dc-import>
+      </sc-if>
+      <sc-if value="{{a.blank}}" hint-placeholder-val="{{true}}">
+        <div style="width: 60px; height: 60px; border-radius: 14px; background: {{a.fill}};"></div>
+      </sc-if>
+      <span style="font-size: 12px; line-height: 16px;">{{a.label}}</span>
+    </div>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const blank = (label, fill) => ({ logo: false, blank: true, label: label, fill: fill });
+    const logo = (v) => ({ logo: true, blank: false, variant: v, label: 'Tidemark ' + v.toUpperCase() });
+    return {
+      s: 60,
+      apps: [
+        blank('Calendrier', '#f4f4f2'), blank('Photos', '#e9e4da'), blank('Météo', '#4c7bd9'), blank('Notes', '#f2d36b'),
+        logo('a'), logo('b'), logo('c'), blank('Horloge', '#151515'),
+        blank('Plans', '#9fcf8a'), blank('Musique', '#e8475f'), blank('Réglages', '#8e8e93'), blank('Appareil', '#3a3a3c')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
