@@ -24,7 +24,15 @@ class TidemarkColors extends ThemeExtension<TidemarkColors> {
     required this.mood5,
     required this.onMood1,
     required this.onMood,
+    this.brand = _brand,
+    this.onBrand = _onBrand,
+    this.brandAccent = _brandAccent,
   });
+
+  // Couleurs du logo (spec 007) : identiques dans les deux thèmes.
+  static const _brand = Color(0xFF1D5F6B);
+  static const _onBrand = Color(0xFFFFFFFF);
+  static const _brandAccent = Color(0xFFE2B55A);
 
   static const light = TidemarkColors(
     surface: Color(0xFFF3F6F5),
@@ -81,6 +89,15 @@ class TidemarkColors extends ThemeExtension<TidemarkColors> {
   final Color onMood1;
   final Color onMood;
 
+  /// Tuile du logo.
+  final Color brand;
+
+  /// Vague et jambage du logo, sur [brand].
+  final Color onBrand;
+
+  /// Point de la laisse du logo, sur [brand].
+  final Color brandAccent;
+
   /// Pastille de l'humeur [mood], de 1 à 5.
   Color moodColor(int mood) => switch (mood) {
     1 => mood1,
@@ -112,6 +129,9 @@ class TidemarkColors extends ThemeExtension<TidemarkColors> {
     'mood-5': mood5,
     'on-mood-1': onMood1,
     'on-mood': onMood,
+    'brand': brand,
+    'on-brand': onBrand,
+    'brand-accent': brandAccent,
   };
 
   /// Jetons figés : aucune surcharge prévue.

@@ -78,8 +78,15 @@ void main() {
         });
       }
 
+      // L'arbre sémantique est porté par la vue, pas par le propriétaire racine.
       visit(
-        tester.binding.rootPipelineOwner.semanticsOwner!.rootSemanticsNode!,
+        tester
+            .binding
+            .renderViews
+            .first
+            .owner!
+            .semanticsOwner!
+            .rootSemanticsNode!,
       );
       expect(annotated, isEmpty);
       expect(find.bySemanticsLabel(RegExp('.+')), findsNothing);

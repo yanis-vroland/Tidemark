@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GÉNÉRÉ par tool/generate_brand.py (spec 007) : ne pas modifier à la main. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="112dp" android:height="112dp"
+    android:viewportWidth="112" android:viewportHeight="112">
+    <path android:pathData="M25.667,0 H86.333 A25.667,25.667 0 0,1 112,25.667 V86.333 A25.667,25.667 0 0,1 86.333,112 H25.667 A25.667,25.667 0 0,1 0,86.333 V25.667 A25.667,25.667 0 0,1 25.667,0 Z" android:fillColor="#1d5f6b" />
+    <path android:pathData="M23.333,37.333 Q31.500,29.867 39.667,37.333 Q47.833,44.800 56.000,37.333 Q64.167,29.867 72.333,37.333 Q80.500,44.800 88.667,37.333" android:strokeColor="#ffffff" android:strokeWidth="7.467"
+        android:strokeLineJoin="round" android:strokeLineCap="round" android:fillColor="#00000000" />
+    <path android:pathData="M56.000,51.333 L56.000,86.333" android:strokeColor="#ffffff" android:strokeWidth="7.467"
+        android:strokeLineJoin="round" android:strokeLineCap="round" android:fillColor="#00000000" />
+    <path android:pathData="M67.433,86.333 a6.067,6.067 0 1,0 12.133,0 a6.067,6.067 0 1,0 -12.133,0 Z" android:fillColor="#e2b55a" />
+</vector>

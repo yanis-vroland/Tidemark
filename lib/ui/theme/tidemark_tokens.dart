@@ -67,6 +67,9 @@ abstract final class TidemarkSize {
   /// Hauteur d'une case de jour dans « Jours notés » (spec 006).
   static const double dayCell = 40;
 
+  /// Logo sur l'état vide de la liste (spec 007).
+  static const double logoMd = 64;
+
   static const Map<String, double> tokens = {
     'tap-min': tapMin,
     'mood-dot': moodDot,
@@ -80,6 +83,7 @@ abstract final class TidemarkSize {
     'ring-width': ringWidth,
     'bar-thickness': barThickness,
     'day-cell': dayCell,
+    'logo-md': logoMd,
   };
 }
 

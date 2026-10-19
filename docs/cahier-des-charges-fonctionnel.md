@@ -171,12 +171,13 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 
 | Phase | Fonctionnalité | Spec | Statut |
 | --- | --- | --- | --- |
-| MVP (lot E) | Saisie d'une entrée et liste des entrées, stockage local chiffré | [001](specs/001-saisie-et-liste-des-entrees.md) | implémentée (PR #13) ; CA31 à CA36 en attente de validation |
-| MVP (lot F) | Détection de détresse et écran d'aide, réglage de la sensibilité | [002](specs/002-garde-fou-detresse.md) | implémentée (PR #19) |
-| MVP (lot G) | Téléchargement du modèle local | [003](specs/003-telechargement-du-modele.md) | implémentée (PR #22) |
-| MVP (lot G) | Étiquetage automatique | [004](specs/004-etiquetage-automatique.md) | implémentée (PR #23) |
-| MVP (lot H) | Export et suppression totale | [005](specs/005-export-et-suppression-totale.md) | implémentée (PR #28) |
-| Si le temps le permet (lot I) | Bilan de la semaine | [006](specs/006-bilan-de-la-semaine.md) | implémentée (PR #27, test humain en attente) |
+| MVP (lot E) | Saisie d'une entrée et liste des entrées, stockage local chiffré | [001](specs/001-saisie-et-liste-des-entrees.md) | livrée (PR #13, test humain positif le 2026-10-19) ; CA31 à CA36 en attente de validation |
+| MVP (lot F) | Détection de détresse et écran d'aide, réglage de la sensibilité | [002](specs/002-garde-fou-detresse.md) | livrée (PR #19, test humain positif le 2026-10-19) |
+| MVP (lot G) | Téléchargement du modèle local | [003](specs/003-telechargement-du-modele.md) | livrée (PR #22, test humain positif le 2026-10-19) |
+| MVP (lot G) | Étiquetage automatique | [004](specs/004-etiquetage-automatique.md) | livrée (PR #23, test humain positif le 2026-10-19) |
+| MVP (lot H) | Export et suppression totale | [005](specs/005-export-et-suppression-totale.md) | livrée (PR #28, test humain positif le 2026-10-19) |
+| Si le temps le permet (lot I) | Bilan de la semaine | [006](specs/006-bilan-de-la-semaine.md) | livrée (PR #27, test humain positif le 2026-10-19) |
+| Publication | Logo : icône, écran de lancement, état vide de la liste | [007](specs/007-logo.md) | spec brouillon, implémentée dans la PR en cours |
 
 ## Questions ouvertes
 
