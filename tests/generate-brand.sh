@@ -53,6 +53,8 @@ generated_files() {
       android/app/src/main/res/drawable-v21/launch_background.xml \
       android/app/src/main/res/values/colors.xml \
       android/app/src/main/res/values-night/colors.xml \
+      android/app/src/main/res/values/styles.xml \
+      android/app/src/main/res/values-night/styles.xml \
       android/app/src/main/res/values-v31/styles.xml \
       android/app/src/main/res/values-night-v31/styles.xml 2>/dev/null
   )
@@ -168,6 +170,18 @@ if [ "$gen_ok" = 1 ] && [ "$gen_ok2" = 1 ] && [ -n "$first" ] && [ "$first" = "$
   pass "CA2 : deux copies générées séparément sont identiques"
 else
   failed "CA2 : deux copies générées séparément sont identiques"
+fi
+
+# --- Garde-fou : un nom d'icône de Contents.json n'écrit pas hors de son dossier ---
+copy=$(fresh_copy)
+contents="$copy/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json"
+sed -i.bak 's#"Icon-App-20x20@1x.png"#"../../../../scripts/evil.png"#' "$contents" && rm -f "$contents.bak"
+if gen "$copy" >/dev/null; then
+  failed "Garde-fou : un nom d'icône qui sort du dossier est refusé" "le générateur a réussi"
+elif [ -e "$copy/scripts/evil.png" ]; then
+  failed "Garde-fou : un nom d'icône qui sort du dossier est refusé" "fichier écrit hors du dossier"
+else
+  pass "Garde-fou : un nom d'icône qui sort du dossier est refusé"
 fi
 
 exit "$fail"

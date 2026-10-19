@@ -244,7 +244,11 @@ def ios_files() -> dict[Path, bytes]:
             # Carré plein et opaque : l'App Store refuse la transparence, et iOS
             # applique lui-même ses coins arrondis.
             rendered[pixels] = png(pixels, pixels, render_tile(pixels, rounded=False, background=BRAND), alpha=False)
-        files[icons / image["filename"]] = rendered[pixels]
+        name = image["filename"]
+        # Un nom de Contents.json ne doit écrire que dans AppIcon.appiconset.
+        if Path(name).name != name or not name.endswith(".png"):
+            sys.exit(f"nom d'icône refusé dans Contents.json : {name!r}")
+        files[icons / name] = rendered[pixels]
     # Écran de lancement : tuile arrondie au centre ; le fond reste la couleur
     # nommée LaunchBackground (surface claire ou sombre, spec 001, CA29).
     launch = XCASSETS / "LaunchImage.imageset"
