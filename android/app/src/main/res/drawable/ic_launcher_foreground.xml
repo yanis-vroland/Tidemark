@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GÉNÉRÉ par tool/generate_brand.py (spec 007) : ne pas modifier à la main. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:pathData="M34.750,43.000 Q39.562,38.600 44.375,43.000 Q49.188,47.400 54.000,43.000 Q58.812,38.600 63.625,43.000 Q68.438,47.400 73.250,43.000" android:strokeColor="#ffffff" android:strokeWidth="4.400"
+        android:strokeLineJoin="round" android:strokeLineCap="round" android:fillColor="#00000000" />
+    <path android:pathData="M54.000,51.250 L54.000,71.875" android:strokeColor="#ffffff" android:strokeWidth="4.400"
+        android:strokeLineJoin="round" android:strokeLineCap="round" android:fillColor="#00000000" />
+    <path android:pathData="M60.737,71.875 a3.575,3.575 0 1,0 7.150,0 a3.575,3.575 0 1,0 -7.150,0 Z" android:fillColor="#e2b55a" />
+</vector>

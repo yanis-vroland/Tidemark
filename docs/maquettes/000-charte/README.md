@@ -9,11 +9,12 @@ Statut : **validée par Yanis le 2026-10-16.**
 | Fichier | Rôle |
 | --- | --- |
 | [`charte.md`](charte.md) | Règles d'usage : ton, couleurs, typographie, espacements, états, mouvement |
-| [`tokens.json`](tokens.json) | Jetons : 16 couleurs en thème clair et sombre, 7 styles de texte, espacements, rayons, tailles. Le lot D les transcrit en constantes Dart de même nom (`lib/ui/theme/`) |
-| [`components/`](components/) | 7 composants, chacun avec son aperçu HTML (jetons seulement) et son README |
-| [`captures/`](captures/) | Capture PNG de chaque aperçu (7 composants et la couverture), en clair et en sombre |
+| [`tokens.json`](tokens.json) | Jetons : 19 couleurs en thème clair et sombre (dont les 3 du logo, spec 007), 7 styles de texte, espacements, rayons, tailles. Le lot D les transcrit en constantes Dart de même nom (`lib/ui/theme/`) |
+| [`components/`](components/) | 8 composants, chacun avec son aperçu HTML (jetons seulement) et son README |
+| [`logo/`](logo/) | Logo en SVG (tuile, symbole, monochrome) et visuel de partage du dépôt, générés par `tool/generate_brand.py` (spec 007) |
+| [`captures/`](captures/) | Capture PNG de chaque aperçu (8 composants et la couverture), en clair et en sombre |
 
-Composants : sélecteur d'humeur (`MoodSelector`), carte d'entrée (`EntryCard`), puce d'étiquette (`TagChip`), bouton (`Button`), champ de texte (`TextField`), bandeau d'erreur (`ErrorBanner`), mention de chargement (`LoadingNote`). `components/Cover/` est la couverture de l'artefact.
+Composants : sélecteur d'humeur (`MoodSelector`), carte d'entrée (`EntryCard`), puce d'étiquette (`TagChip`), bouton (`Button`), champ de texte (`TextField`), bandeau d'erreur (`ErrorBanner`), mention de chargement (`LoadingNote`), logo (`Logo`, spec 007). `components/Cover/` est la couverture de l'artefact.
 
 ## Inventaire des écrans du MVP
 
@@ -62,5 +63,5 @@ Toutes les paires passent leur seuil.
 
 ## Limites
 
-- Captures faites le 2026-10-16 hors de l'artefact : chaque aperçu est enveloppé dans une page qui déclare les jetons de `tokens.json` (thème clair ou sombre) et les polices de `assets/fonts/`, sans le lien Google Fonts, puis capturé par Chrome headless (largeur 393 px, 960 px pour la couverture, échelle 2, hauteur d'au moins 300 px : en dessous, Chrome headless tronque le rendu), toute résolution réseau refusée (`--host-resolver-rules`). Le rendu peut différer de peu de celui de l'artefact (moteur et polices identiques, environnement de l'artefact non reproduit). Le script de capture n'est pas versionné.
+- Captures faites le 2026-10-16 (le 2026-10-19 pour `Logo`) hors de l'artefact : chaque aperçu est enveloppé dans une page qui déclare les jetons de `tokens.json` (thème clair ou sombre) et les polices de `assets/fonts/`, sans le lien Google Fonts, puis capturé par Chrome headless (largeur 393 px, 960 px pour la couverture, échelle 2, hauteur d'au moins 300 px : en dessous, Chrome headless tronque le rendu), toute résolution réseau refusée (`--host-resolver-rules`). Le rendu peut différer de peu de celui de l'artefact (moteur et polices identiques, environnement de l'artefact non reproduit). Le script de capture n'est pas versionné.
 - Les composants sont des aperçus HTML, pas une bibliothèque : le lot D les recrée en widgets Flutter à partir des jetons.

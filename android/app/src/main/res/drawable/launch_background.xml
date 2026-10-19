@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Écran de lancement : couleur surface de la charte (spec 001, CA29). -->
+<!-- GÉNÉRÉ par tool/generate_brand.py (spec 007) : ne pas modifier à la main. -->
+<!-- Écran de lancement : fond surface de la charte (spec 001, CA29), logo au centre (spec 007, CA3). -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/tidemark_surface" />
-
-    <!-- You can insert your own image assets here -->
-    <!-- <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@mipmap/launch_image" />
-    </item> -->
+    <item android:width="112dp" android:height="112dp" android:gravity="center"
+        android:drawable="@drawable/launch_logo" />
 </layer-list>

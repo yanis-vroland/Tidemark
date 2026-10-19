@@ -49,4 +49,13 @@ Peu d'animations, toutes utiles : la pastille choisie grossit légèrement, les 
 
 ## Iconographie
 
-Jeu d'icônes : **Material Icons** de Flutter (`Icons.*`), police embarquée dans l'app par `uses-material-design: true` (`pubspec.yaml`), licence Apache-2.0, compatible avec un dépôt public ; aucune icône chargée depuis le réseau (choix confirmé par Yanis le 2026-10-16). Couleur et taille viennent des jetons (couleurs de texte, `icon-sm`, `icon-md`, `icon-button`). Pas de logo pour l'instant : le nom s'écrit en `display`.
+Jeu d'icônes : **Material Icons** de Flutter (`Icons.*`), police embarquée dans l'app par `uses-material-design: true` (`pubspec.yaml`), licence Apache-2.0, compatible avec un dépôt public ; aucune icône chargée depuis le réseau (choix confirmé par Yanis le 2026-10-16). Couleur et taille viennent des jetons (couleurs de texte, `icon-sm`, `icon-md`, `icon-button`). Le logo est la seule image de marque (voir « Logo »).
+
+## Logo
+
+Logo C « T de marée » (spec 007, choisi par Yanis le 2026-10-19) : un T dont la barre est une vague, et un point couleur sable au pied de la lettre, la laisse que dépose la marée. Composant [`Logo`](components/Logo/README.md), fichiers dans [`logo/`](logo/).
+
+- Tuile `brand`, vague et jambage `on-brand`, point `brand-accent` : la marque ne change pas de couleur avec le thème. Monochrome : tout en une couleur.
+- Où : icône de l'app, écran de lancement, état vide de la liste (`logo-md`), README et visuel de partage du dépôt. Nulle part ailleurs : un écran a déjà son titre en `display`.
+- Toujours décoratif dans l'app : le lecteur d'écran ne l'annonce pas.
+- Une seule géométrie, dans `tool/generate_brand.py`, qui écrit les SVG, les icônes et l'écran de lancement ; `TidemarkLogo` la redessine avec les mêmes coordonnées. Ne jamais redessiner le symbole à la main.

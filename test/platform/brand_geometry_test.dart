@@ -1,7 +1,6 @@
 // Spec 007, « Le logo » : une seule géométrie. Les constantes de tool/generate_brand.py
 // (SVG, icônes, écran de lancement) doivent valoir celles de TidemarkLogo (widget).
 import 'dart:io';
-import 'dart:ui' show Offset;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/ui/widgets/tidemark_logo.dart';

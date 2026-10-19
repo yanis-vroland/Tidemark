@@ -18,6 +18,7 @@ import '../widgets/loading_note.dart';
 import '../widgets/mood_dot.dart';
 import '../widgets/my_data_section.dart';
 import '../widgets/tag_chip.dart';
+import '../widgets/tidemark_logo.dart';
 import 'entry_detail_screen.dart';
 import 'entry_form_screen.dart';
 import 'settings_screen.dart';
@@ -319,6 +320,12 @@ class _EmptyState extends StatelessWidget {
           ),
         ],
         const SizedBox(height: TidemarkSpacing.space8),
+        // Logo décoratif, seulement tant que le journal est vide (spec 007, CA4).
+        const Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TidemarkLogo(size: TidemarkSize.logoMd),
+        ),
+        const SizedBox(height: TidemarkSpacing.space4),
         Text('Ta première entrée apparaîtra ici', style: text.titleLarge),
         const SizedBox(height: TidemarkSpacing.space2),
         Text(

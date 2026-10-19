@@ -1,4 +1,6 @@
-# Tidemark
+<p align="center"><img src="docs/maquettes/000-charte/logo/tidemark-logo.svg" width="96" alt="Logo de Tidemark : un T blanc dont la barre est une vague, avec un point sable à son pied, sur une tuile bleu-vert."></p>
+
+<h1 align="center">Tidemark</h1>
 
 Journal d'humeur mobile (Flutter, iOS et Android) dont l'IA tourne entièrement sur le téléphone : un modèle de langage local étiquette chaque entrée et met en mots le bilan de la semaine, sans qu'aucune donnée ne quitte l'appareil, sauf l'export que la personne déclenche elle-même.
 
@@ -71,7 +73,7 @@ Spike du moteur d'IA, 20 entrées fictives en français par configuration ([ADR-
 ## Limites
 
 - **Aucun Android physique** : Android n'est vérifié qu'en fonctionnement, sur émulateur, en processeur seul. Les performances ne valent que pour l'iPhone 15 Pro.
-- **Tests humains en attente** : les six fonctionnalités sont implémentées et mergées, mais leur test humain sur l'iPhone et l'émulateur, maquette à côté, reste à faire ([cahier des charges](docs/cahier-des-charges-fonctionnel.md), statuts). C'est aussi le cas des PR #43 (marquage en échec) et #44 (empreinte par le système), mergées avant leur test humain ; la #44 attend en plus sa mesure sur l'iPhone.
+- **Tests humains** : positifs le 2026-10-19 pour les six fonctionnalités et les PR #43 (marquage en échec) et #44 (empreinte par le système), toutes deux mergées avant leur test humain ([cahier des charges](docs/cahier-des-charges-fonctionnel.md), statuts). Le temps de l'empreinte de la #44 n'est pas mesuré sur l'iPhone.
 - **Intégrité du moteur et du modèle, et son coût** : llama.cpp est épinglé par SHA-256 (`scripts/fetch-llama-native.sh`) ; le hook de `llamadart` ne télécharge plus rien lui-même. Le modèle est revérifié par SHA-256 une fois par lancement, avant son premier chargement, par la bibliothèque du système (CryptoKit sur iOS, `MessageDigest` sur Android), avec repli sur un calcul Dart : environ 1 s sur un Mac M3, contre 9,4 à 23,9 s en Dart selon la charge du poste. Non mesuré sur l'iPhone ni sur Android ; ce temps retarde d'autant la première analyse ou le premier bilan d'un lancement. Un fichier remplacé entre cette vérification et le chargement passerait. Le garde-fou réseau ne lit que le Dart : pour le code natif (llama.cpp, SQLite3MultipleCiphers), seule la provenance est contrôlée ([ADR-004](docs/adr/004-integrite-du-moteur-et-du-modele.md)).
 - **Qualité de l'étiquetage** limitée par un modèle de 1,5 milliard de paramètres (voir « Mesures »).
 - **Détection de détresse par règles seules** : une liste de termes rate les formulations qu'elle ne prévoit pas. Un classifieur local est une piste d'amélioration, écartée pour l'instant parce que ses faux négatifs seraient difficiles à tester.
