@@ -43,7 +43,6 @@ generated_files() {
     ls docs/maquettes/000-charte/logo/tidemark-logo.svg \
       docs/maquettes/000-charte/logo/tidemark-mark.svg \
       docs/maquettes/000-charte/logo/tidemark-mark-mono.svg \
-      docs/maquettes/000-charte/logo/tidemark-social-preview.png \
       ios/Runner/Assets.xcassets/AppIcon.appiconset/*.png \
       ios/Runner/Assets.xcassets/LaunchImage.imageset/*.png \
       ios/Runner/Base.lproj/LaunchScreen.storyboard \
@@ -100,8 +99,7 @@ for target in \
   "android/app/src/main/res/drawable/launch_logo.xml" \
   "ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@2x.png" \
   "android/app/src/main/res/mipmap-hdpi/ic_launcher.png" \
-  "docs/maquettes/000-charte/logo/tidemark-logo.svg" \
-  "docs/maquettes/000-charte/logo/tidemark-social-preview.png"; do
+  "docs/maquettes/000-charte/logo/tidemark-logo.svg"; do
   copy=$(fresh_copy)
   if [ ! -f "$copy/$target" ]; then
     failed "CA2 : --check échoue après modification de $target" "fichier absent"

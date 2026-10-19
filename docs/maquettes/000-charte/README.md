@@ -11,7 +11,7 @@ Statut : **validée par Yanis le 2026-10-16.**
 | [`charte.md`](charte.md) | Règles d'usage : ton, couleurs, typographie, espacements, états, mouvement |
 | [`tokens.json`](tokens.json) | Jetons : 19 couleurs en thème clair et sombre (dont les 3 du logo, spec 007), 7 styles de texte, espacements, rayons, tailles. Le lot D les transcrit en constantes Dart de même nom (`lib/ui/theme/`) |
 | [`components/`](components/) | 8 composants, chacun avec son aperçu HTML (jetons seulement) et son README |
-| [`logo/`](logo/) | Logo en SVG (tuile, symbole, monochrome) et visuel de partage du dépôt, générés par `tool/generate_brand.py` (spec 007) |
+| [`logo/`](logo/) | Logo en SVG (tuile, symbole, monochrome), générés par `tool/generate_brand.py` ; visuel de partage du dépôt (`tidemark-social-preview.png`, 1280 × 640), rendu depuis `social-preview.html` par Chrome headless avec les polices de `assets/fonts/` (spec 007) |
 | [`captures/`](captures/) | Capture PNG de chaque aperçu (8 composants et la couverture), en clair et en sombre |
 
 Composants : sélecteur d'humeur (`MoodSelector`), carte d'entrée (`EntryCard`), puce d'étiquette (`TagChip`), bouton (`Button`), champ de texte (`TextField`), bandeau d'erreur (`ErrorBanner`), mention de chargement (`LoadingNote`), logo (`Logo`, spec 007). `components/Cover/` est la couverture de l'artefact.

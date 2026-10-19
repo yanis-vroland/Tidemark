@@ -1,6 +1,6 @@
 """Génère le logo Tidemark sous toutes ses formes depuis une seule géométrie (spec 007).
 
-Sorties : les SVG et le visuel de partage de docs/maquettes/000-charte/logo/,
+Sorties : les SVG de docs/maquettes/000-charte/logo/,
 les icônes de l'app (iOS et Android, adaptative comprise) et les images de
 l'écran de lancement. Aucune dépendance : les PNG sont rastérisés ici, par
 distance signée, pour que le résultat soit identique sur tout poste.
@@ -229,21 +229,6 @@ def png(width: int, height: int, rows: list[bytes], *, alpha: bool) -> bytes:
     )
 
 
-def social_preview() -> bytes:
-    """Visuel de partage GitHub, 1280 × 640 : le logo au centre, sur `surface`."""
-    width, height, size = 1280, 640, 288
-    left, top = (width - size) // 2, (height - size) // 2
-    tile = render_tile(size, background=SURFACE)
-    ground = bytes(rgb(SURFACE))
-    rows = []
-    for j in range(height):
-        if top <= j < top + size:
-            rows.append(ground * left + tile[j - top] + ground * (width - left - size))
-        else:
-            rows.append(ground * width)
-    return png(width, height, rows, alpha=False)
-
-
 # --- iOS -----------------------------------------------------------------
 
 
@@ -397,7 +382,6 @@ def android_files() -> dict[Path, bytes]:
 
 def all_files() -> dict[Path, bytes]:
     files = svg_files()
-    files[LOGO_DIR / "tidemark-social-preview.png"] = social_preview()
     files.update(ios_files())
     files.update(android_files())
     return files

@@ -45,7 +45,7 @@ Un script, `tool/generate_brand.py`, sans dépendance, produit depuis cette géo
 ### Charte et dépôt
 
 - CA8 : La charte contient le composant `Logo` (aperçu HTML, README, captures en clair et en sombre), les SVG du logo dans `docs/maquettes/000-charte/logo/` (couleur, monochrome) et les trois jetons de la section « Le logo » ; `charte.md` remplace « Pas de logo pour l'instant » par les règles d'usage.
-- CA9 : Le README affiche le logo en tête, et le dépôt fournit le visuel de partage GitHub (`docs/maquettes/000-charte/logo/tidemark-social-preview.png`, 1280 × 640).
+- CA9 : Le README affiche le logo en tête, et le dépôt fournit le visuel de partage GitHub (`docs/maquettes/000-charte/logo/tidemark-social-preview.png`, 1280 × 640 : logo, nom, accroche et bandes de la couverture de la charte, rendu depuis `social-preview.html`).
 
 ## Cas limites
 
