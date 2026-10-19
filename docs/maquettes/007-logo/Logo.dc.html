@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Logo Tidemark</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>body{margin:0}</style>
+</helmet>
+<svg width="{{size}}" height="{{size}}" viewBox="0 0 48 48" role="img" aria-label="Tidemark" style="display: block;">
+  <rect x="0" y="0" width="48" height="48" rx="11" fill="{{tile}}"></rect>
+  <sc-if value="{{isA}}" hint-placeholder-val="{{false}}">
+    <g fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 17 q3.5 -3.2 7 0 t7 0 t7 0 t7 0" stroke="{{mark}}"></path>
+      <path d="M17 25 q3.5 -3.2 7 0 t7 0 t7 0" stroke="{{mark}}"></path>
+      <path d="M24 33 q3.5 -3.2 7 0 t7 0" stroke="{{accent}}"></path>
+    </g>
+  </sc-if>
+  <sc-if value="{{isB}}" hint-placeholder-val="{{false}}">
+    <circle cx="24" cy="17.5" r="6" fill="{{accent}}"></circle>
+    <g fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 30 q3.5 -3.2 7 0 t7 0 t7 0 t7 0" stroke="{{mark}}"></path>
+      <path d="M17 37 q3.5 -3.2 7 0 t7 0" stroke="{{mark}}"></path>
+    </g>
+  </sc-if>
+  <sc-if value="{{isC}}" hint-placeholder-val="{{true}}">
+    <g fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 16 q3.5 -3.2 7 0 t7 0 t7 0 t7 0" stroke="{{mark}}"></path>
+      <path d="M24 22 L24 37" stroke="{{mark}}"></path>
+    </g>
+    <circle cx="31.5" cy="37" r="2.6" fill="{{accent}}"></circle>
+  </sc-if>
+</svg>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"variant":{"editor":"enum","options":["a","b","c"],"default":"c"},"size":{"editor":"int","min":16,"max":512,"default":140},"mono":{"editor":"boolean","default":false},"$preview":{"width":140,"height":140}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const v = this.props.variant ?? 'c';
+    const mono = this.props.mono ?? false;
+    const mark = '#ffffff';
+    return {
+      size: this.props.size ?? 140,
+      tile: '#1d5f6b',
+      mark: mark,
+      accent: mono ? mark : '#e2b55a',
+      isA: v === 'a',
+      isB: v === 'b',
+      isC: v === 'c'
+    };
+  }
+}
+</script>
+</body>
+</html>
