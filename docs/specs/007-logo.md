@@ -15,7 +15,7 @@ Maquette : voir « Maquette ». Charte : [`docs/maquettes/000-charte/`](../maque
 
 ## Le logo
 
-Proposition C, « T de marée » (choisie par Yanis le 2026-10-19, contre la recommandation B de l'agent) : un T dont la barre est une vague, et un point couleur sable au pied de la lettre, la laisse que dépose la marée. Une seule géométrie, dans une boîte de 48 × 48 : tuile de rayon 11 ; vague de (10, 16) à (38, 16), quatre demi-ondes de 7 de large et 3,2 de creux ; jambage de (24, 22) à (24, 37) ; trait de 3,2, extrémités et joints arrondis ; point plein de rayon 2,6 en (31,5 ; 37).
+Proposition C, « T de marée » (choisie par Yanis le 2026-10-19, contre la recommandation B de l'agent) : un T dont la barre est une vague, et un point couleur sable au pied de la lettre, la laisse que dépose la marée. Une seule géométrie, dans une boîte de 48 × 48 : tuile de rayon 11 ; vague de (10, 16) à (38, 16), quatre demi-ondes quadratiques de 7 de large, point de contrôle à 3,2 de l'axe (creux réel du tracé : 1,6) ; jambage de (24, 22) à (24, 37) ; trait de 3,2, extrémités et joints arrondis ; point plein de rayon 2,6 en (31,5 ; 37).
 
 Couleurs : trois jetons ajoutés à la charte, identiques dans les deux thèmes (une marque ne change pas de couleur avec le thème) :
 
@@ -63,7 +63,7 @@ Un script, `tool/generate_brand.py`, sans dépendance, produit depuis cette géo
 
 ## Maquette
 
-Artefact « Design » [Tidemark : logo](https://claude.ai/artifact/5B1a26iJZs9jKyu7XcVEJ4) (privé) : les trois propositions (A « Laisses », B « Lune et marée », C « T de marée ») à 140, 60, 40 et 24 px, avec le nom, sur fond clair et sombre ; écran de lancement et liste vide en clair et en sombre ; icône sur un écran d'accueil. Copie versionnée dans `docs/maquettes/007-logo/` après validation.
+Artefact « Design » [Tidemark : logo](https://claude.ai/artifact/5B1a26iJZs9jKyu7XcVEJ4) (privé) : les trois propositions (A « Laisses », B « Lune et marée », C « T de marée ») à 140, 60, 40 et 24 px, avec le nom, sur fond clair et sombre ; écran de lancement et liste vide en clair et en sombre ; icône sur un écran d'accueil. Copie versionnée dans `docs/maquettes/007-logo/` après validation. Captures PNG des écrans absentes, comme pour les autres maquettes ([issue #20](https://github.com/yanis-vroland/Tidemark/issues/20)) ; rendus du logo : `docs/maquettes/000-charte/logo/` et captures du composant `Logo` de la charte.
 
 ## Questions ouvertes
 

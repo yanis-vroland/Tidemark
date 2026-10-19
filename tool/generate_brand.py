@@ -178,8 +178,17 @@ def mix(a: tuple, b: tuple, t: float) -> list[float]:
     return [u + (v - u) * t for u, v in zip(a, b)]
 
 
-# Boîte englobante du symbole (avec une marge) : hors d'elle, aucune distance à calculer.
-_MARK_BOX = (MARK_WAVE[0] - 3, MARK_WAVE[1] - 4, MARK_WAVE[0] + MARK_WAVE[2] * MARK_WAVE[4] + 3, MARK_DOT[1] + 4)
+# Boîte englobante du symbole : bord du trait plus 3 unités, plus que la frange
+# d'anticrénelage d'un pixel aux plus petites icônes (20 px, 2,4 unités par pixel).
+# Hors d'elle, aucune distance à calculer.
+_WAVE_X, _WAVE_Y, _WAVE_HALF, _WAVE_DEPTH, _WAVE_COUNT = MARK_WAVE
+_MARGIN = MARK_STROKE / 2 + 3
+_MARK_BOX = (
+    _WAVE_X - _MARGIN,
+    _WAVE_Y - _WAVE_DEPTH / 2 - _MARGIN,
+    _WAVE_X + _WAVE_HALF * _WAVE_COUNT + _MARGIN,
+    max(MARK_STEM[1][1], MARK_DOT[1] + MARK_DOT[2]) + _MARGIN,
+)
 
 
 def render_tile(size: int, *, inset: float = 0, rounded: bool = True, background: str | None = None) -> list[bytes]:
@@ -244,7 +253,9 @@ def ios_files() -> dict[Path, bytes]:
             # Carré plein et opaque : l'App Store refuse la transparence, et iOS
             # applique lui-même ses coins arrondis.
             rendered[pixels] = png(pixels, pixels, render_tile(pixels, rounded=False, background=BRAND), alpha=False)
-        name = image["filename"]
+        name = image.get("filename")
+        if name is None:  # entrée sans fichier : rien à écrire
+            continue
         # Un nom de Contents.json ne doit écrire que dans AppIcon.appiconset.
         if Path(name).name != name or not name.endswith(".png"):
             sys.exit(f"nom d'icône refusé dans Contents.json : {name!r}")

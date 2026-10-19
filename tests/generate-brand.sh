@@ -173,11 +173,21 @@ else
 fi
 
 # --- Garde-fou : un nom d'icône de Contents.json n'écrit pas hors de son dossier ---
+# Précondition, comme les autres scénarios : le générateur fonctionne sur la copie
+# intacte ; sinon un générateur cassé passerait pour un refus.
 copy=$(fresh_copy)
 contents="$copy/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json"
+precondition_ok=0
+gen "$copy" --check >/dev/null && precondition_ok=1
 sed -i.bak 's#"Icon-App-20x20@1x.png"#"../../../../scripts/evil.png"#' "$contents" && rm -f "$contents.bak"
-if gen "$copy" >/dev/null; then
+refusal=$(gen "$copy")
+refused=$?
+if [ "$precondition_ok" != 1 ]; then
+  failed "Garde-fou : un nom d'icône qui sort du dossier est refusé" "--check échoue sur la copie intacte"
+elif [ "$refused" = 0 ]; then
   failed "Garde-fou : un nom d'icône qui sort du dossier est refusé" "le générateur a réussi"
+elif ! printf '%s' "$refusal" | grep -q "nom d'icône refusé"; then
+  failed "Garde-fou : un nom d'icône qui sort du dossier est refusé" "échec pour une autre raison"
 elif [ -e "$copy/scripts/evil.png" ]; then
   failed "Garde-fou : un nom d'icône qui sort du dossier est refusé" "fichier écrit hors du dossier"
 else

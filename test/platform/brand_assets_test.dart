@@ -225,9 +225,16 @@ void main() {
   });
 
   group('CA3 : écran de lancement Android', () {
-    test('CA3 : launch_logo.xml existe et est un drawable', () {
-      expect(requireText('$res/drawable/launch_logo.xml'), contains('<'));
-    });
+    test(
+      'CA3 : launch_logo.xml est le logo vectoriel (tuile, symbole, point)',
+      () {
+        final xml = requireText('$res/drawable/launch_logo.xml').toLowerCase();
+        expect(xml, contains('<vector'));
+        for (final name in ['brand', 'on-brand', 'brand-accent']) {
+          expect(xml, contains(token(name, 'light')), reason: 'couleur $name');
+        }
+      },
+    );
 
     for (final folder in ['drawable', 'drawable-v21']) {
       test(
