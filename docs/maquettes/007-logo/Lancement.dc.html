@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Écran de lancement</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 393px; height: 852px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: {{surface}};">
+  <dc-import name="Logo" variant="{{variant}}" size="{{size}}" hint-size="112px,112px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"variant":{"editor":"enum","options":["a","b","c"],"default":"c"},"dark":{"editor":"boolean","default":false},"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      variant: this.props.variant ?? 'c',
+      size: 112,
+      surface: (this.props.dark ?? false) ? '#0e191c' : '#f3f6f5'
+    };
+  }
+}
+</script>
+</body>
+</html>

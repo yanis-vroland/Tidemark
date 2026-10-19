@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Liste vide, avec le logo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&amp;family=Figtree:wght@400;500;600&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 393px; height: 852px; box-sizing: border-box; padding: 91px 16px 40px; display: flex; flex-direction: column; background: {{t.surface}}; color: {{t.ink}}; font-family: Figtree, system-ui, sans-serif;">
+  <div style="display: flex; align-items: center; gap: 8px; padding-bottom: 8px;">
+    <h1 style="margin: 0; flex-grow: 1; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 34px; line-height: 38px; letter-spacing: -0.5px;">Ton journal</h1>
+    <button type="button" aria-label="Réglages" style="width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; color: {{t.tide}};">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"></circle><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"></path></svg>
+    </button>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 32px; flex-grow: 1;">
+    <div style="padding-bottom: 16px;">
+      <dc-import name="Logo" variant="{{variant}}" size="{{logo}}" hint-size="64px,64px"></dc-import>
+    </div>
+    <h2 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 600; font-size: 22px; line-height: 28px;">Ta première entrée apparaîtra ici</h2>
+    <p style="margin: 0; font-size: 17px; line-height: 24px; color: {{t.muted}};">Note ton humeur en quelques secondes. Tout reste sur ton téléphone.</p>
+  </div>
+  <button type="button" style="height: 52px; border: 0; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; background: {{t.tide}}; color: {{t.onTide}}; font: 600 16px/20px Figtree, system-ui, sans-serif;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+    Nouvelle entrée
+  </button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"variant":{"editor":"enum","options":["a","b","c"],"default":"c"},"dark":{"editor":"boolean","default":false},"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dark = this.props.dark ?? false;
+    const t = dark
+      ? { surface: '#0e191c', ink: '#e4eeec', muted: '#9db0b1', tide: '#7cc5c9', onTide: '#0a2226' }
+      : { surface: '#f3f6f5', ink: '#13272c', muted: '#4b5e64', tide: '#1d5f6b', onTide: '#ffffff' };
+    return { t: t, variant: this.props.variant ?? 'c', logo: 64 };
+  }
+}
+</script>
+</body>
+</html>

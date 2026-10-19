@@ -1,4 +1,6 @@
-# Tidemark
+<p align="center"><img src="docs/maquettes/000-charte/logo/tidemark-logo.svg" width="96" alt="Logo de Tidemark : un T blanc dont la barre est une vague, avec un point sable à son pied, sur une tuile bleu-vert."></p>
+
+<h1 align="center">Tidemark</h1>
 
 Journal d'humeur mobile (Flutter, iOS et Android) dont l'IA tourne entièrement sur le téléphone : un modèle de langage local étiquette chaque entrée et met en mots le bilan de la semaine, sans qu'aucune donnée ne quitte l'appareil, sauf l'export que la personne déclenche elle-même.
 
@@ -6,7 +8,9 @@ Projet de démonstration, fictif, planifié sur 3 semaines (13 octobre → 3 nov
 
 ## Démo
 
-> **GIF sur l'iPhone 15 Pro : à venir, filmé par Yanis.**
+<p align="center"><img src="docs/demo/tidemark.gif" width="320" alt="Démo : écran de lancement avec le logo, liste vide, saisie d'une entrée « Bien » avec un court texte, analyse sur le téléphone, puis les étiquettes solitude, joie, nature et travail apparaissent ; le détail de l'entrée les range en émotions et thèmes, avec la mention « Analysé sur ton téléphone »."></p>
+
+<p align="center"><em>Une entrée, étiquetée par le modèle local Qwen2.5-1.5B, sans réseau. Enregistré sur le simulateur iOS (iPhone 17 Pro, processeur du Mac) avec le vrai modèle ; l'attente de l'analyse, 13 s sur le simulateur, est accélérée 4 fois, et le téléchargement du modèle est coupé.</em></p>
 
 Captures de l'app réelle sur l'émulateur Android (Pixel 7, API 35), modèle local chargé :
 
@@ -71,7 +75,7 @@ Spike du moteur d'IA, 20 entrées fictives en français par configuration ([ADR-
 ## Limites
 
 - **Aucun Android physique** : Android n'est vérifié qu'en fonctionnement, sur émulateur, en processeur seul. Les performances ne valent que pour l'iPhone 15 Pro.
-- **Tests humains en attente** : les six fonctionnalités sont implémentées et mergées, mais leur test humain sur l'iPhone et l'émulateur, maquette à côté, reste à faire ([cahier des charges](docs/cahier-des-charges-fonctionnel.md), statuts). C'est aussi le cas des PR #43 (marquage en échec) et #44 (empreinte par le système), mergées avant leur test humain ; la #44 attend en plus sa mesure sur l'iPhone.
+- **Tests humains** : positifs le 2026-10-19 pour les six fonctionnalités et les PR #43 (marquage en échec) et #44 (empreinte par le système), toutes deux mergées avant leur test humain ([cahier des charges](docs/cahier-des-charges-fonctionnel.md), statuts). Le temps de l'empreinte de la #44 n'est pas mesuré sur l'iPhone.
 - **Intégrité du moteur et du modèle, et son coût** : llama.cpp est épinglé par SHA-256 (`scripts/fetch-llama-native.sh`) ; le hook de `llamadart` ne télécharge plus rien lui-même. Le modèle est revérifié par SHA-256 une fois par lancement, avant son premier chargement, par la bibliothèque du système (CryptoKit sur iOS, `MessageDigest` sur Android), avec repli sur un calcul Dart : environ 1 s sur un Mac M3, contre 9,4 à 23,9 s en Dart selon la charge du poste. Non mesuré sur l'iPhone ni sur Android ; ce temps retarde d'autant la première analyse ou le premier bilan d'un lancement. Un fichier remplacé entre cette vérification et le chargement passerait. Le garde-fou réseau ne lit que le Dart : pour le code natif (llama.cpp, SQLite3MultipleCiphers), seule la provenance est contrôlée ([ADR-004](docs/adr/004-integrite-du-moteur-et-du-modele.md)).
 - **Qualité de l'étiquetage** limitée par un modèle de 1,5 milliard de paramètres (voir « Mesures »).
 - **Détection de détresse par règles seules** : une liste de termes rate les formulations qu'elle ne prévoit pas. Un classifieur local est une piste d'amélioration, écartée pour l'instant parce que ses faux négatifs seraient difficiles à tester.
@@ -83,11 +87,11 @@ Spike du moteur d'IA, 20 entrées fictives en français par configuration ([ADR-
 
 Construit avec la chaîne [agentic-dev-workflow](https://github.com/yanis-vroland/agentic-dev-workflow) : un agent de code (Claude Code) exécute, l'humain cadre, valide et merge.
 
-- **Cadrage écrit** : [plan](docs/plan.md), [cahier des charges](docs/cahier-des-charges-fonctionnel.md), 6 [specs](docs/specs/) (214 critères d'acceptation), chacune avec sa maquette, et 5 [ADR](docs/adr/), tous acceptés.
-- **Test-first** : les tests sont écrits à partir des critères d'acceptation et committés rouges avant l'implémentation. 1 840 tests (80 fichiers), aucun ne charge le vrai modèle.
+- **Cadrage écrit** : [plan](docs/plan.md), [cahier des charges](docs/cahier-des-charges-fonctionnel.md), 7 [specs](docs/specs/) (223 critères d'acceptation), chacune avec sa maquette, et 5 [ADR](docs/adr/), tous acceptés.
+- **Test-first** : les tests sont écrits à partir des critères d'acceptation et committés rouges avant l'implémentation. 1 946 tests (86 fichiers), aucun ne charge le vrai modèle.
 - **Garde-fous testés par mutation** : une protection (aucune couleur en dur, aucun code réseau hors du téléchargeur, partage seulement sur un appui, file d'analyse…) est désactivée une fois pour vérifier qu'un test échoue. Des mutations ont survécu (trois sur l'étiquetage, une sur 31 pour l'export et la suppression) : des tests ont été ajoutés pour les tuer. Résultats dans les journaux.
 - **Revues IA** : revue IA en CI à l'ouverture de chaque PR depuis la #2, subagents `reviewer` et `security-reviewer` avant les PR de fonctionnalité, et un commentaire « Réponse à la revue IA » qui donne une suite à chaque point. Une PR (#23) a été mergée avant ses revues : rattrapées par les PR #24 et #26. La résolution d'un conflit au merge de la PR #37 a perdu du code et des phrases de spec, et laissé deux numéros de critères en double : constaté par la CI de `main`, réparé par la PR #41.
-- **Traçabilité** : 37 PR mergées, un journal par branche dans [`docs/journal/`](docs/journal/) ; le dépôt est la seule mémoire de l'agent. Certaines entrées renvoient à `docs/projets/`, notes privées de l'espace de travail de l'auteur, hors de ce dépôt.
+- **Traçabilité** : 38 PR mergées au 2026-10-19, un journal par branche dans [`docs/journal/`](docs/journal/) ; le dépôt est la seule mémoire de l'agent. Certaines entrées renvoient à `docs/projets/`, notes privées de l'espace de travail de l'auteur, hors de ce dépôt.
 
 ## Licence
 

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Couleurs de la charte utilisées hors de Flutter, thème sombre (spec 001). -->
+<!-- GÉNÉRÉ par tool/generate_brand.py (spec 007) : ne pas modifier à la main. -->
+<!-- Couleurs de la charte utilisées hors de Flutter (écran de lancement, icône). -->
 <resources>
     <color name="tidemark_surface">#0E191C</color>
+    <color name="ic_launcher_background">#1D5F6B</color>
 </resources>

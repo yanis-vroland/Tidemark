@@ -1,0 +1,87 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-19T10:30:00Z"
+ },
+ "title": "Tidemark : logo",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Main.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 1280,
+   "h": 760,
+   "title": "Trois propositions"
+  },
+  "Logo.dc.html": {
+   "x": 1360,
+   "y": 0,
+   "w": 140,
+   "h": 140,
+   "title": "Logo (composant)"
+  },
+  "Lancement.dc.html": {
+   "x": 0,
+   "y": 880,
+   "w": 393,
+   "h": 852,
+   "title": "Écran de lancement · clair",
+   "radius": 48
+  },
+  "LancementSombre.dc.html": {
+   "x": 473,
+   "y": 880,
+   "w": 393,
+   "h": 852,
+   "title": "Écran de lancement · sombre",
+   "radius": 48
+  },
+  "ListeVide.dc.html": {
+   "x": 946,
+   "y": 880,
+   "w": 393,
+   "h": 852,
+   "title": "Liste vide · clair",
+   "radius": 48
+  },
+  "ListeVideSombre.dc.html": {
+   "x": 1419,
+   "y": 880,
+   "w": 393,
+   "h": 852,
+   "title": "Liste vide · sombre",
+   "radius": 48
+  },
+  "Icones.dc.html": {
+   "x": 1892,
+   "y": 880,
+   "w": 393,
+   "h": 852,
+   "title": "Écran d'accueil du téléphone",
+   "radius": 48
+  }
+ },
+ "order": [
+  "Main.dc.html",
+  "Logo.dc.html",
+  "Lancement.dc.html",
+  "LancementSombre.dc.html",
+  "ListeVide.dc.html",
+  "ListeVideSombre.dc.html",
+  "Icones.dc.html"
+ ],
+ "notes": {},
+ "designSystems": [
+  {
+   "title": "Tidemark",
+   "namespace": "tidemark",
+   "artifact": "https://claude.ai/artifact/LxwwPXPaLTB1ciS6m7NVeu",
+   "version": null,
+   "copiedAt": "2026-10-19T10:30:00Z"
+  }
+ ]
+}

@@ -55,6 +55,12 @@ jobs:
       - name: Test du garde-fou des noms exclus
         run: bash tests/verifier-noms-exclus.sh
 
+      - name: Test du générateur du logo (spec 007)
+        run: bash tests/generate-brand.sh
+
+      - name: Fichiers du logo identiques à leur génération (spec 007, CA2)
+        run: python3 tool/generate_brand.py --check
+
       - name: Modèle déclaré par chaque subagent (spec 007)
         run: .github/scripts/verifier-modeles.sh
 
