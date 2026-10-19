@@ -24,15 +24,10 @@ class TidemarkColors extends ThemeExtension<TidemarkColors> {
     required this.mood5,
     required this.onMood1,
     required this.onMood,
-    this.brand = _brand,
-    this.onBrand = _onBrand,
-    this.brandAccent = _brandAccent,
+    required this.brand,
+    required this.onBrand,
+    required this.brandAccent,
   });
-
-  // Couleurs du logo (spec 007) : identiques dans les deux thèmes.
-  static const _brand = Color(0xFF1D5F6B);
-  static const _onBrand = Color(0xFFFFFFFF);
-  static const _brandAccent = Color(0xFFE2B55A);
 
   static const light = TidemarkColors(
     surface: Color(0xFFF3F6F5),
@@ -51,6 +46,9 @@ class TidemarkColors extends ThemeExtension<TidemarkColors> {
     mood5: Color(0xFFEF8C59),
     onMood1: Color(0xFFFFFFFF),
     onMood: Color(0xFF13272C),
+    brand: Color(0xFF1D5F6B),
+    onBrand: Color(0xFFFFFFFF),
+    brandAccent: Color(0xFFE2B55A),
   );
 
   static const dark = TidemarkColors(
@@ -70,6 +68,10 @@ class TidemarkColors extends ThemeExtension<TidemarkColors> {
     mood5: Color(0xFFF29A6A),
     onMood1: Color(0xFF0E191C),
     onMood: Color(0xFF0E191C),
+    // Logo (spec 007) : mêmes valeurs qu'en clair.
+    brand: Color(0xFF1D5F6B),
+    onBrand: Color(0xFFFFFFFF),
+    brandAccent: Color(0xFFE2B55A),
   );
 
   final Color surface;

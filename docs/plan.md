@@ -70,7 +70,7 @@ Point d'arrêt le **2026-10-24** : si le lot D n'est pas mergé, Yanis décide e
 - [x] **[Yanis]** Valider l'ADR-001 (accepté le 2026-10-14 ; l'ADR-002 et l'ADR-003 aussi).
 - [x] **[Yanis]** Valider les specs 001 à 006 et leurs maquettes (merges des PR #12, #15, #16, #17 et #18). Reste : CA31 à CA36 de la spec 001, ajoutés après les revues de code.
 - [x] **[Yanis]** Valider ou refuser l'ADR-004 (intégrité du moteur natif et du modèle, proposé le 2026-10-15) : accepté le 2026-10-16 avec l'option recommandée, comme l'ADR-005 (partage du modèle local).
-- [ ] **[Yanis]** Test humain de chaque fonctionnalité sur l'iPhone 15 Pro et sur l'émulateur Android, maquette à côté.
+- [x] **[Yanis]** Test humain de chaque fonctionnalité sur l'iPhone 15 Pro et sur l'émulateur Android, maquette à côté (positif, 2026-10-19).
 - [ ] **[Yanis]** Passer le dépôt en public (lot J).
 
 ## Maquettes en artefacts Claude
@@ -163,8 +163,9 @@ Chaque lot suit la même séquence, en PR séparées si la spec est longue à va
 
 Branche : `docs/readme-final`.
 
-- [ ] README lisible en 2 minutes : démo (GIF sur l'iPhone), schéma, notions IA, maquette et écran réel côte à côte, lancement en 3 commandes, mesures du spike, limites. Fait le 2026-10-16, sauf le GIF (**[Yanis]**) et la maquette côte à côte, faute de captures PNG des maquettes (issue #20).
+- [ ] README lisible en 2 minutes : démo (GIF sur l'iPhone), schéma, notions IA, maquette et écran réel côte à côte, lancement en 3 commandes, mesures du spike, limites. Fait le 2026-10-16 ; GIF ajouté le 2026-10-19, filmé par l'agent sur le simulateur iOS avec le vrai modèle (branche `feat/logo`) plutôt que sur l'iPhone. Reste la maquette côte à côte, faute de captures PNG des maquettes (issue #20).
 - [x] Vérification : aucune donnée réelle, aucun secret dans l'historique (gitleaks), licences du modèle, des polices et des dépendances ([`licences.md`](licences.md)), aucune référence à l'espace de travail privé (`docs/projets/`) restée sans explication (2026-10-16, journal de `docs/readme-final`).
+- [x] Logo, icône, écran de lancement et affiche de partage GitHub ([spec 007](specs/007-logo.md), branche `feat/logo`, 2026-10-19). Pose de l'affiche dans les réglages GitHub : **[Yanis]**.
 - [x] Frictions de la chaîne remontées en issues dans `agentic-dev-workflow`.
 - [x] `docs/projets/tidemark.md` de l'espace de travail mis à jour : bilan et retour à P2 (2026-10-16).
 

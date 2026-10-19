@@ -87,11 +87,11 @@ Spike du moteur d'IA, 20 entrées fictives en français par configuration ([ADR-
 
 Construit avec la chaîne [agentic-dev-workflow](https://github.com/yanis-vroland/agentic-dev-workflow) : un agent de code (Claude Code) exécute, l'humain cadre, valide et merge.
 
-- **Cadrage écrit** : [plan](docs/plan.md), [cahier des charges](docs/cahier-des-charges-fonctionnel.md), 6 [specs](docs/specs/) (214 critères d'acceptation), chacune avec sa maquette, et 5 [ADR](docs/adr/), tous acceptés.
-- **Test-first** : les tests sont écrits à partir des critères d'acceptation et committés rouges avant l'implémentation. 1 840 tests (80 fichiers), aucun ne charge le vrai modèle.
+- **Cadrage écrit** : [plan](docs/plan.md), [cahier des charges](docs/cahier-des-charges-fonctionnel.md), 7 [specs](docs/specs/) (223 critères d'acceptation), chacune avec sa maquette, et 5 [ADR](docs/adr/), tous acceptés.
+- **Test-first** : les tests sont écrits à partir des critères d'acceptation et committés rouges avant l'implémentation. 1 946 tests (86 fichiers), aucun ne charge le vrai modèle.
 - **Garde-fous testés par mutation** : une protection (aucune couleur en dur, aucun code réseau hors du téléchargeur, partage seulement sur un appui, file d'analyse…) est désactivée une fois pour vérifier qu'un test échoue. Des mutations ont survécu (trois sur l'étiquetage, une sur 31 pour l'export et la suppression) : des tests ont été ajoutés pour les tuer. Résultats dans les journaux.
 - **Revues IA** : revue IA en CI à l'ouverture de chaque PR depuis la #2, subagents `reviewer` et `security-reviewer` avant les PR de fonctionnalité, et un commentaire « Réponse à la revue IA » qui donne une suite à chaque point. Une PR (#23) a été mergée avant ses revues : rattrapées par les PR #24 et #26. La résolution d'un conflit au merge de la PR #37 a perdu du code et des phrases de spec, et laissé deux numéros de critères en double : constaté par la CI de `main`, réparé par la PR #41.
-- **Traçabilité** : 37 PR mergées, un journal par branche dans [`docs/journal/`](docs/journal/) ; le dépôt est la seule mémoire de l'agent. Certaines entrées renvoient à `docs/projets/`, notes privées de l'espace de travail de l'auteur, hors de ce dépôt.
+- **Traçabilité** : 38 PR mergées au 2026-10-19, un journal par branche dans [`docs/journal/`](docs/journal/) ; le dépôt est la seule mémoire de l'agent. Certaines entrées renvoient à `docs/projets/`, notes privées de l'espace de travail de l'auteur, hors de ce dépôt.
 
 ## Licence
 

@@ -53,6 +53,15 @@ void main() {
       );
     });
 
+    test(
+      'CA8 : la version monochrome est tout en ink clair (spec, « Le logo »)',
+      () {
+        final svg = text('$charter/logo/tidemark-mark-mono.svg').toLowerCase();
+        final colors = RegExp(r'#[0-9a-f]{6}').allMatches(svg).map((m) => m[0]);
+        expect(colors.toSet(), {'#13272c'});
+      },
+    );
+
     test('CA8 : la version couleur utilise brand et brand-accent', () {
       final svg = text('$charter/logo/tidemark-logo.svg').toLowerCase();
       expect(svg, contains('#1d5f6b'));

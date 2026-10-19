@@ -22,8 +22,10 @@ Couleurs : trois jetons ajoutés à la charte, identiques dans les deux thèmes 
 | Jeton | Valeur | Usage |
 | --- | --- | --- |
 | `brand` | `#1d5f6b` (`tide` clair) | Tuile du logo |
-| `on-brand` | `#ffffff` | Vague et jambage ; tout le symbole dans la version monochrome |
+| `on-brand` | `#ffffff` | Vague et jambage |
 | `brand-accent` | `#e2b55a` (`mood-4` clair) | Point de la laisse |
+
+Version monochrome : tout le symbole en `ink` clair (`tidemark-mark-mono.svg`, pour un fond clair) ; l'icône à thème d'Android ne garde que la forme du premier plan, recolorée par le système.
 
 Un script, `tool/generate_brand.py`, sans dépendance, produit depuis cette géométrie et `tokens.json` les SVG de la charte, les icônes de l'app et les images de l'écran de lancement. Dans l'app, le widget `TidemarkLogo` redessine le logo avec les mêmes coordonnées.
 

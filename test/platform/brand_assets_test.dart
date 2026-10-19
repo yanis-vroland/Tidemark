@@ -68,6 +68,29 @@ void expectShowsLogo(String path) {
   );
 }
 
+/// Toute icône, même petite, est la tuile `brand` : plus d'un quart des pixels,
+/// et le logo complet dès [fullLogoFrom] px (revue de la PR : une icône Flutter par
+/// défaut passait sur ses seules dimensions).
+void expectBrandIcon(String path, int pixels, {int fullLogoFrom = 60}) {
+  if (pixels >= fullLogoFrom) {
+    expectShowsLogo(path);
+    return;
+  }
+  final decoded = decodePixels(requirePng(path));
+  expect(decoded, isNotNull, reason: '$path : PNG 8 bits RVB ou RVBA attendu');
+  expect(
+    countColor(decoded!, token('brand', 'light')),
+    greaterThan(decoded.length ~/ 4),
+    reason: '$path : la tuile brand domine',
+  );
+}
+
+/// Valeur de l'élément `<item name="android:[name]">` de [xml].
+String? styleItem(String xml, String name) =>
+    RegExp('name="(?:android:)?$name"[^>]*>\\s*([^<\\s]+)\\s*<')
+        .firstMatch(xml)
+        ?.group(1);
+
 void main() {
   group('CA1 : icône iOS', () {
     final contents = read('$iosAssets/AppIcon.appiconset/Contents.json');
@@ -94,6 +117,10 @@ void main() {
         expect(png.colorType, 2, reason: 'RVB sans canal alpha (type 2)');
         expect(png.bitDepth, 8);
       });
+
+      test('CA1 : $file montre la tuile brand (et le logo dès 60 px)', () {
+        expectBrandIcon('$iosAssets/AppIcon.appiconset/$file', pixels);
+      });
     }
 
     test('CA1 : l\'icône de 1024 px montre le logo, plein cadre', () {
@@ -116,6 +143,10 @@ void main() {
         final png = requirePng('$res/mipmap-$density/ic_launcher.png');
         expect((png.width, png.height), (px, px));
       });
+
+      test('CA1 : mipmap-$density/ic_launcher.png montre la tuile brand', () {
+        expectBrandIcon('$res/mipmap-$density/ic_launcher.png', px);
+      });
     });
 
     test('CA1 : l\'icône des anciennes versions montre le logo', () {
@@ -124,9 +155,18 @@ void main() {
 
     test('CA1 : l\'icône adaptative a fond, premier plan et monochrome', () {
       final xml = requireText('$res/mipmap-anydpi-v26/ic_launcher.xml');
-      expect(xml, contains('<background'));
-      expect(xml, contains('<foreground'));
-      expect(xml, contains('<monochrome'));
+      expect(
+        xml,
+        matches(RegExp(r'<background[^>]*@color/ic_launcher_background')),
+      );
+      expect(
+        xml,
+        matches(RegExp(r'<foreground[^>]*@drawable/ic_launcher_foreground')),
+      );
+      expect(
+        xml,
+        matches(RegExp(r'<monochrome[^>]*@drawable/ic_launcher_foreground')),
+      );
     });
 
     test('CA1 : le premier plan adaptatif est un drawable vectoriel', () {
@@ -229,7 +269,14 @@ void main() {
               ),
             ),
           );
-          expect(xml, contains('windowSplashScreenAnimatedIcon'));
+          expect(
+            styleItem(xml, 'windowSplashScreenAnimatedIcon'),
+            '@drawable/ic_launcher_foreground',
+          );
+          expect(
+            styleItem(xml, 'windowSplashScreenIconBackgroundColor'),
+            '@color/ic_launcher_background',
+          );
         },
       );
     }
