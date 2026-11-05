@@ -40,6 +40,7 @@ a{color:#1d5f6b}a:hover{color:#0f3f48}
       </button>
     </div>
 
+    <sc-if value="{{nominal}}" hint-placeholder-val="{{true}}">
     <figure aria-label="Humeur par jour : lundi bien, mardi neutre, mercredi bas, jeudi bien, vendredi très bien, samedi bien, dimanche pas d'entrée" style="position: relative; margin: 0 -20px; height: 220px;">
       <svg width="393" height="220" viewBox="0 0 393 220" aria-hidden="true" style="position: absolute; inset: 0; display: block;">
         <path d="{{area}}" fill="{{t.sea}}"></path>
@@ -60,8 +61,13 @@ a{color:#1d5f6b}a:hover{color:#0f3f48}
         <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
       </div>
     </figure>
+    </sc-if>
+    <sc-if value="{{other}}" hint-placeholder-val="{{false}}">
+      <div style="height: 48px;"></div>
+    </sc-if>
   </header>
 
+  <sc-if value="{{nominal}}" hint-placeholder-val="{{true}}">
   <div style="padding: 16px 16px 0; display: flex; flex-direction: column; gap: 14px;">
     <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
       <div style="padding: 12px; border-radius: 20px; background: #dde9f9; color: #14262b; transform: rotate(-2deg); box-shadow: 0 4px 0 rgba(20, 38, 43, 0.10); display: flex; flex-direction: column;">
@@ -98,18 +104,34 @@ a{color:#1d5f6b}a:hover{color:#0f3f48}
     </div>
   </div>
 
+  </sc-if>
+  <sc-if value="{{loading}}" hint-placeholder-val="{{false}}">
+  <div role="status" style="margin: 24px 20px 0; display: flex; align-items: center; gap: 10px; font-size: 16px; line-height: 24px; color: {{t.muted}};">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="{{t.tideSoft}}" stroke-width="3"></circle><path d="M21 12a9 9 0 0 0-9-9" stroke="{{t.tide}}" stroke-width="3" stroke-linecap="round"></path></svg>
+    Calcul du bilan sur ton téléphone…
+  </div>
+  </sc-if>
+  <sc-if value="{{failed}}" hint-placeholder-val="{{false}}">
+  <div style="margin: 24px 16px 0; display: flex; flex-direction: column; gap: 16px;">
+    <div role="alert" style="padding: 16px; border-radius: 24px; background: {{t.raised}}; display: flex; flex-direction: column; gap: 4px;">
+      <span style="font-size: 17px; line-height: 24px; font-weight: 600; color: {{t.danger}};">Ton bilan n'a pas pu être calculé</span>
+      <span style="font-size: 16px; line-height: 24px;">Tes entrées sont toujours sur le téléphone. Rien n'a été effacé. Réessaie.</span>
+    </div>
+    <button type="button" style="height: 56px; border: 0; border-radius: 999px; background: {{t.tide}}; color: {{t.onTide}}; box-shadow: 0 4px 0 rgba(10, 34, 38, 0.3); font: 700 17px/20px Figtree, system-ui, sans-serif; cursor: pointer;">Réessayer</button>
+  </div>
+  </sc-if>
   <div style="position: absolute; left: 0; bottom: 0;">
     <dc-import name="TabBar" active="semaine" dark="{{dark}}" hint-size="393px,96px"></dc-import>
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":393,"height":852}}'>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"state":{"editor":"enum","options":["bilan","chargement","erreur"],"default":"bilan"},"$preview":{"width":393,"height":852}}'>
 class Component extends DCLogic {
   renderVals() {
     const dark = !!this.props.dark;
     const t = dark
-      ? { surface: '#0c1719', raised: '#15252a', ink: '#e6efed', muted: '#b4c5c5', tide: '#7cc5c9', sky: '#0f2d3d', skyInk: '#e6efed', skyFaint: '#e6efed59', sea: '#1d5f6b', sand: '#3a3222', sandInk: '#e8d9b5' }
-      : { surface: '#f7f3ec', raised: '#ffffff', ink: '#14262b', muted: '#4b5e64', tide: '#1d5f6b', sky: '#cfe9ec', skyInk: '#0f3f48', skyFaint: '#0f3f4859', sea: '#3b8b93', sand: '#f6e4bd', sandInk: '#6b5320' };
+      ? { danger: '#f39582', tideSoft: '#1e383c', onTide: '#0a2226', surface: '#0c1719', raised: '#15252a', ink: '#e6efed', muted: '#b4c5c5', tide: '#7cc5c9', sky: '#0f2d3d', skyInk: '#e6efed', skyFaint: '#e6efed59', sea: '#1d5f6b', sand: '#3a3222', sandInk: '#e8d9b5' }
+      : { danger: '#a3392a', tideSoft: '#dbeae9', onTide: '#ffffff', surface: '#f7f3ec', raised: '#ffffff', ink: '#14262b', muted: '#4b5e64', tide: '#1d5f6b', sky: '#cfe9ec', skyInk: '#0f3f48', skyFaint: '#0f3f4859', sea: '#3b8b93', sand: '#f6e4bd', sandInk: '#6b5320' };
     const levels = [4, 3, 2, 4, 5, 4, 0];
     const xs = levels.map((_, i) => 28 + i * 56);
     const yOf = (l) => 160 - (l - 1) * 28;
@@ -129,7 +151,12 @@ class Component extends DCLogic {
       delay: i * 0.3,
       pos: 'position: absolute; left: ' + (xs[i] - (l ? gs : 34) / 2) + 'px; top: ' + (pts[i][1] - (l ? gs : 34) / 2 - 6) + 'px;'
     }));
-    return { t, dark, days, area, line, gs, yes: true };
+    const state = this.props.state ?? 'bilan';
+    return {
+      t, dark, days, area, line, gs, yes: true,
+      nominal: state === 'bilan', other: state !== 'bilan',
+      loading: state === 'chargement', failed: state === 'erreur'
+    };
   }
 }
 </script>

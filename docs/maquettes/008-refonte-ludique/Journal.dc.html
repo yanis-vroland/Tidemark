@@ -48,10 +48,12 @@ a{color:#1d5f6b}a:hover{color:#0f3f48}
       <div style="display: flex; flex-direction: column; gap: 2px;">
         <span style="font-size: 14px; line-height: 20px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: {{t.heroMuted}};">Ton journal</span>
         <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800; font-size: 44px; line-height: 48px; letter-spacing: -1px;">Bonsoir</h1>
+        <sc-if value="{{full}}" hint-placeholder-val="{{true}}">
         <span style="display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; align-self: flex-start; padding: 5px 12px 5px 8px; border-radius: 999px; background: #ffffff26; font-size: 14px; line-height: 20px; font-weight: 600;">
           <svg width="18" height="18" viewBox="0 0 100 90" aria-hidden="true"><path d="M14 30 Q17 14 28 12 Q34 6 42 9 Q50 4 58 9 Q66 6 72 12 Q83 14 86 30 L50 84 Z" fill="#fdf0cf"></path></svg>
           5 coquillages cette semaine
         </span>
+        </sc-if>
       </div>
       <a href="#" aria-label="Réglages" style="width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: #ffffff26; color: #ffffff;">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8M16 5v4M10 15v4"></path></svg>
@@ -59,6 +61,7 @@ a{color:#1d5f6b}a:hover{color:#0f3f48}
     </div>
   </header>
 
+  <sc-if value="{{loaded}}" hint-placeholder-val="{{true}}">
   <section aria-labelledby="checkin" style="position: relative; margin: -36px 16px 0; padding: 18px 12px 14px; border-radius: 28px; background: {{t.raised}}; box-shadow: {{t.shadow}}; display: flex; flex-direction: column; gap: 12px;">
     <h2 id="checkin" style="margin: 0 6px; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 700; font-size: 21px; line-height: 26px;">Comment va ta marée ce soir ?</h2>
     <div style="display: flex; justify-content: space-between;">
@@ -70,7 +73,9 @@ a{color:#1d5f6b}a:hover{color:#0f3f48}
       </sc-for>
     </div>
   </section>
+  </sc-if>
 
+  <sc-if value="{{full}}" hint-placeholder-val="{{true}}">
   <a href="Semaine.dc.html" aria-label="Ta plage cette semaine : lundi bien, mardi neutre, mercredi bas, jeudi bien, vendredi très bien, samedi bien, dimanche pas encore. Voir ma semaine." style="position: relative; margin: 14px 16px 0; height: 150px; border-radius: 24px; overflow: hidden; background: {{t.sand}}; color: {{t.ink}}; text-decoration: none; display: block;">
     <svg width="361" height="150" viewBox="0 0 361 150" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; inset: 0; display: block;">
       <path d="M0 0 H361 V38 C300 52 240 26 180 40 S60 54 0 36 Z" fill="{{t.sea}}"></path>
@@ -115,18 +120,32 @@ a{color:#1d5f6b}a:hover{color:#0f3f48}
     </a>
   </div>
 
+  </sc-if>
+  <sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+  <div style="margin: 40px 24px 0; display: flex; flex-direction: column; gap: 10px; align-items: flex-start;">
+    <svg width="64" height="64" viewBox="0 0 48 48" aria-hidden="true" style="display: block;"><rect width="48" height="48" rx="11" fill="#1d5f6b"></rect><g fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 16 Q13.5 12.8 17 16 Q20.5 19.2 24 16 Q27.5 12.8 31 16 Q34.5 19.2 38 16"></path><path d="M24 22 L24 37"></path></g><circle cx="31.5" cy="37" r="2.6" fill="#e2b55a"></circle></svg>
+    <h2 style="margin: 6px 0 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 700; font-size: 22px; line-height: 28px;">Ta première entrée apparaîtra ici</h2>
+    <p style="margin: 0; font-size: 16px; line-height: 24px; color: {{t.muted}};">Note ton humeur en quelques secondes. Tout reste sur ton téléphone.</p>
+  </div>
+  </sc-if>
+  <sc-if value="{{failed}}" hint-placeholder-val="{{false}}">
+  <div role="alert" style="margin: 24px 16px 0; padding: 16px; border-radius: 24px; background: {{t.raised}}; display: flex; flex-direction: column; gap: 4px;">
+    <span style="font-size: 17px; line-height: 24px; font-weight: 600; color: {{t.danger}};">Ton journal n'a pas pu être lu</span>
+    <span style="font-size: 16px; line-height: 24px;">Tes entrées sont toujours sur le téléphone. Ferme l'app, puis rouvre-la.</span>
+  </div>
+  </sc-if>
   <div style="position: absolute; left: 0; bottom: 0;">
     <dc-import name="TabBar" active="journal" dark="{{dark}}" hint-size="393px,96px"></dc-import>
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":393,"height":852}}'>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"state":{"editor":"enum","options":["entrees","vide","chargement","erreur"],"default":"entrees"},"$preview":{"width":393,"height":852}}'>
 class Component extends DCLogic {
   renderVals() {
     const dark = !!this.props.dark;
     const t = dark
-      ? { surface: '#0c1719', raised: '#15252a', ink: '#e6efed', muted: '#b4c5c5', hero: '#0f3a41', heroMuted: '#c9dfdf', wave1: '#13454c', wave2: '#185058', shadow: '0 10px 30px rgba(0, 0, 0, 0.35)', sand: '#3a3222', sandInk: '#e8d9b5', sea: '#1d5f6b', seaInk: '#e6efed', tint4: '#fdf0cf' }
-      : { surface: '#f7f3ec', raised: '#ffffff', ink: '#14262b', muted: '#4b5e64', hero: '#1d5f6b', heroMuted: '#d5ebea', wave1: '#2a7480', wave2: '#3b8b93', shadow: '0 12px 32px rgba(20, 38, 43, 0.12)', sand: '#f6e4bd', sandInk: '#6b5320', sea: '#3b8b93', seaInk: '#ffffff', tint4: '#fdf0cf' };
+      ? { danger: '#f39582', surface: '#0c1719', raised: '#15252a', ink: '#e6efed', muted: '#b4c5c5', hero: '#0f3a41', heroMuted: '#c9dfdf', wave1: '#13454c', wave2: '#185058', shadow: '0 10px 30px rgba(0, 0, 0, 0.35)', sand: '#3a3222', sandInk: '#e8d9b5', sea: '#1d5f6b', seaInk: '#e6efed', tint4: '#fdf0cf' }
+      : { danger: '#a3392a', surface: '#f7f3ec', raised: '#ffffff', ink: '#14262b', muted: '#4b5e64', hero: '#1d5f6b', heroMuted: '#d5ebea', wave1: '#2a7480', wave2: '#3b8b93', shadow: '0 12px 32px rgba(20, 38, 43, 0.12)', sand: '#f6e4bd', sandInk: '#6b5320', sea: '#3b8b93', seaInk: '#ffffff', tint4: '#fdf0cf' };
     const labels = ['Très bas', 'Bas', 'Neutre', 'Bien', 'Très bien'];
     const moods = [1, 2, 3, 4, 5].map((n) => ({ n, label: labels[n - 1], delay: n * 0.35, aria: 'Noter ' + labels[n - 1] + ', humeur ' + n + ' sur 5' }));
     const days = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
@@ -139,7 +158,12 @@ class Component extends DCLogic {
       delay: i * 0.3,
       lift: 'height: 70px; display: flex; align-items: flex-end; padding-bottom: ' + (levels[i] ? (levels[i] - 1) * 8 : 0) + 'px; box-sizing: border-box;'
     }));
-    return { t, dark, moods, week, glyph: 54, small: 36, entryGlyph: 48, four: 4 };
+    const state = this.props.state ?? 'entrees';
+    return {
+      t, dark, moods, week, glyph: 54, small: 36, entryGlyph: 48, four: 4,
+      full: state === 'entrees', empty: state === 'vide', failed: state === 'erreur',
+      loaded: state === 'entrees' || state === 'vide'
+    };
   }
 }
 </script>
