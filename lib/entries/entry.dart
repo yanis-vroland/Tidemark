@@ -2,6 +2,7 @@
 library;
 
 import '../analysis/mood_analyzer.dart';
+import 'topic.dart';
 
 /// Où en est l'analyse d'une entrée (glossaire : `AnalysisStatus`).
 enum AnalysisStatus {
@@ -37,6 +38,7 @@ class Entry {
     required this.utcOffset,
     required this.analysisStatus,
     this.tags = const [],
+    this.topics = const [],
   });
 
   final int id;
@@ -60,12 +62,16 @@ class Entry {
   /// si elle n'est pas « étiquetée » (spec 004).
   final List<Tag> tags;
 
+  /// Sujets choisis par la personne à la saisie (spec 010), dans l'ordre de la
+  /// liste ; vide sans sujet. Jamais transmis au modèle ni au garde-fou (CA6).
+  final List<Topic> topics;
+
   /// Date et heure locales de la saisie (heure murale, marquée UTC par convention).
   DateTime get localCreatedAt => createdAt.toUtc().add(utcOffset);
 }
 
 /// Vrai si [a] et [b] décrivent la même entrée dans le même état, étiquettes
-/// comprises (dans le même ordre), ou sont toutes deux absentes. Sert à ne pas
+/// et sujets compris (dans le même ordre), ou sont toutes deux absentes. Sert à ne pas
 /// réémettre une entrée inchangée (`EntryRepository.watchEntry`).
 bool sameEntry(Entry? a, Entry? b) {
   if (identical(a, b)) return true;
@@ -76,11 +82,15 @@ bool sameEntry(Entry? a, Entry? b) {
       a.createdAt != b.createdAt ||
       a.utcOffset != b.utcOffset ||
       a.analysisStatus != b.analysisStatus ||
-      a.tags.length != b.tags.length) {
+      a.tags.length != b.tags.length ||
+      a.topics.length != b.topics.length) {
     return false;
   }
   for (var i = 0; i < a.tags.length; i++) {
     if (a.tags[i] != b.tags[i]) return false;
+  }
+  for (var i = 0; i < a.topics.length; i++) {
+    if (a.topics[i] != b.topics[i]) return false;
   }
   return true;
 }

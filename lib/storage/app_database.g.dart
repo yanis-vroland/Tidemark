@@ -1098,17 +1098,337 @@ class TagsCompanion extends UpdateCompanion<TagRow> {
   }
 }
 
+class $EntryTopicsTable extends EntryTopics
+    with TableInfo<$EntryTopicsTable, EntryTopicRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EntryTopicsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _entryIdMeta = const VerificationMeta(
+    'entryId',
+  );
+  @override
+  late final GeneratedColumn<int> entryId = GeneratedColumn<int>(
+    'entry_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES entries (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<Topic, String> topic =
+      GeneratedColumn<String>(
+        'topic',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Topic>($EntryTopicsTable.$convertertopic);
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, entryId, topic, position];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'entry_topics';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EntryTopicRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('entry_id')) {
+      context.handle(
+        _entryIdMeta,
+        entryId.isAcceptableOrUnknown(data['entry_id']!, _entryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entryIdMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {entryId, topic},
+  ];
+  @override
+  EntryTopicRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EntryTopicRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      entryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}entry_id'],
+      )!,
+      topic: $EntryTopicsTable.$convertertopic.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}topic'],
+        )!,
+      ),
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+    );
+  }
+
+  @override
+  $EntryTopicsTable createAlias(String alias) {
+    return $EntryTopicsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<Topic, String, String> $convertertopic =
+      const EnumNameConverter<Topic>(Topic.values);
+}
+
+class EntryTopicRow extends DataClass implements Insertable<EntryTopicRow> {
+  final int id;
+  final int entryId;
+  final Topic topic;
+
+  /// Ordre d'affichage : celui de la liste des sujets.
+  final int position;
+  const EntryTopicRow({
+    required this.id,
+    required this.entryId,
+    required this.topic,
+    required this.position,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['entry_id'] = Variable<int>(entryId);
+    {
+      map['topic'] = Variable<String>(
+        $EntryTopicsTable.$convertertopic.toSql(topic),
+      );
+    }
+    map['position'] = Variable<int>(position);
+    return map;
+  }
+
+  EntryTopicsCompanion toCompanion(bool nullToAbsent) {
+    return EntryTopicsCompanion(
+      id: Value(id),
+      entryId: Value(entryId),
+      topic: Value(topic),
+      position: Value(position),
+    );
+  }
+
+  factory EntryTopicRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EntryTopicRow(
+      id: serializer.fromJson<int>(json['id']),
+      entryId: serializer.fromJson<int>(json['entryId']),
+      topic: $EntryTopicsTable.$convertertopic.fromJson(
+        serializer.fromJson<String>(json['topic']),
+      ),
+      position: serializer.fromJson<int>(json['position']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'entryId': serializer.toJson<int>(entryId),
+      'topic': serializer.toJson<String>(
+        $EntryTopicsTable.$convertertopic.toJson(topic),
+      ),
+      'position': serializer.toJson<int>(position),
+    };
+  }
+
+  EntryTopicRow copyWith({
+    int? id,
+    int? entryId,
+    Topic? topic,
+    int? position,
+  }) => EntryTopicRow(
+    id: id ?? this.id,
+    entryId: entryId ?? this.entryId,
+    topic: topic ?? this.topic,
+    position: position ?? this.position,
+  );
+  EntryTopicRow copyWithCompanion(EntryTopicsCompanion data) {
+    return EntryTopicRow(
+      id: data.id.present ? data.id.value : this.id,
+      entryId: data.entryId.present ? data.entryId.value : this.entryId,
+      topic: data.topic.present ? data.topic.value : this.topic,
+      position: data.position.present ? data.position.value : this.position,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EntryTopicRow(')
+          ..write('id: $id, ')
+          ..write('entryId: $entryId, ')
+          ..write('topic: $topic, ')
+          ..write('position: $position')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, entryId, topic, position);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EntryTopicRow &&
+          other.id == this.id &&
+          other.entryId == this.entryId &&
+          other.topic == this.topic &&
+          other.position == this.position);
+}
+
+class EntryTopicsCompanion extends UpdateCompanion<EntryTopicRow> {
+  final Value<int> id;
+  final Value<int> entryId;
+  final Value<Topic> topic;
+  final Value<int> position;
+  const EntryTopicsCompanion({
+    this.id = const Value.absent(),
+    this.entryId = const Value.absent(),
+    this.topic = const Value.absent(),
+    this.position = const Value.absent(),
+  });
+  EntryTopicsCompanion.insert({
+    this.id = const Value.absent(),
+    required int entryId,
+    required Topic topic,
+    required int position,
+  }) : entryId = Value(entryId),
+       topic = Value(topic),
+       position = Value(position);
+  static Insertable<EntryTopicRow> custom({
+    Expression<int>? id,
+    Expression<int>? entryId,
+    Expression<String>? topic,
+    Expression<int>? position,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (entryId != null) 'entry_id': entryId,
+      if (topic != null) 'topic': topic,
+      if (position != null) 'position': position,
+    });
+  }
+
+  EntryTopicsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? entryId,
+    Value<Topic>? topic,
+    Value<int>? position,
+  }) {
+    return EntryTopicsCompanion(
+      id: id ?? this.id,
+      entryId: entryId ?? this.entryId,
+      topic: topic ?? this.topic,
+      position: position ?? this.position,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (entryId.present) {
+      map['entry_id'] = Variable<int>(entryId.value);
+    }
+    if (topic.present) {
+      map['topic'] = Variable<String>(
+        $EntryTopicsTable.$convertertopic.toSql(topic.value),
+      );
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EntryTopicsCompanion(')
+          ..write('id: $id, ')
+          ..write('entryId: $entryId, ')
+          ..write('topic: $topic, ')
+          ..write('position: $position')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $EntriesTable entries = $EntriesTable(this);
   late final $SettingsTable settings = $SettingsTable(this);
   late final $TagsTable tags = $TagsTable(this);
+  late final $EntryTopicsTable entryTopics = $EntryTopicsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [entries, settings, tags];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    entries,
+    settings,
+    tags,
+    entryTopics,
+  ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
     WritePropagation(
@@ -1117,6 +1437,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('tags', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'entries',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('entry_topics', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -1156,6 +1483,24 @@ final class $$EntriesTableReferences
     ).filter((f) => f.entryId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_tagsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$EntryTopicsTable, List<EntryTopicRow>>
+  _entryTopicsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.entryTopics,
+    aliasName: 'entries__id__entry_topics__entry_id',
+  );
+
+  $$EntryTopicsTableProcessedTableManager get entryTopicsRefs {
+    final manager = $$EntryTopicsTableTableManager(
+      $_db,
+      $_db.entryTopics,
+    ).filter((f) => f.entryId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_entryTopicsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -1218,6 +1563,31 @@ class $$EntriesTableFilterComposer
           }) => $$TagsTableFilterComposer(
             $db: $db,
             $table: $db.tags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> entryTopicsRefs(
+    Expression<bool> Function($$EntryTopicsTableFilterComposer f) f,
+  ) {
+    final $$EntryTopicsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.entryTopics,
+      getReferencedColumn: (t) => t.entryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntryTopicsTableFilterComposer(
+            $db: $db,
+            $table: $db.entryTopics,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -1324,6 +1694,31 @@ class $$EntriesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> entryTopicsRefs<T extends Object>(
+    Expression<T> Function($$EntryTopicsTableAnnotationComposer a) f,
+  ) {
+    final $$EntryTopicsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.entryTopics,
+      getReferencedColumn: (t) => t.entryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntryTopicsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.entryTopics,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$EntriesTableTableManager
@@ -1339,7 +1734,7 @@ class $$EntriesTableTableManager
           $$EntriesTableUpdateCompanionBuilder,
           (EntryRow, $$EntriesTableReferences),
           EntryRow,
-          PrefetchHooks Function({bool tagsRefs})
+          PrefetchHooks Function({bool tagsRefs, bool entryTopicsRefs})
         > {
   $$EntriesTableTableManager(_$AppDatabase db, $EntriesTable table)
     : super(
@@ -1392,10 +1787,13 @@ class $$EntriesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({tagsRefs = false}) {
+          prefetchHooksCallback: ({tagsRefs = false, entryTopicsRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [if (tagsRefs) db.tags],
+              explicitlyWatchedTables: [
+                if (tagsRefs) db.tags,
+                if (entryTopicsRefs) db.entryTopics,
+              ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
@@ -1407,6 +1805,24 @@ class $$EntriesTableTableManager
                       ),
                       managerFromTypedResult: (p0) =>
                           $$EntriesTableReferences(db, table, p0).tagsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.entryId == item.id),
+                      typedResults: items,
+                    ),
+                  if (entryTopicsRefs)
+                    await $_getPrefetchedData<
+                      EntryRow,
+                      $EntriesTable,
+                      EntryTopicRow
+                    >(
+                      currentTable: table,
+                      referencedTable: $$EntriesTableReferences
+                          ._entryTopicsRefsTable(db),
+                      managerFromTypedResult: (p0) => $$EntriesTableReferences(
+                        db,
+                        table,
+                        p0,
+                      ).entryTopicsRefs,
                       referencedItemsForCurrentItem: (item, referencedItems) =>
                           referencedItems.where((e) => e.entryId == item.id),
                       typedResults: items,
@@ -1431,7 +1847,7 @@ typedef $$EntriesTableProcessedTableManager =
       $$EntriesTableUpdateCompanionBuilder,
       (EntryRow, $$EntriesTableReferences),
       EntryRow,
-      PrefetchHooks Function({bool tagsRefs})
+      PrefetchHooks Function({bool tagsRefs, bool entryTopicsRefs})
     >;
 typedef $$SettingsTableCreateCompanionBuilder = SettingsCompanion Function({
   Value<int> id,
@@ -1925,6 +2341,297 @@ typedef $$TagsTableProcessedTableManager =
       TagRow,
       PrefetchHooks Function({bool entryId})
     >;
+typedef $$EntryTopicsTableCreateCompanionBuilder =
+    EntryTopicsCompanion Function({
+      Value<int> id,
+      required int entryId,
+      required Topic topic,
+      required int position,
+    });
+typedef $$EntryTopicsTableUpdateCompanionBuilder =
+    EntryTopicsCompanion Function({
+      Value<int> id,
+      Value<int> entryId,
+      Value<Topic> topic,
+      Value<int> position,
+    });
+
+final class $$EntryTopicsTableReferences
+    extends BaseReferences<_$AppDatabase, $EntryTopicsTable, EntryTopicRow> {
+  $$EntryTopicsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $EntriesTable _entryIdTable(_$AppDatabase db) =>
+      db.entries.createAlias('entry_topics__entry_id__entries__id');
+
+  $$EntriesTableProcessedTableManager get entryId {
+    final $_column = $_itemColumn<int>('entry_id')!;
+
+    final manager = $$EntriesTableTableManager(
+      $_db,
+      $_db.entries,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_entryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$EntryTopicsTableFilterComposer
+    extends Composer<_$AppDatabase, $EntryTopicsTable> {
+  $$EntryTopicsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<Topic, Topic, String> get topic =>
+      $composableBuilder(
+        column: $table.topic,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$EntriesTableFilterComposer get entryId {
+    final $$EntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.entryId,
+      referencedTable: $db.entries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.entries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EntryTopicsTableOrderingComposer
+    extends Composer<_$AppDatabase, $EntryTopicsTable> {
+  $$EntryTopicsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get topic => $composableBuilder(
+    column: $table.topic,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$EntriesTableOrderingComposer get entryId {
+    final $$EntriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.entryId,
+      referencedTable: $db.entries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.entries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EntryTopicsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EntryTopicsTable> {
+  $$EntryTopicsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Topic, String> get topic =>
+      $composableBuilder(column: $table.topic, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  $$EntriesTableAnnotationComposer get entryId {
+    final $$EntriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.entryId,
+      referencedTable: $db.entries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.entries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EntryTopicsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $EntryTopicsTable,
+          EntryTopicRow,
+          $$EntryTopicsTableFilterComposer,
+          $$EntryTopicsTableOrderingComposer,
+          $$EntryTopicsTableAnnotationComposer,
+          $$EntryTopicsTableCreateCompanionBuilder,
+          $$EntryTopicsTableUpdateCompanionBuilder,
+          (EntryTopicRow, $$EntryTopicsTableReferences),
+          EntryTopicRow,
+          PrefetchHooks Function({bool entryId})
+        > {
+  $$EntryTopicsTableTableManager(_$AppDatabase db, $EntryTopicsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EntryTopicsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EntryTopicsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EntryTopicsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> entryId = const Value.absent(),
+                Value<Topic> topic = const Value.absent(),
+                Value<int> position = const Value.absent(),
+              }) => EntryTopicsCompanion(
+                id: id,
+                entryId: entryId,
+                topic: topic,
+                position: position,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int entryId,
+                required Topic topic,
+                required int position,
+              }) => EntryTopicsCompanion.insert(
+                id: id,
+                entryId: entryId,
+                topic: topic,
+                position: position,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$EntryTopicsTable, EntryTopicRow>(table),
+                  $$EntryTopicsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({entryId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (entryId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.entryId,
+                        referencedTable: $$EntryTopicsTableReferences
+                            ._entryIdTable(db),
+                        referencedColumn: $$EntryTopicsTableReferences
+                            ._entryIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$EntryTopicsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $EntryTopicsTable,
+      EntryTopicRow,
+      $$EntryTopicsTableFilterComposer,
+      $$EntryTopicsTableOrderingComposer,
+      $$EntryTopicsTableAnnotationComposer,
+      $$EntryTopicsTableCreateCompanionBuilder,
+      $$EntryTopicsTableUpdateCompanionBuilder,
+      (EntryTopicRow, $$EntryTopicsTableReferences),
+      EntryTopicRow,
+      PrefetchHooks Function({bool entryId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1934,4 +2641,6 @@ class $AppDatabaseManager {
   $$SettingsTableTableManager get settings =>
       $$SettingsTableTableManager(_db, _db.settings);
   $$TagsTableTableManager get tags => $$TagsTableTableManager(_db, _db.tags);
+  $$EntryTopicsTableTableManager get entryTopics =>
+      $$EntryTopicsTableTableManager(_db, _db.entryTopics);
 }

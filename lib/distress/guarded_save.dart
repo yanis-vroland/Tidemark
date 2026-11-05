@@ -1,5 +1,6 @@
 import '../entries/entry.dart';
 import '../entries/entry_repository.dart';
+import '../entries/topic.dart';
 import '../settings/settings_repository.dart';
 import 'distress_detector.dart';
 
@@ -16,11 +17,14 @@ class SaveOutcome {
 /// Enregistre une entrée en appliquant le garde-fou (spec 002, CA1 à CA9, CA21) :
 /// détresse dans le texte ou série d'humeurs basses → statut `skipped` et écran
 /// d'aide. Si l'enregistrement échoue, l'erreur remonte et rien n'est détecté.
+/// [topics] ne vont qu'au dépôt : le détecteur ne reçoit que le texte (spec 010,
+/// CA6).
 Future<SaveOutcome> saveEntryWithGuard({
   required EntryRepository repository,
   required SettingsRepository settings,
   required int mood,
   String? text,
+  List<Topic> topics = const [],
   DistressDetector detector = const DistressDetector(),
   DateTime Function() clock = DateTime.now,
 }) async {
@@ -45,6 +49,7 @@ Future<SaveOutcome> saveEntryWithGuard({
     mood: mood,
     text: text,
     status: distress ? AnalysisStatus.skipped : AnalysisStatus.pending,
+    topics: topics,
   );
   return SaveOutcome(entry: entry, showHelp: distress);
 }

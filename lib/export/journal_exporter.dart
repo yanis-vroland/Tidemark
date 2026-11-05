@@ -3,17 +3,18 @@ import 'dart:convert';
 import '../analysis/mood_analyzer.dart';
 import '../distress/distress_detector.dart';
 import '../entries/entry.dart';
+import '../entries/topic.dart';
 
 /// Version du format du fichier d'export (spec 005, « Format ») : tout changement
 /// du format l'augmente de 1.
-const exportFormatVersion = 1;
+const exportFormatVersion = 2;
 
 /// Construit le fichier d'export (glossaire : `JournalExporter`, spec 005), en
 /// code Dart pur, sans Flutter ni base.
 class JournalExporter {
   const JournalExporter();
 
-  /// JSON du format version 1 : [entries] dans n'importe quel ordre (elles sont
+  /// JSON du format version 2 (version 1 plus `topics`, spec 010, CA11) : [entries] dans n'importe quel ordre (elles sont
   /// triées de la plus ancienne à la plus récente), le degré [sensitivity] et la
   /// date de l'export [exportedAt], écrite avec son propre décalage
   /// (`DateTime.timeZoneOffset` : `+00:00` pour une date UTC).
@@ -57,6 +58,10 @@ class JournalExporter {
       'analysisStatus': entry.analysisStatus.name,
       'tags': [
         for (final tag in tags) {'kind': tag.kind.name, 'label': tag.label},
+      ],
+      // Libellés des sujets, dans l'ordre de la liste (spec 010, CA11).
+      'topics': [
+        for (final topic in topicsInListOrder(entry.topics)) topic.label,
       ],
     };
   }

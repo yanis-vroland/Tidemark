@@ -5,7 +5,7 @@ import '../../distress/guarded_save.dart';
 import '../../entries/day_grouping.dart';
 import '../../entries/entry.dart';
 import '../../entries/entry_repository.dart';
-import '../../model/model_state.dart';
+import '../../entries/topic.dart';
 import '../../model/model_downloader.dart';
 import '../../settings/settings_repository.dart';
 import '../phone_dialer.dart';
@@ -14,10 +14,11 @@ import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
 import '../widgets/error_banner.dart';
 import '../widgets/dashed_circle.dart';
+import '../widgets/entry_topics.dart';
 import '../widgets/mood_bubble.dart';
 import '../widgets/sticker.dart';
+import 'celebration_screen.dart';
 import 'help_screen.dart';
-import 'model_download_screen.dart';
 
 /// Seuil d'affichage du compteur de caractères (CA12).
 const _counterThreshold = 1800;
@@ -33,7 +34,8 @@ String _thousands(int value) {
   return buffer.toString();
 }
 
-/// Saisie d'une entrée (spec 001). Se ferme après l'enregistrement ou l'abandon.
+/// Saisie d'une entrée (spec 001). Remplacée par la célébration après un
+/// enregistrement réussi (spec 010), fermée à l'abandon.
 class EntryFormScreen extends StatefulWidget {
   const EntryFormScreen({
     super.key,
@@ -57,7 +59,8 @@ class EntryFormScreen extends StatefulWidget {
   /// Degré de sensibilité aux humeurs basses (spec 002).
   final SettingsRepository settings;
 
-  /// Modèle local : proposition après la première entrée « en attente » (spec 003).
+  /// Modèle local : proposition après la première entrée « en attente » (spec 003),
+  /// ouverte par la célébration (spec 010, CA16).
   final ModelDownloader downloader;
 
   /// Composeur, pour l'écran d'aide (spec 002).
@@ -73,6 +76,9 @@ class EntryFormScreen extends StatefulWidget {
 class _EntryFormScreenState extends State<EntryFormScreen> {
   final _text = TextEditingController();
   late int? _mood = widget.initialMood;
+
+  /// Sujets choisis (spec 010) : gardés après une erreur, repris par « Réessayer ».
+  final _topics = <Topic>{};
   bool _saving = false;
   bool _failed = false;
 
@@ -104,6 +110,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         mood: mood,
         // Sans texte saisi, l'entrée n'a pas de texte (spec 001, RM13).
         text: _hasText ? _text.text : null,
+        topics: topicsInListOrder(_topics),
         clock: widget.clock ?? DateTime.now,
       );
       if (!mounted) return;
@@ -115,15 +122,19 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             builder: (_) => HelpScreen(dialer: widget.dialer),
           ),
         );
-      } else if (await _shouldOfferModel(outcome.entry.analysisStatus)) {
-        if (!mounted) return;
+      } else {
+        // La célébration prend la place de la saisie ; c'est elle qui ouvre la
+        // proposition du modèle, ou ramène à l'accueil (spec 010, CA12, CA16).
         await Navigator.of(context).pushReplacement(
           MaterialPageRoute<void>(
-            builder: (_) => ModelDownloadScreen(downloader: widget.downloader),
+            builder: (_) => CelebrationScreen(
+              entry: outcome.entry,
+              repository: widget.repository,
+              settings: widget.settings,
+              downloader: widget.downloader,
+            ),
           ),
         );
-      } else if (mounted) {
-        Navigator.of(context).pop();
       }
     } catch (_) {
       if (mounted) {
@@ -132,23 +143,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           _failed = true;
         });
       }
-    }
-  }
-
-  /// La proposition du modèle s'ouvre d'elle-même une seule fois : après une
-  /// entrée « en attente », modèle absent (spec 003, RM31). Une erreur de lecture
-  /// du réglage ne la montre pas : elle reste accessible par les Réglages.
-  Future<bool> _shouldOfferModel(AnalysisStatus status) async {
-    if (status != AnalysisStatus.pending) return false;
-    // Modèle absent et sans échec récent : sinon l'écran s'ouvrirait sur l'échec.
-    final model = widget.downloader.current;
-    if (model is! ModelAbsent || model.failure != null) return false;
-    try {
-      if (await widget.settings.readModelOfferShown()) return false;
-      await widget.settings.setModelOfferShown();
-      return true;
-    } catch (_) {
-      return false;
     }
   }
 
@@ -285,6 +279,16 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           moodLabel(_mood!),
                           style: TidemarkTypography.headline,
                         ),
+                      const SizedBox(height: TidemarkSpacing.space6),
+                      // Ce qui a compté, choisi en un geste (spec 010, CA1 à CA3).
+                      TopicToggles(
+                        selected: _topics,
+                        onToggled: _saving
+                            ? null
+                            : (topic) => setState(() {
+                                if (!_topics.remove(topic)) _topics.add(topic);
+                              }),
+                      ),
                       const SizedBox(height: TidemarkSpacing.space6),
                       Text(
                         'Ce que tu veux en dire (facultatif)',

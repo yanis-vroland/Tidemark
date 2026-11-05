@@ -8,6 +8,7 @@ import '../theme/tidemark_colors.dart';
 import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
 import '../widgets/entry_tags_section.dart';
+import '../widgets/entry_topics.dart';
 import '../widgets/mood_bubble.dart';
 
 /// Détail d'une entrée et sa suppression (spec 001). Aucun moyen de la modifier
@@ -215,6 +216,9 @@ class _EntryDetailScreenState extends State<EntryDetailScreen> {
                             const SizedBox(height: TidemarkSpacing.space6),
                             Text(text, style: TidemarkTypography.body),
                           ],
+                          // Sujets choisis à la saisie, avant les étiquettes du
+                          // modèle (spec 010, CA7) ; ils ne changent plus (RM15).
+                          EntryTopicsSection(topics: entry.topics),
                           // L'entrée relue à chaque changement : ses étiquettes
                           // apparaissent dès que l'analyse se termine (CA18).
                           StreamBuilder<Entry?>(
