@@ -4,19 +4,25 @@
 
 Journal d'humeur mobile (Flutter, iOS et Android) dont l'IA tourne entièrement sur le téléphone : un modèle de langage local étiquette chaque entrée et met en mots le bilan de la semaine, sans qu'aucune donnée ne quitte l'appareil, sauf l'export que la personne déclenche elle-même.
 
-Projet de démonstration, fictif, planifié sur 3 semaines (13 octobre → 3 novembre 2026) et construit avec une chaîne de développement agentique ; les six fonctionnalités sont mergées depuis le 16 octobre. Toutes les données montrées sont fictives.
+Projet de démonstration, fictif, planifié sur 3 semaines (13 octobre → 3 novembre 2026) et construit avec une chaîne de développement agentique ; les six fonctionnalités sont mergées depuis le 16 octobre, puis l'interface a été refondue le 5 novembre (« la marée de ton humeur » : bulles d'humeur animées, plage de la semaine, coquillages). Toutes les données montrées sont fictives.
 
 ## Démo
 
-<p align="center"><img src="docs/demo/tidemark.gif" width="320" alt="Démo : écran de lancement avec le logo, liste vide, saisie d'une entrée « Bien » avec un court texte, analyse sur le téléphone, puis les étiquettes solitude, joie, nature et travail apparaissent ; le détail de l'entrée les range en émotions et thèmes, avec la mention « Analysé sur ton téléphone »."></p>
+<p align="center"><img src="docs/demo/tidemark.gif" width="320" alt="Démo : bienvenue au premier lancement ; accueil du soir animé avec la lune, un voilier et le check-in « Comment va ta marée ce soir ? » ; choix de la bulle « Bien », des sujets amis et nature et d'une phrase ; coquillage ramassé, cinquième de la semaine ; plage de la semaine ; détail de l'entrée ; onglet Semaine avec la marée des humeurs et les chiffres du bilan."></p>
 
-<p align="center"><em>Une entrée, étiquetée par le modèle local Qwen2.5-1.5B, sans réseau. Enregistré sur le simulateur iOS (iPhone 17 Pro, processeur du Mac) avec le vrai modèle ; l'attente de l'analyse, 13 s sur le simulateur, est accélérée 4 fois, et le téléchargement du modèle est coupé.</em></p>
+<p align="center"><em>Une soirée dans Tidemark, sur le simulateur iOS (iPhone 17 Pro), avec l'app réelle et des données fictives. Les touchers et la frappe sont accélérés (×1,5 et ×2) ; le modèle local n'est pas téléchargé dans cette démo, d'où l'absence d'étiquettes. <a href="docs/demo/tidemark.mp4">Vidéo en MP4</a> (31 s).</em></p>
 
-Captures de l'app réelle sur l'émulateur Android (Pixel 7, API 35), modèle local chargé :
+Captures de l'app réelle sur le simulateur iOS, refonte « la marée de ton humeur » ([specs 008 à 010](docs/specs/)) :
 
-| Entrée étiquetée par le modèle local | Même écran, thème sombre | Bilan de la semaine | Réglages |
+| Bienvenue | Accueil du soir | Saisie | Coquillage ramassé |
 | --- | --- | --- | --- |
-| ![Détail d'une entrée avec ses étiquettes](docs/captures/android-detail.png) | ![Détail d'une entrée, thème sombre](docs/captures/android-detail-sombre.png) | ![Bilan de la semaine](docs/captures/android-bilan.png) | ![Réglages : modèle et écran d'aide](docs/captures/android-reglages.png) |
+| ![Écran de bienvenue](docs/captures/ios-bienvenue.png) | ![Accueil : check-in et plage de la semaine](docs/captures/ios-accueil.png) | ![Saisie : bulle Bien et sujets](docs/captures/ios-saisie.png) | ![Célébration après l'enregistrement](docs/captures/ios-coquillage.png) |
+
+| Détail d'une entrée | Ta semaine | Accueil, thème sombre |
+| --- | --- | --- |
+| ![Détail : bulle, texte et sujets](docs/captures/ios-detail.png) | ![Onglet Semaine : marée et chiffres](docs/captures/ios-semaine.png) | ![Accueil en thème sombre](docs/captures/ios-accueil-sombre.png) |
+
+L'étiquetage par le modèle local, sur l'ancien design, reste visible dans les [captures Android du 16 octobre](docs/captures/).
 
 Chaque écran a d'abord été dessiné en maquette (artefact Claude, sur la charte du projet), validé avec sa spec, puis transcrit en Flutter : sources HTML dans [`docs/maquettes/`](docs/maquettes/). Les captures PNG des maquettes, pour les comparer à l'app côte à côte, restent à produire ([issue #20](https://github.com/yanis-vroland/Tidemark/issues/20)).
 
@@ -75,7 +81,7 @@ Spike du moteur d'IA, 20 entrées fictives en français par configuration ([ADR-
 ## Limites
 
 - **Aucun Android physique** : Android n'est vérifié qu'en fonctionnement, sur émulateur, en processeur seul. Les performances ne valent que pour l'iPhone 15 Pro.
-- **Tests humains** : positifs le 2026-10-19 pour les six fonctionnalités et les PR #43 (marquage en échec) et #44 (empreinte par le système), toutes deux mergées avant leur test humain ([cahier des charges](docs/cahier-des-charges-fonctionnel.md), statuts). Le temps de l'empreinte de la #44 n'est pas mesuré sur l'iPhone.
+- **Tests humains** : positifs le 2026-10-19 pour les six fonctionnalités et les PR #43 (marquage en échec) et #44 (empreinte par le système), toutes deux mergées avant leur test humain ([cahier des charges](docs/cahier-des-charges-fonctionnel.md), statuts). Le temps de l'empreinte de la #44 n'est pas mesuré sur l'iPhone. La refonte ludique (PR #49) a un test humain positif sur l'iPhone (2026-11-05), pas encore sur l'émulateur Android.
 - **Intégrité du moteur et du modèle, et son coût** : llama.cpp est épinglé par SHA-256 (`scripts/fetch-llama-native.sh`) ; le hook de `llamadart` ne télécharge plus rien lui-même. Le modèle est revérifié par SHA-256 une fois par lancement, avant son premier chargement, par la bibliothèque du système (CryptoKit sur iOS, `MessageDigest` sur Android), avec repli sur un calcul Dart : environ 1 s sur un Mac M3, contre 9,4 à 23,9 s en Dart selon la charge du poste. Non mesuré sur l'iPhone ni sur Android ; ce temps retarde d'autant la première analyse ou le premier bilan d'un lancement. Un fichier remplacé entre cette vérification et le chargement passerait. Le garde-fou réseau ne lit que le Dart : pour le code natif (llama.cpp, SQLite3MultipleCiphers), seule la provenance est contrôlée ([ADR-004](docs/adr/004-integrite-du-moteur-et-du-modele.md)).
 - **Qualité de l'étiquetage** limitée par un modèle de 1,5 milliard de paramètres (voir « Mesures »).
 - **Détection de détresse par règles seules** : une liste de termes rate les formulations qu'elle ne prévoit pas. Un classifieur local est une piste d'amélioration, écartée pour l'instant parce que ses faux négatifs seraient difficiles à tester.
@@ -87,11 +93,12 @@ Spike du moteur d'IA, 20 entrées fictives en français par configuration ([ADR-
 
 Construit avec la chaîne [agentic-dev-workflow](https://github.com/yanis-vroland/agentic-dev-workflow) : un agent de code (Claude Code) exécute, l'humain cadre, valide et merge.
 
-- **Cadrage écrit** : [plan](docs/plan.md), [cahier des charges](docs/cahier-des-charges-fonctionnel.md), 7 [specs](docs/specs/) (223 critères d'acceptation), chacune avec sa maquette, et 5 [ADR](docs/adr/), tous acceptés.
-- **Test-first** : les tests sont écrits à partir des critères d'acceptation et committés rouges avant l'implémentation. 1 946 tests (86 fichiers), aucun ne charge le vrai modèle.
+- **Cadrage écrit** : [plan](docs/plan.md), [cahier des charges](docs/cahier-des-charges-fonctionnel.md), 10 [specs](docs/specs/) (290 critères d'acceptation), chacune avec sa maquette, et 5 [ADR](docs/adr/), tous acceptés.
+- **Test-first** : les tests sont écrits à partir des critères d'acceptation et committés rouges avant l'implémentation. 2 514 tests (111 fichiers), aucun ne charge le vrai modèle.
 - **Garde-fous testés par mutation** : une protection (aucune couleur en dur, aucun code réseau hors du téléchargeur, partage seulement sur un appui, file d'analyse…) est désactivée une fois pour vérifier qu'un test échoue. Des mutations ont survécu (trois sur l'étiquetage, une sur 31 pour l'export et la suppression) : des tests ont été ajoutés pour les tuer. Résultats dans les journaux.
 - **Revues IA** : revue IA en CI à l'ouverture de chaque PR depuis la #2, subagents `reviewer` et `security-reviewer` avant les PR de fonctionnalité, et un commentaire « Réponse à la revue IA » qui donne une suite à chaque point. Une PR (#23) a été mergée avant ses revues : rattrapées par les PR #24 et #26. La résolution d'un conflit au merge de la PR #37 a perdu du code et des phrases de spec, et laissé deux numéros de critères en double : constaté par la CI de `main`, réparé par la PR #41.
-- **Traçabilité** : 38 PR mergées au 2026-10-19, un journal par branche dans [`docs/journal/`](docs/journal/) ; le dépôt est la seule mémoire de l'agent. Certaines entrées renvoient à `docs/projets/`, notes privées de l'espace de travail de l'auteur, hors de ce dépôt.
+- **Refonte en autonomie, agents en parallèle** (specs 008 à 010, [PR #49](https://github.com/yanis-vroland/Tidemark/pull/49)) : maquette validée dans un artefact Claude, plan dans une [issue](https://github.com/yanis-vroland/Tidemark/issues/48), trois specs, tests rouges committés pour chacune, puis deux agents qui implémentent deux specs en même temps dans des copies de travail isolées, fusionnées ensuite. Revues `reviewer` et `security-reviewer`, et 12 mutations des nouvelles protections, toutes tuées (réduction des animations, écran d'aide sans élément ludique, jamais de célébration en cas de détresse…).
+- **Traçabilité** : 40 PR mergées au 2026-11-05, un journal par branche dans [`docs/journal/`](docs/journal/) ; le dépôt est la seule mémoire de l'agent. Certaines entrées renvoient à `docs/projets/`, notes privées de l'espace de travail de l'auteur, hors de ce dépôt.
 
 ## Licence
 

@@ -175,8 +175,8 @@ Branche : `feat/refonte-ludique`, [issue #48](https://github.com/yanis-vroland/T
 
 - [x] Maquette de la refonte dans l'artefact « Design » *Tidemark : tous les écrans*, validée par Yanis (« on garde tout ») ; copie dans `docs/maquettes/008-refonte-ludique/`.
 - [x] Specs [008](specs/008-charte-ludique.md) (charte ludique), [009](specs/009-accueil-et-navigation.md) (accueil et navigation), [010](specs/010-ce-qui-a-compte-et-coquillage.md) (sujets et célébration), au statut « proposée » : Yanis a demandé le plan, les specs et le développement en autonomie, validés ensemble au merge.
-- [ ] Tests d'abord (`test-writer`), committés rouges, puis implémentation jusqu'au vert ; garde-fous contrôlés par mutation.
-- [ ] Revues `reviewer` et `security-reviewer` ; PR en brouillon jusqu'au test humain.
+- [x] Tests d'abord (`test-writer`), committés rouges, puis implémentation jusqu'au vert ; garde-fous contrôlés par mutation (12 sur 12 tuées). Specs 009 et 010 implémentées en parallèle par deux agents en copies isolées.
+- [x] Revues `reviewer` et `security-reviewer`, constats traités ; PR #49 mergée par Yanis le 2026-11-05. Test humain positif sur l'iPhone (Yanis, 2026-11-05), sans boucle négative ; émulateur Android non testé.
 - [ ] Après le merge : README, captures, visuel GitHub et vidéo de démo refaits sur le nouveau design **[Yanis valide]**.
 
 ## Décisions

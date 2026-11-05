@@ -157,7 +157,7 @@ Règles tranchées le 2026-10-16 à partir des questions ouvertes des specs 004 
 - RM60 : dans la section « Étiquettes » du détail, chaque changement de statut de l'analyse est annoncé au lecteur d'écran : l'apparition de « Analyse en cours sur ton téléphone… », puis la fin de l'analyse, avec les étiquettes ou « Aucune étiquette n'a été proposée », une seule fois ; ouvrir le détail d'une entrée déjà analysée n'annonce rien. Dans la liste, la mention d'analyse n'a pas d'annonce propre : elle se lit avec le libellé de la carte (spec : [`docs/specs/004-etiquetage-automatique.md`](specs/004-etiquetage-automatique.md), CA28).
 - RM61 : partout où l'app écrit une date (bilan, intertitres de la liste, détail d'une entrée), le premier jour d'un mois s'écrit « 1er », selon l'usage français (« Du lundi 26 octobre au dimanche 1er novembre », « Dimanche 1er novembre »), y compris dans le libellé lu par le lecteur d'écran ; les autres jours restent en chiffres seuls (specs : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md), CA38 ; [`docs/specs/001-saisie-et-liste-des-entrees.md`](specs/001-saisie-et-liste-des-entrees.md), CA3).
 
-Règles de la refonte ludique (2026-11-05), rédigées par l'agent par délégation de Yanis, à valider au merge de la PR de l'[issue #48](https://github.com/yanis-vroland/Tidemark/issues/48) :
+Règles de la refonte ludique (2026-11-05), rédigées par l'agent par délégation de Yanis, validées au merge de la PR #49 ([issue #48](https://github.com/yanis-vroland/Tidemark/issues/48)) :
 
 - RM62 : à la saisie, la personne peut choisir de 0 à 6 sujets dans une liste fixe ; ils sont enregistrés avec l'entrée et ne changent jamais après (RM15). Ils ne sont transmis ni au modèle (RM36) ni au détecteur de détresse, et n'entrent pas dans le bilan (spec : [`docs/specs/010-ce-qui-a-compte-et-coquillage.md`](specs/010-ce-qui-a-compte-et-coquillage.md)).
 - RM63 : après un enregistrement sans détresse, l'app montre une célébration : complète pour une humeur de 3 à 5, douce (sans animation ni rang) pour une humeur de 1 ou 2. Jamais de célébration en cas de détresse : l'écran d'aide s'affiche directement (RM7). La célébration ne compare jamais à un objectif ni à une série (spec : [`docs/specs/010-ce-qui-a-compte-et-coquillage.md`](specs/010-ce-qui-a-compte-et-coquillage.md)).
@@ -191,9 +191,9 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 | MVP (lot H) | Export et suppression totale | [005](specs/005-export-et-suppression-totale.md) | livrée (PR #28, test humain positif le 2026-10-19) |
 | Si le temps le permet (lot I) | Bilan de la semaine | [006](specs/006-bilan-de-la-semaine.md) | livrée (PR #27, test humain positif le 2026-10-19) |
 | Publication | Logo : icône, écran de lancement, état vide de la liste | [007](specs/007-logo.md) | implémentée (PR #47 mergée), test humain en attente |
-| Refonte ludique | Charte v2, bulles de marée, mouvement, restyle des écrans | [008](specs/008-charte-ludique.md) | spec proposée ; implémentée dans la PR de l'issue #48, test humain en attente |
-| Refonte ludique | Bienvenue, accueil (check-in, plage), barre de navigation, en-tête du bilan | [009](specs/009-accueil-et-navigation.md) | spec proposée ; implémentée dans la PR de l'issue #48, test humain en attente |
-| Refonte ludique | Sujets « Ce qui a compté », coquillage ramassé | [010](specs/010-ce-qui-a-compte-et-coquillage.md) | spec proposée ; implémentée dans la PR de l'issue #48, test humain en attente |
+| Refonte ludique | Charte v2, bulles de marée, mouvement, restyle des écrans | [008](specs/008-charte-ludique.md) | livrée (PR #49, test humain positif sur l'iPhone le 2026-11-05 ; émulateur Android non testé) |
+| Refonte ludique | Bienvenue, accueil (check-in, plage), barre de navigation, en-tête du bilan | [009](specs/009-accueil-et-navigation.md) | livrée (PR #49, test humain positif sur l'iPhone le 2026-11-05 ; émulateur Android non testé) |
+| Refonte ludique | Sujets « Ce qui a compté », coquillage ramassé | [010](specs/010-ce-qui-a-compte-et-coquillage.md) | livrée (PR #49, test humain positif sur l'iPhone le 2026-11-05 ; émulateur Android non testé) |
 
 ## Questions ouvertes
 

@@ -1,6 +1,6 @@
 # Spec 010 : ce qui a compté, et coquillage ramassé
 
-Statut : proposée (rédigée par l'agent en autonomie, à la demande de Yanis du 2026-11-05 ; validation au merge de la PR, [issue #48](https://github.com/yanis-vroland/Tidemark/issues/48))
+Statut : validée (merge de la PR #49 par Yanis, 2026-11-05 ; rédigée par l'agent en autonomie, à la demande de Yanis, [issue #48](https://github.com/yanis-vroland/Tidemark/issues/48))
 Date : 2026-11-05
 
 ## Besoin
