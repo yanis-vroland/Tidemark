@@ -7,6 +7,8 @@ import 'package:sqlite3/sqlite3.dart' as sqlite;
 import 'package:tidemark/distress/distress_detector.dart';
 import 'package:tidemark/storage/app_database.dart';
 
+import '../support/schema_v5_checks.dart';
+
 const validKey =
     '00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff';
 
@@ -174,6 +176,7 @@ void main() {
       expect(await settings.readLowMoodSensitivity(), LowMoodSensitivity.high);
       expect(await settings.readModelOfferShown(), isFalse);
       expect(db.schemaVersion, greaterThanOrEqualTo(3));
+      await expectSchema5Additions(db);
     });
 
     test('migration : après le passage en version 3, la proposition se marque '
@@ -206,6 +209,7 @@ void main() {
         await settings.readLowMoodSensitivity(),
         LowMoodSensitivity.normal,
       );
+      await expectSchema5Additions(db);
       await settings.setModelOfferShown();
       expect(await settings.readModelOfferShown(), isTrue);
     });
@@ -239,6 +243,7 @@ void main() {
         'Très ancienne.',
       );
       expect(await settings.readModelOfferShown(), isFalse);
+      await expectSchema5Additions(db);
       await settings.setModelOfferShown();
       await settings.setLowMoodSensitivity(LowMoodSensitivity.low);
       expect(await settings.readModelOfferShown(), isTrue);

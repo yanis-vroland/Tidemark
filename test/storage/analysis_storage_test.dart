@@ -12,6 +12,7 @@ import 'package:tidemark/entries/entry.dart';
 import 'package:tidemark/storage/app_database.dart';
 
 import '../support/analysis_harness.dart';
+import '../support/schema_v5_checks.dart';
 
 const validKey =
     '00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff';
@@ -486,6 +487,7 @@ void main() {
         );
         expect(await settings.readModelOfferShown(), isTrue);
         expect(await countTags(db), 0);
+        await expectSchema5Additions(db);
       });
 
       test('après la migration, une entrée ancienne peut être étiquetée, et '
@@ -544,6 +546,7 @@ void main() {
         final settings = DriftSettingsRepository(db);
         expect(await settings.readLowMoodSensitivity(), LowMoodSensitivity.low);
         expect(await settings.readModelOfferShown(), isFalse);
+        await expectSchema5Additions(db);
       });
 
       test(
@@ -569,6 +572,7 @@ void main() {
 
           final db = await AppDatabase.openEncrypted(file, validKey);
           addTearDown(db.close);
+          await expectSchema5Additions(db);
           final repo = DriftEntryRepository(db);
           final entry = (await repo.watchEntries().first).single;
           await repo.saveAnalysis(entry.id, Tagged([theme('maison')]));

@@ -14,6 +14,7 @@ import '../motion/ambient_motion.dart';
 import '../theme/tidemark_colors.dart';
 import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
+import '../widgets/shell_painter.dart';
 import '../widgets/sticker.dart';
 import 'model_download_screen.dart';
 
@@ -225,7 +226,7 @@ class _CelebrationScreenState extends State<CelebrationScreen>
                             ExcludeSemantics(
                               child: CustomPaint(
                                 size: _softShellSize,
-                                painter: _ShellPainter(
+                                painter: ShellPainter(
                                   color: colors.moodColor(mood),
                                 ),
                               ),
@@ -360,7 +361,7 @@ class _WeekLine extends StatelessWidget {
                   for (final mood in shown)
                     CustomPaint(
                       size: _rowShellSize,
-                      painter: _ShellPainter(color: colors.moodColor(mood)),
+                      painter: ShellPainter(color: colors.moodColor(mood)),
                     ),
                   if (more > 0)
                     Text(
@@ -400,7 +401,7 @@ class _PoppingShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final shell = CustomPaint(
       size: _bigShellSize,
-      painter: _ShellPainter(color: color, colors: colors),
+      painter: ShellPainter(color: color, colors: colors),
     );
     return ExcludeSemantics(
       child: AnimatedBuilder(
@@ -432,71 +433,6 @@ class _PoppingShell extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Coquillage en éventail (maquette `Enregistre`, boîte de 100 × 90). Avec
-/// [colors], il porte ses stries et deux éclats ; sans, c'est une silhouette pleine.
-class _ShellPainter extends CustomPainter {
-  _ShellPainter({required this.color, this.colors});
-
-  final Color color;
-  final TidemarkColors? colors;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.save();
-    canvas.scale(size.width / 100, size.height / 90);
-    final shell = Path()
-      ..moveTo(14, 30)
-      ..quadraticBezierTo(17, 14, 28, 12)
-      ..quadraticBezierTo(34, 6, 42, 9)
-      ..quadraticBezierTo(50, 4, 58, 9)
-      ..quadraticBezierTo(66, 6, 72, 12)
-      ..quadraticBezierTo(83, 14, 86, 30)
-      ..lineTo(50, 84)
-      ..close();
-    canvas.drawPath(shell, Paint()..color = color);
-    final colors = this.colors;
-    if (colors != null) {
-      final ridge = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.2
-        ..strokeCap = StrokeCap.round
-        ..color = colors.bubbleShine.withValues(alpha: 0.7);
-      for (final top in const [
-        Offset(24, 20),
-        Offset(36, 12),
-        Offset(50, 9),
-        Offset(64, 12),
-        Offset(76, 20),
-      ]) {
-        canvas.drawLine(const Offset(50, 82), top, ridge);
-      }
-      final spark = Paint()..color = colors.moon;
-      canvas.drawPath(_spark(const Offset(93, 11), 5), spark);
-      canvas.drawPath(_spark(const Offset(6, 47.4), 3.4), spark);
-    }
-    canvas.restore();
-  }
-
-  /// Éclat à quatre branches centré sur [c], de demi-taille [r].
-  static Path _spark(Offset c, double r) {
-    final q = r * 0.3;
-    return Path()
-      ..moveTo(c.dx, c.dy - r)
-      ..lineTo(c.dx + q, c.dy - q)
-      ..lineTo(c.dx + r, c.dy)
-      ..lineTo(c.dx + q, c.dy + q)
-      ..lineTo(c.dx, c.dy + r)
-      ..lineTo(c.dx - q, c.dy + q)
-      ..lineTo(c.dx - r, c.dy)
-      ..lineTo(c.dx - q, c.dy - q)
-      ..close();
-  }
-
-  @override
-  bool shouldRepaint(_ShellPainter old) =>
-      old.color != color || old.colors != colors;
 }
 
 /// Bulles d'air de la célébration : abscisse en part de la largeur, diamètre, et

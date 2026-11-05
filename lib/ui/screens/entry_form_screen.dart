@@ -8,10 +8,12 @@ import '../../entries/entry_repository.dart';
 import '../../entries/topic.dart';
 import '../../model/model_downloader.dart';
 import '../../settings/settings_repository.dart';
+import '../motion/ambient_motion.dart';
 import '../phone_dialer.dart';
 import '../theme/tidemark_colors.dart';
 import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
+import '../widgets/air_bubbles.dart';
 import '../widgets/error_banner.dart';
 import '../widgets/dashed_circle.dart';
 import '../widgets/entry_topics.dart';
@@ -73,7 +75,8 @@ class EntryFormScreen extends StatefulWidget {
   State<EntryFormScreen> createState() => _EntryFormScreenState();
 }
 
-class _EntryFormScreenState extends State<EntryFormScreen> {
+class _EntryFormScreenState extends State<EntryFormScreen>
+    with SingleTickerProviderStateMixin {
   final _text = TextEditingController();
   late int? _mood = widget.initialMood;
 
@@ -82,6 +85,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   bool _saving = false;
   bool _failed = false;
 
+  /// Bulles d'air qui montent, en ambiance seulement (spec 008, « Mouvement »).
+  AnimationController? _air;
+
   @override
   void initState() {
     super.initState();
@@ -89,7 +95,19 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _air = syncAmbientController(
+      context: context,
+      vsync: this,
+      current: _air,
+      period: entryAirPeriod,
+    );
+  }
+
+  @override
   void dispose() {
+    _air?.dispose();
     _text.dispose();
     super.dispose();
   }
@@ -187,215 +205,230 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         backgroundColor: _mood == null
             ? colors.surface
             : colors.moodNightColor(_mood!),
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: TidemarkSpacing.space4,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        crossAxisAlignment: WrapCrossAlignment.center,
+        body: Stack(
+          children: [
+            // Décor sous le contenu : jamais annoncé ni touchable, absent
+            // sans ambiance ou sous « réduire les animations ». Toujours un
+            // enfant à cette place : le contenu garde son état (focus du texte)
+            // quand l'ambiance change.
+            Positioned.fill(
+              child: _air == null
+                  ? const SizedBox.shrink()
+                  : AirBubbles(animation: _air!),
+            ),
+            SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: TidemarkSpacing.space4,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          TextButton(
-                            onPressed: _saving ? null : _cancel,
-                            child: const Text('Annuler'),
-                          ),
-                          Text(
-                            '${weekdayAndDate(now)} · ${timeLabel(now)}',
-                            style: TidemarkTypography.caption.copyWith(
-                              color: colors.inkMuted,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: TidemarkSpacing.space4),
-                      Text(
-                        'Comment ça va ?',
-                        style: Theme.of(context).textTheme.displaySmall,
-                      ),
-                      if (_failed) ...[
-                        const SizedBox(height: TidemarkSpacing.space4),
-                        const ErrorBanner(
-                          title: "L'entrée n'a pas été enregistrée",
-                          message:
-                              'Le stockage du téléphone est peut-être plein ou '
-                              'indisponible. Libère de la place, puis réessaie : '
-                              'ton texte est conservé.',
-                        ),
-                      ],
-                      const SizedBox(height: TidemarkSpacing.space4),
-                      Center(
-                        child: _mood == null
-                            ? const _MoodPlaceholder()
-                            : MoodBubble(
-                                mood: _mood!,
-                                size: TidemarkSize.bubbleXl,
+                          Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              TextButton(
+                                onPressed: _saving ? null : _cancel,
+                                child: const Text('Annuler'),
                               ),
-                      ),
-                      const SizedBox(height: TidemarkSpacing.space4),
-                      Text(
-                        'Ton humeur, de 1 à 5',
-                        style: TidemarkTypography.label.copyWith(
-                          color: colors.inkMuted,
-                        ),
-                      ),
-                      const SizedBox(height: TidemarkSpacing.space3),
-                      _MoodSelector(
-                        selected: _mood,
-                        onSelected: _saving
-                            ? null
-                            : (mood) => setState(() => _mood = mood),
-                      ),
-                      const SizedBox(height: TidemarkSpacing.space2),
-                      Row(
-                        children: [
-                          for (final (index, label) in [
-                            moodLabels.first,
-                            moodLabels.last,
-                          ].indexed)
-                            Expanded(
-                              child: Text(
-                                label,
-                                textAlign: index == 0
-                                    ? TextAlign.start
-                                    : TextAlign.end,
+                              Text(
+                                '${weekdayAndDate(now)} · ${timeLabel(now)}',
                                 style: TidemarkTypography.caption.copyWith(
                                   color: colors.inkMuted,
                                 ),
                               ),
+                            ],
+                          ),
+                          const SizedBox(height: TidemarkSpacing.space4),
+                          Text(
+                            'Comment ça va ?',
+                            style: Theme.of(context).textTheme.displaySmall,
+                          ),
+                          if (_failed) ...[
+                            const SizedBox(height: TidemarkSpacing.space4),
+                            const ErrorBanner(
+                              title: "L'entrée n'a pas été enregistrée",
+                              message:
+                                  'Le stockage du téléphone est peut-être plein ou '
+                                  'indisponible. Libère de la place, puis réessaie : '
+                                  'ton texte est conservé.',
                             ),
-                        ],
-                      ),
-                      const SizedBox(height: TidemarkSpacing.space2),
-                      if (_mood != null)
-                        Text(
-                          moodLabel(_mood!),
-                          style: TidemarkTypography.headline,
-                        ),
-                      const SizedBox(height: TidemarkSpacing.space6),
-                      // Ce qui a compté, choisi en un geste (spec 010, CA1 à CA3).
-                      TopicToggles(
-                        selected: _topics,
-                        onToggled: _saving
-                            ? null
-                            : (topic) => setState(() {
-                                if (!_topics.remove(topic)) _topics.add(topic);
-                              }),
-                      ),
-                      const SizedBox(height: TidemarkSpacing.space6),
-                      Text(
-                        'Ce que tu veux en dire (facultatif)',
-                        style: TidemarkTypography.label.copyWith(
-                          color: colors.inkMuted,
-                        ),
-                      ),
-                      const SizedBox(height: TidemarkSpacing.space2),
-                      TextField(
-                        controller: _text,
-                        enabled: !_saving,
-                        minLines: 5,
-                        maxLines: null,
-                        maxLength: maxTextLength,
-                        // Le clavier n'apprend pas les mots du journal (RM1).
-                        enableIMEPersonalizedLearning: false,
-                        maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                        buildCounter: (
-                          context, {
-                          required currentLength,
-                          required isFocused,
-                          required maxLength,
-                        }) => null,
-                        style: TidemarkTypography.body.copyWith(
-                          color: colors.ink,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: 'Une phrase suffit, ou rien du tout.',
-                          hintMaxLines: 5,
-                          filled: true,
-                          fillColor: colors.surfaceRaised,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(
-                              TidemarkRadius.radiusSm,
+                          ],
+                          const SizedBox(height: TidemarkSpacing.space4),
+                          Center(
+                            child: _mood == null
+                                ? const _MoodPlaceholder()
+                                : MoodBubble(
+                                    mood: _mood!,
+                                    size: TidemarkSize.bubbleXl,
+                                  ),
+                          ),
+                          const SizedBox(height: TidemarkSpacing.space4),
+                          Text(
+                            'Ton humeur, de 1 à 5',
+                            style: TidemarkTypography.label.copyWith(
+                              color: colors.inkMuted,
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: TidemarkSpacing.space2),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.lock_outline,
-                            size: TidemarkSize.iconSm,
-                            color: colors.inkMuted,
+                          const SizedBox(height: TidemarkSpacing.space3),
+                          _MoodSelector(
+                            selected: _mood,
+                            onSelected: _saving
+                                ? null
+                                : (mood) => setState(() => _mood = mood),
                           ),
-                          const SizedBox(width: TidemarkSpacing.space1),
-                          Flexible(
-                            child: Text(
-                              "Chiffré et gardé sur ton téléphone. Rien n'est envoyé.",
-                              style: TidemarkTypography.caption.copyWith(
-                                color: colors.inkMuted,
+                          const SizedBox(height: TidemarkSpacing.space2),
+                          Row(
+                            children: [
+                              for (final (index, label) in [
+                                moodLabels.first,
+                                moodLabels.last,
+                              ].indexed)
+                                Expanded(
+                                  child: Text(
+                                    label,
+                                    textAlign: index == 0
+                                        ? TextAlign.start
+                                        : TextAlign.end,
+                                    style: TidemarkTypography.caption.copyWith(
+                                      color: colors.inkMuted,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: TidemarkSpacing.space2),
+                          if (_mood != null)
+                            Text(
+                              moodLabel(_mood!),
+                              style: TidemarkTypography.headline,
+                            ),
+                          const SizedBox(height: TidemarkSpacing.space6),
+                          // Ce qui a compté, choisi en un geste (spec 010, CA1 à CA3).
+                          TopicToggles(
+                            selected: _topics,
+                            onToggled: _saving
+                                ? null
+                                : (topic) => setState(() {
+                                    if (!_topics.remove(topic)) {
+                                      _topics.add(topic);
+                                    }
+                                  }),
+                          ),
+                          const SizedBox(height: TidemarkSpacing.space6),
+                          Text(
+                            'Ce que tu veux en dire (facultatif)',
+                            style: TidemarkTypography.label.copyWith(
+                              color: colors.inkMuted,
+                            ),
+                          ),
+                          const SizedBox(height: TidemarkSpacing.space2),
+                          TextField(
+                            controller: _text,
+                            enabled: !_saving,
+                            minLines: 5,
+                            maxLines: null,
+                            maxLength: maxTextLength,
+                            // Le clavier n'apprend pas les mots du journal (RM1).
+                            enableIMEPersonalizedLearning: false,
+                            maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                            buildCounter: (
+                              context, {
+                              required currentLength,
+                              required isFocused,
+                              required maxLength,
+                            }) => null,
+                            style: TidemarkTypography.body.copyWith(
+                              color: colors.ink,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Une phrase suffit, ou rien du tout.',
+                              hintMaxLines: 5,
+                              filled: true,
+                              fillColor: colors.surfaceRaised,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  TidemarkRadius.radiusSm,
+                                ),
                               ),
                             ),
                           ),
+                          const SizedBox(height: TidemarkSpacing.space2),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.lock_outline,
+                                size: TidemarkSize.iconSm,
+                                color: colors.inkMuted,
+                              ),
+                              const SizedBox(width: TidemarkSpacing.space1),
+                              Flexible(
+                                child: Text(
+                                  "Chiffré et gardé sur ton téléphone. Rien n'est envoyé.",
+                                  style: TidemarkTypography.caption.copyWith(
+                                    color: colors.inkMuted,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  TidemarkSpacing.space4,
-                  TidemarkSpacing.space3,
-                  TidemarkSpacing.space4,
-                  TidemarkSpacing.space4,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (length >= _counterThreshold) ...[
-                      Text(
-                        '${_thousands(length)} / ${_thousands(maxTextLength)}',
-                        style: TidemarkTypography.caption.copyWith(
-                          color: colors.inkMuted,
-                        ),
-                      ),
-                      const SizedBox(height: TidemarkSpacing.space2),
-                    ],
-                    if (_mood == null) ...[
-                      Text(
-                        'Choisis une humeur pour enregistrer.',
-                        textAlign: TextAlign.center,
-                        style: TidemarkTypography.caption.copyWith(
-                          color: colors.inkMuted,
-                        ),
-                      ),
-                      const SizedBox(height: TidemarkSpacing.space2),
-                    ],
-                    PressShadow(
-                      child: FilledButton(
-                        onPressed: _mood == null || _saving ? null : _save,
-                        child: Text(
-                          _saving
-                              ? 'Enregistrement…'
-                              : _failed
-                              ? 'Réessayer'
-                              : 'Enregistrer',
-                        ),
-                      ),
                     ),
-                  ],
-                ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      TidemarkSpacing.space4,
+                      TidemarkSpacing.space3,
+                      TidemarkSpacing.space4,
+                      TidemarkSpacing.space4,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (length >= _counterThreshold) ...[
+                          Text(
+                            '${_thousands(length)} / ${_thousands(maxTextLength)}',
+                            style: TidemarkTypography.caption.copyWith(
+                              color: colors.inkMuted,
+                            ),
+                          ),
+                          const SizedBox(height: TidemarkSpacing.space2),
+                        ],
+                        if (_mood == null) ...[
+                          Text(
+                            'Choisis une humeur pour enregistrer.',
+                            textAlign: TextAlign.center,
+                            style: TidemarkTypography.caption.copyWith(
+                              color: colors.inkMuted,
+                            ),
+                          ),
+                          const SizedBox(height: TidemarkSpacing.space2),
+                        ],
+                        PressShadow(
+                          child: FilledButton(
+                            onPressed: _mood == null || _saving ? null : _save,
+                            child: Text(
+                              _saving
+                                  ? 'Enregistrement…'
+                                  : _failed
+                                  ? 'Réessayer'
+                                  : 'Enregistrer',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

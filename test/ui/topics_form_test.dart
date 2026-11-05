@@ -1,6 +1,7 @@
 // Section « Ce qui a compté » de la saisie (spec 010, CA1 à CA5, CA15, CA20) : six
 // sujets en autocollants à bascule, enregistrés avec l'entrée. Dépôt factice.
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show SemanticsNode;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/entries/entry.dart';
 import 'package:tidemark/entries/topic.dart';
@@ -145,6 +146,32 @@ void main() {
       );
     });
 
+    formTest('CA3 : le groupe des six bascules porte le titre « Ce qui a '
+        'compté »', (tester) async {
+      await showForm(tester);
+
+      /// Premier ancêtre sémantique de [node] au libellé du titre.
+      SemanticsNode? titledGroupOf(SemanticsNode node) {
+        for (var n = node.parent; n != null; n = n.parent) {
+          if (n.label == topicsTitle) return n;
+        }
+        return null;
+      }
+
+      final groups = {
+        for (final topic in Topic.values)
+          titledGroupOf(tester.getSemantics(topicButton(topic))),
+      };
+      expect(groups, hasLength(1), reason: 'un seul groupe pour les six');
+      final group = groups.single;
+      expect(group, isNotNull, reason: 'aucun groupe ne porte le titre');
+      expect(
+        group!.flagsCollection.isHeader,
+        isFalse,
+        reason: 'le groupe n\'est pas l\'en-tête lui-même',
+      );
+    });
+
     formTest('CA3 : chaque sujet s\'annonce comme un bouton avec son libellé', (
       tester,
     ) async {
@@ -172,7 +199,7 @@ void main() {
       await tapTopic(tester, Topic.sport);
 
       expect(isTopicOn(tester, Topic.sport), isTrue);
-      expect(isTopicOn(tester, Topic.amis), isFalse);
+      expect(isTopicOn(tester, Topic.friends), isFalse);
       expect(topicButton(Topic.sport), findsOneWidget);
 
       await tapTopic(tester, Topic.sport);
@@ -186,35 +213,35 @@ void main() {
         '`surface`', (tester) async {
       await showForm(tester);
 
-      await tapTopic(tester, Topic.amis);
+      await tapTopic(tester, Topic.friends);
 
-      expect(backgroundOf(tester, Topic.amis), light.ink);
-      expect(textColorOf(tester, Topic.amis), light.surface);
-      expect(isTopicOn(tester, Topic.amis), isTrue);
+      expect(backgroundOf(tester, Topic.friends), light.ink);
+      expect(textColorOf(tester, Topic.friends), light.surface);
+      expect(isTopicOn(tester, Topic.friends), isTrue);
     });
 
     formTest('CA2 : le toucher de nouveau le retire : il retrouve son '
         'apparence de départ', (tester) async {
       await showForm(tester);
       final before = (
-        backgroundOf(tester, Topic.amis),
-        textColorOf(tester, Topic.amis),
+        backgroundOf(tester, Topic.friends),
+        textColorOf(tester, Topic.friends),
       );
 
-      await tapTopic(tester, Topic.amis);
-      await tapTopic(tester, Topic.amis);
+      await tapTopic(tester, Topic.friends);
+      await tapTopic(tester, Topic.friends);
 
-      expect(isTopicOn(tester, Topic.amis), isFalse);
+      expect(isTopicOn(tester, Topic.friends), isFalse);
       expect((
-        backgroundOf(tester, Topic.amis),
-        textColorOf(tester, Topic.amis),
+        backgroundOf(tester, Topic.friends),
+        textColorOf(tester, Topic.friends),
       ), before);
     });
 
     formTest('CA2 : choisir un sujet n\'en change aucun autre', (tester) async {
       await showForm(tester);
 
-      await tapTopic(tester, Topic.travail);
+      await tapTopic(tester, Topic.work);
       await tapTopic(tester, Topic.nature);
 
       expect(
@@ -242,10 +269,10 @@ void main() {
         'choisit aussi', (tester) async {
       await showForm(tester);
 
-      await tester.tap(topicButton(Topic.famille));
+      await tester.tap(topicButton(Topic.family));
       await tester.pump();
 
-      expect(isTopicOn(tester, Topic.famille), isTrue);
+      expect(isTopicOn(tester, Topic.family), isTrue);
     });
 
     formTest('CA2 : aucun sujet n\'est obligatoire : avec une humeur seule, '
@@ -270,7 +297,7 @@ void main() {
       await showForm(tester);
       await pickMood(tester, 2);
 
-      await tapTopic(tester, Topic.sommeil);
+      await tapTopic(tester, Topic.sleep);
 
       expect(isChosen(tester, 2), isTrue);
       expect(isChosen(tester, 4), isFalse);
@@ -283,7 +310,7 @@ void main() {
       final repo = await showForm(tester);
       await pickMood(tester, 4);
       await tapTopic(tester, Topic.nature);
-      await tapTopic(tester, Topic.amis);
+      await tapTopic(tester, Topic.friends);
 
       await tester.tap(find.text('Enregistrer'));
       await settle(tester);
@@ -292,10 +319,10 @@ void main() {
       expect(repo.addCalls.single.mood, 4);
       expect(
         repo.addCalls.single.topics,
-        unorderedEquals([Topic.nature, Topic.amis]),
+        unorderedEquals([Topic.nature, Topic.friends]),
       );
       final saved = repo.entries.single;
-      expect(saved.topics, [Topic.amis, Topic.nature]);
+      expect(saved.topics, [Topic.friends, Topic.nature]);
       expect(saved.text, isNull);
       expect(saved.analysisStatus, AnalysisStatus.skipped);
     });
@@ -333,9 +360,9 @@ void main() {
       tester,
     ) async {
       final repo = await showForm(tester, initialMood: 3);
-      await tapTopic(tester, Topic.travail);
+      await tapTopic(tester, Topic.work);
       await tapTopic(tester, Topic.sport);
-      await tapTopic(tester, Topic.travail);
+      await tapTopic(tester, Topic.work);
 
       await tester.tap(find.text('Enregistrer'));
       await settle(tester);
@@ -359,13 +386,13 @@ void main() {
         'l\'entrée est « non analysée »', (tester) async {
       final repo = await showForm(tester, initialMood: 3);
       await tester.enterText(textInput, 'envie de mourir');
-      await tapTopic(tester, Topic.famille);
+      await tapTopic(tester, Topic.family);
 
       await tester.tap(find.text('Enregistrer'));
       await settle(tester);
 
       final saved = repo.entries.single;
-      expect(saved.topics, [Topic.famille]);
+      expect(saved.topics, [Topic.family]);
       expect(saved.analysisStatus, AnalysisStatus.skipped);
     });
 
@@ -375,14 +402,14 @@ void main() {
         beforeAdd: () async => throw StateError('stockage plein'),
       );
       await showForm(tester, repo: repo, initialMood: 4);
-      await tapTopic(tester, Topic.amis);
+      await tapTopic(tester, Topic.friends);
       await tapTopic(tester, Topic.nature);
 
       await tester.tap(find.text('Enregistrer'));
       await settle(tester);
 
       expect(find.text("L'entrée n'a pas été enregistrée"), findsOneWidget);
-      expect(isTopicOn(tester, Topic.amis), isTrue);
+      expect(isTopicOn(tester, Topic.friends), isTrue);
       expect(isTopicOn(tester, Topic.nature), isTrue);
       expect(isTopicOn(tester, Topic.sport), isFalse);
 
@@ -390,7 +417,7 @@ void main() {
       await tester.tap(find.text('Réessayer'));
       await settle(tester);
 
-      expect(repo.entries.single.topics, [Topic.amis, Topic.nature]);
+      expect(repo.entries.single.topics, [Topic.friends, Topic.nature]);
     });
   });
 
@@ -406,7 +433,7 @@ void main() {
         await settle(tester);
         await pickMood(tester, 3);
         await tapTopic(tester, Topic.sport);
-        await tapTopic(tester, Topic.amis);
+        await tapTopic(tester, Topic.friends);
 
         await tester.tap(find.text('Annuler'));
         await settle(tester);
@@ -483,14 +510,14 @@ void main() {
       final semantics = tester.ensureSemantics();
       await showForm(tester, textScale: 2.0, initialMood: 3);
 
-      for (final topic in [Topic.sommeil, Topic.nature]) {
+      for (final topic in [Topic.sleep, Topic.nature]) {
         await tester.ensureVisible(find.text(topic.label));
         await tester.pump();
         await tester.tap(find.text(topic.label));
         await tester.pump();
       }
 
-      expect(isTopicOn(tester, Topic.sommeil), isTrue);
+      expect(isTopicOn(tester, Topic.sleep), isTrue);
       expect(isTopicOn(tester, Topic.nature), isTrue);
       expect(isTopicOn(tester, Topic.sport), isFalse);
       expect(tester.takeException(), isNull);
@@ -506,7 +533,7 @@ void main() {
 
       expect(backgroundOf(tester, Topic.sport), dark.ink);
       expect(textColorOf(tester, Topic.sport), dark.surface);
-      expect(backgroundOf(tester, Topic.amis), isNot(dark.ink));
+      expect(backgroundOf(tester, Topic.friends), isNot(dark.ink));
     });
 
     testWidgets('CA20 : en sombre et à 200 %, rien ne déborde et les jetons '

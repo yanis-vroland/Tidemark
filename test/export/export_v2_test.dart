@@ -61,7 +61,7 @@ void main() {
           createdAt: DateTime.utc(2026, 10, 14, 19, 40),
           text: 'Balade.',
           tags: const [Tag('calme', TagKind.emotion)],
-          topics: [Topic.nature, Topic.amis],
+          topics: [Topic.nature, Topic.friends],
         ),
       ]);
 
@@ -158,7 +158,7 @@ void main() {
         entry(
           id: 1,
           createdAt: DateTime.utc(2026, 10, 14, 19, 40),
-          topics: [Topic.nature, Topic.sommeil, Topic.famille],
+          topics: [Topic.nature, Topic.sleep, Topic.family],
         ),
       ]);
 
@@ -177,7 +177,7 @@ void main() {
           createdAt: DateTime.utc(2026, 10, 14, 19, 40),
           text: 'Journée de travail.',
           tags: const [Tag('travail', TagKind.theme)],
-          topics: [Topic.travail],
+          topics: [Topic.work],
         ),
       ]);
 
@@ -197,7 +197,7 @@ void main() {
             createdAt: DateTime.utc(2026, 10, 14, 19, 40),
             text: 'Texte.',
             tags: const [Tag('calme', TagKind.emotion)],
-            topics: [Topic.amis],
+            topics: [Topic.friends],
           ),
         ]),
       ).single;

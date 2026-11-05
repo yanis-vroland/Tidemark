@@ -88,7 +88,10 @@ void main() {
   group('détail : section « Ce qui a compté » (CA7)', () {
     detailTest('CA7 : une entrée avec des sujets montre la section et ses '
         'autocollants', (tester, repo) async {
-      final entry = await seedEntry(repo, topics: [Topic.amis, Topic.nature]);
+      final entry = await seedEntry(
+        repo,
+        topics: [Topic.friends, Topic.nature],
+      );
 
       await showDetail(tester, repo, entry);
 
@@ -100,7 +103,7 @@ void main() {
 
     detailTest('CA7 : les autocollants des sujets ont le fond `ink` et le '
         'texte `surface`', (tester, repo) async {
-      final entry = await seedEntry(repo, topics: [Topic.famille]);
+      final entry = await seedEntry(repo, topics: [Topic.family]);
 
       await showDetail(tester, repo, entry);
 
@@ -111,7 +114,7 @@ void main() {
     detailTest('CA7 : en sombre, les valeurs sombres de `ink` et `surface` '
         's\'appliquent', (tester, repo) async {
       useDarkPlatform(tester);
-      final entry = await seedEntry(repo, topics: [Topic.famille]);
+      final entry = await seedEntry(repo, topics: [Topic.family]);
 
       await showDetail(tester, repo, entry);
 
@@ -160,7 +163,7 @@ void main() {
     ) async {
       final entry = await seedEntry(
         repo,
-        topics: [Topic.travail, Topic.sport],
+        topics: [Topic.work, Topic.sport],
         tags: tagged,
       );
 
@@ -197,7 +200,7 @@ void main() {
 
     detailTest('CA7 : une entrée sans texte mais avec des sujets montre la '
         'section, sans « Étiquettes »', (tester, repo) async {
-      final entry = await seedEntry(repo, text: null, topics: [Topic.sommeil]);
+      final entry = await seedEntry(repo, text: null, topics: [Topic.sleep]);
 
       await showDetail(tester, repo, entry);
 
@@ -210,7 +213,7 @@ void main() {
         'étiquette reste dans deux sections distinctes', (tester, repo) async {
       final entry = await seedEntry(
         repo,
-        topics: [Topic.travail],
+        topics: [Topic.work],
         tags: const [
           Tag('fatigue', TagKind.emotion),
           Tag('travail', TagKind.theme),
@@ -243,7 +246,7 @@ void main() {
       tester,
       repo,
     ) async {
-      final entry = await seedEntry(repo, topics: [Topic.amis]);
+      final entry = await seedEntry(repo, topics: [Topic.friends]);
 
       await showDetail(tester, repo, entry);
 
@@ -282,7 +285,7 @@ void main() {
         mood: 4,
         text: 'Journée calme.',
         createdAt: octoberDay(3),
-        topics: [Topic.sport, Topic.famille, Topic.sommeil],
+        topics: [Topic.sport, Topic.family, Topic.sleep],
       );
       await showHome(tester, HomeEnv(repo));
 
@@ -310,7 +313,7 @@ void main() {
       }
 
       final without = await labelsWith(const []);
-      final withTopics = await labelsWith([Topic.sport, Topic.famille]);
+      final withTopics = await labelsWith([Topic.sport, Topic.family]);
 
       expect(withTopics, without);
       expect(withTopics.where((l) => l.contains('Journée calme.')), isNotEmpty);
@@ -329,7 +332,7 @@ void main() {
       await tester.ensureVisible(find.text('nature'));
       await tapTopic(tester, Topic.nature);
       await tester.ensureVisible(find.text('amis'));
-      await tapTopic(tester, Topic.amis);
+      await tapTopic(tester, Topic.friends);
       await tester.ensureVisible(find.text('Enregistrer'));
 
       await tester.tap(find.text('Enregistrer'));
@@ -337,7 +340,7 @@ void main() {
       await continueFromCelebration(tester);
 
       final saved = await env.entries(tester);
-      expect(saved.single.topics, [Topic.amis, Topic.nature]);
+      expect(saved.single.topics, [Topic.friends, Topic.nature]);
       // CA8 : la carte de la liste ne les montre pas.
       expect(find.textContaining('Balade au bord de l'), findsOneWidget);
       expect(find.text(topicsTitle), findsNothing);

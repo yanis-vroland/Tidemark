@@ -1131,15 +1131,15 @@ class $EntryTopicsTable extends EntryTopics
       'REFERENCES entries (id) ON DELETE CASCADE',
     ),
   );
+  static const VerificationMeta _topicMeta = const VerificationMeta('topic');
   @override
-  late final GeneratedColumnWithTypeConverter<Topic, String> topic =
-      GeneratedColumn<String>(
-        'topic',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<Topic>($EntryTopicsTable.$convertertopic);
+  late final GeneratedColumn<String> topic = GeneratedColumn<String>(
+    'topic',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _positionMeta = const VerificationMeta(
     'position',
   );
@@ -1176,6 +1176,14 @@ class $EntryTopicsTable extends EntryTopics
     } else if (isInserting) {
       context.missing(_entryIdMeta);
     }
+    if (data.containsKey('topic')) {
+      context.handle(
+        _topicMeta,
+        topic.isAcceptableOrUnknown(data['topic']!, _topicMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_topicMeta);
+    }
     if (data.containsKey('position')) {
       context.handle(
         _positionMeta,
@@ -1205,12 +1213,10 @@ class $EntryTopicsTable extends EntryTopics
         DriftSqlType.int,
         data['${effectivePrefix}entry_id'],
       )!,
-      topic: $EntryTopicsTable.$convertertopic.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}topic'],
-        )!,
-      ),
+      topic: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}topic'],
+      )!,
       position: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}position'],
@@ -1222,15 +1228,16 @@ class $EntryTopicsTable extends EntryTopics
   $EntryTopicsTable createAlias(String alias) {
     return $EntryTopicsTable(attachedDatabase, alias);
   }
-
-  static JsonTypeConverter2<Topic, String, String> $convertertopic =
-      const EnumNameConverter<Topic>(Topic.values);
 }
 
 class EntryTopicRow extends DataClass implements Insertable<EntryTopicRow> {
   final int id;
   final int entryId;
-  final Topic topic;
+
+  /// Nom anglais du sujet ([Topic.name]). Texte libre, et non `textEnum` : une
+  /// valeur inconnue (écrite par une version plus récente de l'app, puis retour
+  /// arrière) est ignorée à la lecture au lieu de rendre le journal illisible.
+  final String topic;
 
   /// Ordre d'affichage : celui de la liste des sujets.
   final int position;
@@ -1245,11 +1252,7 @@ class EntryTopicRow extends DataClass implements Insertable<EntryTopicRow> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['entry_id'] = Variable<int>(entryId);
-    {
-      map['topic'] = Variable<String>(
-        $EntryTopicsTable.$convertertopic.toSql(topic),
-      );
-    }
+    map['topic'] = Variable<String>(topic);
     map['position'] = Variable<int>(position);
     return map;
   }
@@ -1271,9 +1274,7 @@ class EntryTopicRow extends DataClass implements Insertable<EntryTopicRow> {
     return EntryTopicRow(
       id: serializer.fromJson<int>(json['id']),
       entryId: serializer.fromJson<int>(json['entryId']),
-      topic: $EntryTopicsTable.$convertertopic.fromJson(
-        serializer.fromJson<String>(json['topic']),
-      ),
+      topic: serializer.fromJson<String>(json['topic']),
       position: serializer.fromJson<int>(json['position']),
     );
   }
@@ -1283,9 +1284,7 @@ class EntryTopicRow extends DataClass implements Insertable<EntryTopicRow> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'entryId': serializer.toJson<int>(entryId),
-      'topic': serializer.toJson<String>(
-        $EntryTopicsTable.$convertertopic.toJson(topic),
-      ),
+      'topic': serializer.toJson<String>(topic),
       'position': serializer.toJson<int>(position),
     };
   }
@@ -1293,7 +1292,7 @@ class EntryTopicRow extends DataClass implements Insertable<EntryTopicRow> {
   EntryTopicRow copyWith({
     int? id,
     int? entryId,
-    Topic? topic,
+    String? topic,
     int? position,
   }) => EntryTopicRow(
     id: id ?? this.id,
@@ -1336,7 +1335,7 @@ class EntryTopicRow extends DataClass implements Insertable<EntryTopicRow> {
 class EntryTopicsCompanion extends UpdateCompanion<EntryTopicRow> {
   final Value<int> id;
   final Value<int> entryId;
-  final Value<Topic> topic;
+  final Value<String> topic;
   final Value<int> position;
   const EntryTopicsCompanion({
     this.id = const Value.absent(),
@@ -1347,7 +1346,7 @@ class EntryTopicsCompanion extends UpdateCompanion<EntryTopicRow> {
   EntryTopicsCompanion.insert({
     this.id = const Value.absent(),
     required int entryId,
-    required Topic topic,
+    required String topic,
     required int position,
   }) : entryId = Value(entryId),
        topic = Value(topic),
@@ -1369,7 +1368,7 @@ class EntryTopicsCompanion extends UpdateCompanion<EntryTopicRow> {
   EntryTopicsCompanion copyWith({
     Value<int>? id,
     Value<int>? entryId,
-    Value<Topic>? topic,
+    Value<String>? topic,
     Value<int>? position,
   }) {
     return EntryTopicsCompanion(
@@ -1390,9 +1389,7 @@ class EntryTopicsCompanion extends UpdateCompanion<EntryTopicRow> {
       map['entry_id'] = Variable<int>(entryId.value);
     }
     if (topic.present) {
-      map['topic'] = Variable<String>(
-        $EntryTopicsTable.$convertertopic.toSql(topic.value),
-      );
+      map['topic'] = Variable<String>(topic.value);
     }
     if (position.present) {
       map['position'] = Variable<int>(position.value);
@@ -2345,14 +2342,14 @@ typedef $$EntryTopicsTableCreateCompanionBuilder =
     EntryTopicsCompanion Function({
       Value<int> id,
       required int entryId,
-      required Topic topic,
+      required String topic,
       required int position,
     });
 typedef $$EntryTopicsTableUpdateCompanionBuilder =
     EntryTopicsCompanion Function({
       Value<int> id,
       Value<int> entryId,
-      Value<Topic> topic,
+      Value<String> topic,
       Value<int> position,
     });
 
@@ -2392,11 +2389,10 @@ class $$EntryTopicsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnWithTypeConverterFilters<Topic, Topic, String> get topic =>
-      $composableBuilder(
-        column: $table.topic,
-        builder: (column) => ColumnWithTypeConverterFilters(column),
-      );
+  ColumnFilters<String> get topic => $composableBuilder(
+    column: $table.topic,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<int> get position => $composableBuilder(
     column: $table.position,
@@ -2487,7 +2483,7 @@ class $$EntryTopicsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumnWithTypeConverter<Topic, String> get topic =>
+  GeneratedColumn<String> get topic =>
       $composableBuilder(column: $table.topic, builder: (column) => column);
 
   GeneratedColumn<int> get position =>
@@ -2547,7 +2543,7 @@ class $$EntryTopicsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<int> entryId = const Value.absent(),
-                Value<Topic> topic = const Value.absent(),
+                Value<String> topic = const Value.absent(),
                 Value<int> position = const Value.absent(),
               }) => EntryTopicsCompanion(
                 id: id,
@@ -2559,7 +2555,7 @@ class $$EntryTopicsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required int entryId,
-                required Topic topic,
+                required String topic,
                 required int position,
               }) => EntryTopicsCompanion.insert(
                 id: id,
