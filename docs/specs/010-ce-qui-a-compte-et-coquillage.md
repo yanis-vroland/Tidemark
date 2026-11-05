@@ -11,7 +11,7 @@ En tant que personne qui tient son journal, je veux un petit moment agréable ap
 
 ## Définitions
 
-- **Sujet** (`Topic`) : ce qui a compté pour la personne, qu'elle choisit elle-même à la saisie, dans une liste fixe et ordonnée de six : `sommeil`, `travail`, `amis`, `famille`, `sport`, `nature`. Un sujet n'est pas une étiquette : une étiquette est proposée par le modèle local (RM19), un sujet est choisi par la personne.
+- **Sujet** (`Topic`) : ce qui a compté pour la personne, qu'elle choisit elle-même à la saisie, dans une liste fixe et ordonnée de six, par leur libellé : « sommeil », « travail », « amis », « famille », « sport », « nature » (noms dans le code : `sleep`, `work`, `friends`, `family`, `sport`, `nature`). Un sujet n'est pas une étiquette : une étiquette est proposée par le modèle local (RM19), un sujet est choisi par la personne.
 - **Coquillage** : image d'une entrée enregistrée sur la plage de la semaine (spec 009). Ce n'est pas une donnée : c'est une entrée.
 
 ## Critères d'acceptation
@@ -50,7 +50,8 @@ En tant que personne qui tient son journal, je veux un petit moment agréable ap
 - Sujets et détresse : une entrée en détresse garde ses sujets (enregistrés avec elle) ; l'écran d'aide n'en parle pas.
 - Sujets et bilan : le bilan ne les compte pas (hors périmètre).
 - Un même libellé peut être un sujet et une étiquette (« travail », « nature ») : ils restent dans deux sections distinctes du détail.
-- Célébration après la 8e entrée de la semaine : 7 coquillages puis « +1 ».
+- Célébration après la 8e entrée de la semaine : les 7 coquillages les plus récents puis « +1 ».
+- Sujet inconnu en base (version plus récente de l'app puis retour arrière) : il est ignoré à la lecture et à l'export, sans rendre le journal illisible.
 
 ## Hors périmètre
 

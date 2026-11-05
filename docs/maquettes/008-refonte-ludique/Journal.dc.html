@@ -125,7 +125,7 @@ class Component extends DCLogic {
   renderVals() {
     const dark = !!this.props.dark;
     const t = dark
-      ? { surface: '#0c1719', raised: '#15252a', ink: '#e6efed', muted: '#b4c5c5', hero: '#0f3a41', heroMuted: '#c9dfdf', wave1: '#13454c', wave2: '#185058', shadow: '0 10px 30px rgba(0, 0, 0, 0.35)', sand: '#3a3222', sandInk: '#e8d9b5', sea: '#185058', seaInk: '#e6efed', tint4: '#fdf0cf' }
+      ? { surface: '#0c1719', raised: '#15252a', ink: '#e6efed', muted: '#b4c5c5', hero: '#0f3a41', heroMuted: '#c9dfdf', wave1: '#13454c', wave2: '#185058', shadow: '0 10px 30px rgba(0, 0, 0, 0.35)', sand: '#3a3222', sandInk: '#e8d9b5', sea: '#1d5f6b', seaInk: '#e6efed', tint4: '#fdf0cf' }
       : { surface: '#f7f3ec', raised: '#ffffff', ink: '#14262b', muted: '#4b5e64', hero: '#1d5f6b', heroMuted: '#d5ebea', wave1: '#2a7480', wave2: '#3b8b93', shadow: '0 12px 32px rgba(20, 38, 43, 0.12)', sand: '#f6e4bd', sandInk: '#6b5320', sea: '#3b8b93', seaInk: '#ffffff', tint4: '#fdf0cf' };
     const labels = ['Très bas', 'Bas', 'Neutre', 'Bien', 'Très bien'];
     const moods = [1, 2, 3, 4, 5].map((n) => ({ n, label: labels[n - 1], delay: n * 0.35, aria: 'Noter ' + labels[n - 1] + ', humeur ' + n + ' sur 5' }));
