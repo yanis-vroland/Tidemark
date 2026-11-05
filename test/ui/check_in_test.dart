@@ -9,7 +9,6 @@ import 'package:tidemark/ui/widgets/mood_bubble.dart';
 
 import '../support/fake_entry_repository.dart';
 import '../support/home_harness.dart';
-import '../support/playful_harness.dart';
 import '../support/ui_harness.dart';
 
 const bubbleCheck = 54.0;

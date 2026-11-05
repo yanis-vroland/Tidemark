@@ -44,6 +44,9 @@ class Settings extends Table {
   BoolColumn get modelOfferShown =>
       boolean().withDefault(const Constant(false))();
 
+  /// Écran de bienvenue déjà passé (spec 009, CA2).
+  BoolColumn get welcomeShown => boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
@@ -132,7 +135,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -147,6 +150,11 @@ class AppDatabase extends _$AppDatabase {
       }
       // Version 4 : étiquettes (spec 004).
       if (from < 4) await m.createTable(tags);
+      // Version 5 : bienvenue vue (spec 009). Créée d'emblée avec la table des
+      // réglages avant la version 2.
+      if (from >= 2 && from < 5) {
+        await m.addColumn(settings, settings.welcomeShown);
+      }
     },
     // Sans cela, SQLite ignore la suppression en cascade des étiquettes (CA17).
     beforeOpen: (_) async {
@@ -405,6 +413,24 @@ class DriftSettingsRepository implements SettingsRepository {
         ),
         onConflict: DoUpdate(
           (_) => const SettingsCompanion(modelOfferShown: Value(true)),
+        ),
+      );
+
+  @override
+  Future<bool> readWelcomeShown() async =>
+      (await _row.getSingleOrNull())?.welcomeShown ?? false;
+
+  @override
+  Future<void> setWelcomeShown() => db
+      .into(db.settings)
+      .insert(
+        SettingsCompanion.insert(
+          id: const Value(1),
+          lowMoodSensitivity: LowMoodSensitivity.normal.name,
+          welcomeShown: const Value(true),
+        ),
+        onConflict: DoUpdate(
+          (_) => const SettingsCompanion(welcomeShown: Value(true)),
         ),
       );
 
