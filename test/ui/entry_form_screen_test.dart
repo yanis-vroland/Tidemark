@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/entries/entry.dart';
 import 'package:tidemark/main.dart';
 import 'package:tidemark/ui/screens/entry_form_screen.dart';
+import 'package:tidemark/ui/widgets/mood_bubble.dart';
 
 import '../support/fake_entry_repository.dart';
 import '../support/fake_model_downloader.dart';
@@ -117,10 +118,8 @@ void main() {
       expect(find.text('Bien'), findsNothing);
     });
 
-    dbTestWidgets('CA8 : les cinq pastilles portent leur chiffre', (
-      tester,
-      env,
-    ) async {
+    dbTestWidgets('CA8, CA11 (spec 008) : les cinq bulles ne portent plus de '
+        'chiffre', (tester, env) async {
       await tester.pumpWidget(
         testApp(
           EntryFormScreen(
@@ -133,7 +132,11 @@ void main() {
       await settle(tester);
 
       for (var mood = 1; mood <= 5; mood++) {
-        expect(find.text('$mood'), findsOneWidget);
+        expect(find.text('$mood'), findsNothing);
+        expect(
+          find.byWidgetPredicate((w) => w is MoodBubble && w.mood == mood),
+          findsOneWidget,
+        );
       }
     });
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/ui/screens/entry_list_screen.dart';
+import 'package:tidemark/ui/widgets/mood_bubble.dart';
 
 import '../support/fake_settings_repository.dart';
 
@@ -97,13 +98,20 @@ void main() {
       expect(find.text('Lundi 13 octobre 2025'), findsOneWidget);
     });
 
-    dbTestWidgets('CA4 : la carte montre la pastille avec son chiffre, '
+    dbTestWidgets('CA4 : la carte montre la bulle de l\'humeur (sans chiffre), '
         'l\'heure, le libellé et le début du texte', (tester, env) async {
       await env.add(tester, DateTime(2026, 10, 14, 21, 40), 4, longText);
       await tester.pumpWidget(listScreen(env));
       await settle(tester);
 
-      expect(find.text('4'), findsOneWidget);
+      // Spec 008, CA12 : la bulle de marée remplace la pastille chiffrée.
+      expect(find.text('4'), findsNothing);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is MoodBubble && w.mood == 4 && w.size == 48,
+        ),
+        findsOneWidget,
+      );
       expect(find.text('21:40'), findsOneWidget);
       expect(find.text('Bien'), findsOneWidget);
       expect(find.textContaining('Longue journée au travail'), findsOneWidget);
@@ -123,13 +131,19 @@ void main() {
       expect(shown.truncated, isTrue, reason: 'le texte est plus long');
     });
 
-    dbTestWidgets('CA5 : sans texte, la carte montre la pastille, l\'heure et '
+    dbTestWidgets('CA5 : sans texte, la carte montre la bulle, l\'heure et '
         'le libellé, sans ligne vide', (tester, env) async {
       await env.add(tester, DateTime(2026, 10, 14, 8, 15), 3);
       await tester.pumpWidget(listScreen(env));
       await settle(tester);
 
-      expect(find.text('3'), findsOneWidget);
+      expect(find.text('3'), findsNothing);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is MoodBubble && w.mood == 3 && w.size == 48,
+        ),
+        findsOneWidget,
+      );
       expect(find.text('08:15'), findsOneWidget);
       expect(find.text('Neutre'), findsOneWidget);
       expect(emptyText, findsNothing);

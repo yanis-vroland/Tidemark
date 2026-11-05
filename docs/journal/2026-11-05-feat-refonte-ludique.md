@@ -25,3 +25,22 @@
 ### Prochaine étape
 
 - Tests des specs 008 à 010 par le subagent `test-writer`, committés rouges.
+
+## 2026-11-05 20:15
+
+### Fait
+
+- Tests de la spec 008 écrits par le subagent `test-writer`, rouges pour la bonne raison : 11 fichiers ne compilent pas (`MoodBubble`, `AmbientMotion`, `TidemarkShadows`, jetons v2 absents), 77 cas échouent sur les valeurs v1 (contrastes, `charte.md`, proposition du modèle). Nouveaux fichiers : `test/ui/theme/{charter_v2_values,contrast,charter_docs}_test.dart`, `test/ui/widgets/mood_bubble_test.dart`, `test/ui/motion/ambient_motion_test.dart`, `test/ui/playful_restyle_test.dart`, `test/ui/help_screen_calm_test.dart`, `test/support/playful_harness.dart`.
+- Tests existants mis à jour pour les critères remplacés (signalés) : `charter_fidelity_test` (opacités → ombres, CA1), `tidemark_theme_test` (`onMood1` → couleurs douces, CA11-12), `entry_list_screen_test` CA4-5 et `entry_detail_screen_test` CA16 (plus de chiffre, bulle, CA12-13), `entry_form_screen_test` (bulles sans chiffre, CA11), `accessibility_and_theme_test` CA28 (carte `mood-soft`, CA12), `model_download_screen_test` CA4 (illustration en plus, CA15), `weekly_review_screen_test` CA33 (`onMood1` retiré, CA1).
+
+### Décisions
+
+- Agent : les tests pixel de la bulle et du mouvement n'ont pas pu être validés contre un prototype ; s'ils se révèlent faux à l'implémentation, ils seront corrigés et signalés.
+
+### Corrections et limites
+
+- Ambiguïtés relevées par le subagent (textes des autocollants du modèle, mécanisme des ombres, rotations) : tranchées par l'implémentation en suivant les tests.
+
+### Prochaine étape
+
+- Tests de la spec 009 (`test-writer`) ; en parallèle, implémentation de la spec 008.

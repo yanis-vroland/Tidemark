@@ -69,11 +69,94 @@ void main() {
     );
   });
 
-  test('opacités', () {
-    expect(
-      TidemarkOpacity.tokens,
-      _lengths(tokens['opacity'] as Map<String, dynamic>),
+  test('ombres : mêmes jetons, mêmes valeurs CSS (spec 008, CA1)', () {
+    final charter = {
+      for (final token in (tokens['shadow'] as Map)['tokens'] as List)
+        token['name'] as String: token['value'] as String,
+    };
+    expect(TidemarkShadows.tokens, charter);
+  });
+
+  test('ombres : les BoxShadow correspondent aux valeurs CSS (CA1)', () {
+    final css = (tokens['shadow'] as Map<String, dynamic>)['tokens'] as List;
+    final byName = {
+      for (final token in css)
+        token['name'] as String: token['value'] as String,
+    };
+    final dart = {
+      'shadow-card': TidemarkShadows.shadowCard,
+      'shadow-sticker': TidemarkShadows.shadowSticker,
+      'shadow-press': TidemarkShadows.shadowPress,
+    };
+    expect(dart.keys.toSet(), byName.keys.toSet());
+    final pattern = RegExp(
+      r'^(-?[\d.]+)px (-?[\d.]+)px ([\d.]+)px rgba\((\d+), (\d+), (\d+), ([\d.]+)\)$',
     );
+    for (final MapEntry(key: name, value: shadows) in dart.entries) {
+      final match = pattern.firstMatch(byName[name]!);
+      expect(match, isNotNull, reason: '$name : « ${byName[name]} » illisible');
+      expect(shadows, hasLength(1), reason: name);
+      final shadow = shadows.single;
+      expect(
+        shadow.offset,
+        Offset(double.parse(match![1]!), double.parse(match[2]!)),
+        reason: name,
+      );
+      expect(shadow.blurRadius, double.parse(match[3]!), reason: name);
+      expect(shadow.spreadRadius, 0, reason: name);
+      final expected = Color.fromRGBO(
+        int.parse(match[4]!),
+        int.parse(match[5]!),
+        int.parse(match[6]!),
+        double.parse(match[7]!),
+      );
+      expect(shadow.color.toARGB32(), expected.toARGB32(), reason: name);
+    }
+  });
+
+  const removedTokens = [
+    'mood-numeral',
+    'mood-dot',
+    'mood-dot-sm',
+    'mood-dot-lg',
+    'mood-dimmed',
+    'on-mood-1',
+  ];
+
+  test(
+    'version 2 : plus de famille « opacity », plus de jeton retiré (CA1)',
+    () {
+      expect(tokens['version'], 2);
+      expect(tokens.containsKey('opacity'), isFalse);
+      final names = <String>{
+        for (final token in (tokens['color'] as Map)['tokens'] as List)
+          token['name'] as String,
+        for (final group in (tokens['type'] as Map)['groups'] as List)
+          for (final style in group['styles'] as List) style['name'] as String,
+        for (final family in ['spacing', 'radius', 'size', 'shadow'])
+          for (final token in (tokens[family] as Map)['tokens'] as List)
+            token['name'] as String,
+      };
+      for (final removed in removedTokens) {
+        expect(
+          names,
+          isNot(contains(removed)),
+          reason: 'tokens.json : $removed',
+        );
+      }
+    },
+  );
+
+  test('aucune constante Dart d\'un jeton retiré (CA1)', () {
+    final dart = <String>{
+      ...TidemarkColors.light.toTokenMap().keys,
+      ...TidemarkColors.dark.toTokenMap().keys,
+      ...TidemarkTypography.tokens.keys,
+      ...TidemarkSize.tokens.keys,
+    };
+    for (final removed in removedTokens) {
+      expect(dart, isNot(contains(removed)), reason: removed);
+    }
   });
 
   test('styles de texte : taille, interligne, graisse, approche, famille', () {

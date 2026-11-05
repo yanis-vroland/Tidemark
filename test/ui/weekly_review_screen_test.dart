@@ -1704,7 +1704,6 @@ void main() {
       final lightOnly = light.toTokenMap().values.toSet().difference({
         ...dark.toTokenMap().values,
         light.onTide,
-        light.onMood1,
         light.onMood,
       });
       expect(colors.intersection(lightOnly), isEmpty);

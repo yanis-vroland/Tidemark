@@ -199,12 +199,14 @@ void main() {
 
       expect(find.text('Ton journal'), findsOneWidget);
       expectDarkCharter(tester, 'liste', 'Ton journal');
+      // Spec 008, CA12 : la carte a le fond mood-n-soft de son humeur (3 : « Neutre »),
+      // identique dans les deux thèmes, à la place de surface-raised.
       final card = tester.widget<Material>(
         find
             .ancestor(of: find.text('Neutre'), matching: find.byType(Material))
             .first,
       );
-      expect(card.color, TidemarkColors.dark.surfaceRaised, reason: 'carte');
+      expect(card.color, TidemarkColors.dark.moodSoftColor(3), reason: 'carte');
     });
 
     dbTestWidgets('CA28 : la saisie utilise les couleurs sombres de la '

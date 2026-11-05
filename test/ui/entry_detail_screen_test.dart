@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/entries/entry.dart';
 import 'package:tidemark/ui/screens/entry_detail_screen.dart';
+import 'package:tidemark/ui/widgets/mood_bubble.dart';
 
 import '../support/fake_entry_repository.dart';
 import '../support/ui_harness.dart';
@@ -38,7 +39,7 @@ Future<void> openDetail(
 void main() {
   group('affichage', () {
     dbTestWidgets('CA16 : toucher une carte ouvre le détail avec la date '
-        'complète, l\'heure, la pastille, le libellé et le texte entier', (
+        'complète, l\'heure, la bulle, le libellé et le texte entier', (
       tester,
       env,
     ) async {
@@ -51,7 +52,14 @@ void main() {
 
       expect(find.textContaining('Mercredi 14 octobre'), findsOneWidget);
       expect(find.text('21:40'), findsOneWidget);
-      expect(find.text('4'), findsOneWidget);
+      // Spec 008, CA13 : la bulle de 120 remplace la pastille chiffrée.
+      expect(find.text('4'), findsNothing);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is MoodBubble && w.mood == 4 && w.size == 120,
+        ),
+        findsOneWidget,
+      );
       expect(find.text('Bien'), findsOneWidget);
       expect(find.text('Humeur 4 sur 5'), findsOneWidget);
       expect(find.textContaining(firstLine), findsOneWidget);
@@ -87,7 +95,13 @@ void main() {
 
       expect(find.textContaining('Mercredi 14 octobre'), findsOneWidget);
       expect(find.text('08:15'), findsOneWidget);
-      expect(find.text('3'), findsOneWidget);
+      expect(find.text('3'), findsNothing);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is MoodBubble && w.mood == 3 && w.size == 120,
+        ),
+        findsOneWidget,
+      );
       expect(find.text('Neutre'), findsOneWidget);
       expect(find.text('Humeur 3 sur 5'), findsOneWidget);
       expect(emptyText, findsNothing);
