@@ -401,6 +401,21 @@ class DriftEntryRepository implements EntryRepository {
   }
 
   @override
+  Future<List<Entry>> entriesBetween(DateTime fromUtc, DateTime toUtc) async {
+    final query = db.select(db.entries)
+      ..where(
+        (e) =>
+            e.createdAt.isBiggerOrEqualValue(fromUtc) &
+            e.createdAt.isSmallerThanValue(toUtc),
+      )
+      ..orderBy([
+        (e) => OrderingTerm.asc(e.createdAt),
+        (e) => OrderingTerm.asc(e.id),
+      ]);
+    return [for (final row in await query.get()) _toEntry(row)];
+  }
+
+  @override
   Future<void> deleteEntry(int id) =>
       (db.delete(db.entries)..where((e) => e.id.equals(id))).go();
 

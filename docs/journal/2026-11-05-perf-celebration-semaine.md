@@ -18,3 +18,25 @@
 ### Prochaine étape
 
 - Implémenter `entriesBetween` (interface, `DriftEntryRepository`, faux dépôt), `LocalWeek.utcWindow`, et l'utiliser dans la célébration ; mettre à jour le contrat `EntryRepository` dans l'architecture technique.
+
+## 2026-11-05 22:45
+
+### Fait
+
+- `EntryRepository.entriesBetween(fromUtc, toUtc)` : requête `drift` bornée par `created_at` (début compris, fin exclue), triée par instant puis identifiant, sans jointure sur les étiquettes ni les sujets. Faux dépôt : même contrat, plus `entriesBetweenError` et `entriesBetweenCalls`.
+- `LocalWeek.utcWindow` : la semaine élargie d'un jour de chaque côté, en instants UTC.
+- Célébration : lit `entriesBetween` sur cette fenêtre au lieu de `watchEntries().first`, puis garde les entrées dont le jour local de saisie tombe dans la semaine. Comportement inchangé (spec 010, CA12 et CA17 au vert).
+- Architecture technique : contrat `EntryRepository` complété.
+- `dart format lib test`, `dart analyze --fatal-infos` sans remarque, `flutter test` : 2528 tests au vert.
+
+### Décisions
+
+- Agent : pas de lecture des étiquettes ni des sujets dans `entriesBetween`, la célébration n'en a pas besoin ; à compléter le jour où un autre écran en aurait l'usage.
+
+### Corrections et limites
+
+- Test humain sans objet : aucun changement de comportement observable.
+
+### Prochaine étape
+
+- PR en brouillon sur `main` (ferme l'issue #51), revue IA, puis validation et merge par Yanis.
