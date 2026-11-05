@@ -43,13 +43,14 @@ Widget bubbleScreen({
   required bool ambient,
   bool reduceMotion = false,
   Key? boundary,
+  double phase = 0,
 }) => ambientApp(
   Center(
     child: RepaintBoundary(
       key: boundary,
-      child: const Padding(
-        padding: EdgeInsets.all(12),
-        child: MoodBubble(mood: 4, size: 150),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: MoodBubble(mood: 4, size: 150, phase: phase),
       ),
     ),
   ),
@@ -150,6 +151,39 @@ void main() {
       final second = await capture(tester, key);
 
       expect(second.bytes, isNot(first.bytes));
+    });
+
+    testWidgets('spec 008, mouvement : deux bulles de phases différentes ne '
+        'flottent pas à l\'unisson', (tester) async {
+      usePhoneScreen(tester);
+      final key = GlobalKey();
+      Future<List<int>> at(double phase) async {
+        await tester.pumpWidget(const SizedBox());
+        await tester.pumpWidget(
+          bubbleScreen(ambient: true, boundary: key, phase: phase),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+        return (await capture(tester, key)).bytes;
+      }
+
+      final first = await at(0);
+      final again = await at(0);
+      final shifted = await at(0.5);
+      expect(again, first, reason: 'même phase, même image');
+      expect(shifted, isNot(first));
+    });
+
+    test('spec 008, mouvement : la phase d\'une bulle est déterministe, et '
+        'le check-in (positions 0 à 4) et la plage (5 à 11) se décalent', () {
+      for (var mood = 1; mood <= 5; mood++) {
+        expect(MoodBubble.phaseFor(mood, 2), MoodBubble.phaseFor(mood, 2));
+        final checkIn = MoodBubble.phaseFor(mood, mood - 1);
+        for (var day = 0; day < 7; day++) {
+          final phase = MoodBubble.phaseFor(mood, 5 + day);
+          expect(phase, inInclusiveRange(0, 1));
+          expect(phase, isNot(closeTo(checkIn, 0.01)));
+        }
+      }
     });
 
     testWidgets(

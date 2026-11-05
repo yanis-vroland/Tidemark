@@ -763,6 +763,9 @@ void main() {
     uiTest('CA18 : la liste, avec des cartes étiquetées, ne déborde pas', (
       tester,
     ) async {
+      // L'accueil construit sa liste à la demande : sur un écran haut, toutes
+      // les cartes sont construites et vérifiées.
+      useTallScreen(tester);
       await tester.pumpWidget(
         listScreen(await taggedJournal(), textScale: 2.0),
       );

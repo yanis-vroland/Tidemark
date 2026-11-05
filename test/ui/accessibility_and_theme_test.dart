@@ -12,6 +12,7 @@ import '../support/fake_settings_repository.dart';
 import '../support/fake_entry_repository.dart';
 import '../support/fake_model_downloader.dart';
 import '../support/ui_harness.dart';
+import '../support/wipe_harness.dart' show useTallScreen;
 
 const maxScale = 2.0;
 
@@ -198,6 +199,9 @@ void main() {
     dbTestWidgets('CA28 : la liste utilise les couleurs sombres de la '
         'charte', (tester, env) async {
       useDarkSystem(tester);
+      // L'accueil construit sa liste à la demande : sur un écran haut, la carte
+      // « Neutre » est construite.
+      useTallScreen(tester);
       await env.seedJournal(tester);
       await tester.pumpWidget(env.app());
       await settle(tester);

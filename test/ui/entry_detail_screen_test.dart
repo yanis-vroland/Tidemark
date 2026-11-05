@@ -6,6 +6,7 @@ import 'package:tidemark/ui/widgets/mood_bubble.dart';
 
 import '../support/fake_entry_repository.dart';
 import '../support/ui_harness.dart';
+import '../support/wipe_harness.dart' show useTallScreen;
 
 Entry entryOf({String? text, int mood = 4}) => Entry(
   id: 1,
@@ -209,6 +210,9 @@ void main() {
       tester,
       env,
     ) async {
+      // L'accueil construit sa liste à la demande : sur un écran haut, toutes
+      // les cartes sont construites, et « findsNothing » prouve l'absence.
+      useTallScreen(tester);
       await env.seedJournal(tester);
       await tester.pumpWidget(env.app());
       await settle(tester);

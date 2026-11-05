@@ -5,7 +5,6 @@ import '../theme/tidemark_colors.dart';
 import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
 import 'dashed_circle.dart';
-import 'home_header.dart' show homeMaxTextScale;
 import 'mood_bubble.dart';
 
 /// Noms des jours, du lundi au dimanche, pour les annonces (spec 009, CA15, CA24).
@@ -62,67 +61,66 @@ class BeachCard extends StatelessWidget {
           'de la semaine.',
       onTap: onTap,
       excludeSemantics: true,
-      child: MediaQuery.withClampedTextScaling(
-        maxScaleFactor: homeMaxTextScale,
-        child: Material(
-          color: colors.sand,
-          borderRadius: BorderRadius.circular(TidemarkRadius.radiusLg),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onTap,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                CustomPaint(
-                  painter: _SeaBandPainter(
-                    sea: colors.sea,
-                    foam: colors.bubbleShine,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      TidemarkSpacing.space4,
-                      TidemarkSpacing.space2,
-                      TidemarkSpacing.space4,
-                      TidemarkSpacing.space4,
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text('Ta plage cette semaine', style: title),
-                        ),
-                        const SizedBox(width: TidemarkSpacing.space2),
-                        Text(
-                          'Voir',
-                          style: TidemarkTypography.label.copyWith(
-                            color: colors.onHero,
-                            fontWeight: FontWeight.w700,
-                            fontVariations: const [FontVariation.weight(700)],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+      child: Material(
+        color: colors.sand,
+        borderRadius: BorderRadius.circular(TidemarkRadius.radiusLg),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              CustomPaint(
+                // `hero-wave-1` plutôt que `sea` : le titre et « Voir » en
+                // `on-hero` y gardent 4,5:1 dans les deux thèmes.
+                painter: _SeaBandPainter(
+                  sea: colors.heroWave1,
+                  foam: colors.bubbleShine,
                 ),
-                Padding(
+                child: Padding(
                   padding: const EdgeInsets.fromLTRB(
-                    TidemarkSpacing.space3,
-                    0,
-                    TidemarkSpacing.space3,
+                    TidemarkSpacing.space4,
                     TidemarkSpacing.space2,
+                    TidemarkSpacing.space4,
+                    TidemarkSpacing.space4,
                   ),
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      for (var i = 0; i < 7; i++)
-                        Expanded(
-                          child: _BeachDay(index: i, mood: moods[i]),
+                      Expanded(
+                        child: Text('Ta plage cette semaine', style: title),
+                      ),
+                      const SizedBox(width: TidemarkSpacing.space2),
+                      Text(
+                        'Voir',
+                        style: TidemarkTypography.label.copyWith(
+                          color: colors.onHero,
+                          fontWeight: FontWeight.w700,
+                          fontVariations: const [FontVariation.weight(700)],
                         ),
+                      ),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  TidemarkSpacing.space3,
+                  0,
+                  TidemarkSpacing.space3,
+                  TidemarkSpacing.space2,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    for (var i = 0; i < 7; i++)
+                      Expanded(
+                        child: _BeachDay(index: i, mood: moods[i]),
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -156,7 +154,12 @@ class _BeachDay extends StatelessWidget {
                   )
                 : Padding(
                     padding: EdgeInsets.only(bottom: (mood - 1) * _liftPerMood),
-                    child: MoodBubble(mood: mood, size: TidemarkSize.bubbleSm),
+                    // Positions 5 à 11 : décalées de celles du check-in (0 à 4).
+                    child: MoodBubble(
+                      mood: mood,
+                      size: TidemarkSize.bubbleSm,
+                      phase: MoodBubble.phaseFor(mood, 5 + index),
+                    ),
                   ),
           ),
         ),

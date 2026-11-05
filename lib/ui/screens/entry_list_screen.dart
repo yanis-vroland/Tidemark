@@ -153,44 +153,40 @@ class _EntryListScreenState extends State<EntryListScreen> {
     );
   }
 
-  /// Entrées regroupées par jour, sous la plage (spec 001, CA2, CA3, CA6).
-  List<Widget> _entryTiles(List<DayGroup> groups) => [
-    for (final group in groups) ...[
-      Padding(
-        padding: const EdgeInsets.fromLTRB(
-          TidemarkSpacing.space4,
-          TidemarkSpacing.space3,
-          TidemarkSpacing.space4,
-          TidemarkSpacing.space2,
-        ),
-        child: Semantics(
-          header: true,
-          child: Text(
-            group.label,
-            style: TidemarkTypography.label.copyWith(
-              fontWeight: FontWeight.w600,
-              color: context.colors.inkMuted,
-            ),
-          ),
+  /// Intertitre d'un jour, au-dessus de ses entrées (spec 001, CA2, CA3, CA6).
+  Widget _dayLabel(String label) => Padding(
+    padding: const EdgeInsets.fromLTRB(
+      TidemarkSpacing.space4,
+      TidemarkSpacing.space3,
+      TidemarkSpacing.space4,
+      TidemarkSpacing.space2,
+    ),
+    child: Semantics(
+      header: true,
+      child: Text(
+        label,
+        style: TidemarkTypography.label.copyWith(
+          fontWeight: FontWeight.w600,
+          color: context.colors.inkMuted,
         ),
       ),
-      for (final entry in group.entries)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            TidemarkSpacing.space4,
-            0,
-            TidemarkSpacing.space4,
-            TidemarkSpacing.space2,
-          ),
-          child: _EntryCard(
-            entry: entry,
-            repository: widget.repository,
-            downloader: widget.downloader,
-            clock: widget.clock,
-          ),
-        ),
-    ],
-  ];
+    ),
+  );
+
+  Widget _entryTile(Entry entry) => Padding(
+    padding: const EdgeInsets.fromLTRB(
+      TidemarkSpacing.space4,
+      0,
+      TidemarkSpacing.space4,
+      TidemarkSpacing.space2,
+    ),
+    child: _EntryCard(
+      entry: entry,
+      repository: widget.repository,
+      downloader: widget.downloader,
+      clock: widget.clock,
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -205,57 +201,79 @@ class _EntryListScreenState extends State<EntryListScreen> {
           final week = LocalWeek.containing(now);
           final loaded = !snapshot.hasError && entries != null;
           final hasEntries = loaded && entries.isNotEmpty;
-          // Tout l'accueil est construit d'un bloc : en-tête, check-in, plage et
-          // entrées (un journal d'humeur reste court à l'échelle d'un écran
-          // par jour).
-          return SingleChildScrollView(
-            padding: EdgeInsets.only(
-              bottom:
-                  TidemarkSpacing.space6 + MediaQuery.paddingOf(context).bottom,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                HomeHeader(
-                  moment: moment,
-                  onOpenSettings: _openSettings,
-                  count: hasEntries
-                      ? shellCountLabel(entriesInWeek(entries, week))
-                      : null,
-                  overlap: loaded ? homeHeaderOverlap : 0,
-                ),
-                if (snapshot.hasError)
-                  const _ReadError()
-                else if (entries != null) ...[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: TidemarkSpacing.space4,
-                    ),
-                    child: CheckInCard(
-                      title: checkInTitleFor(moment),
-                      onPick: (mood) => _openForm(mood: mood),
-                    ),
-                  ),
-                  if (entries.isEmpty)
-                    _EmptyState(wiped: _wiped)
-                  else ...[
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        TidemarkSpacing.space4,
-                        TidemarkSpacing.space3,
-                        TidemarkSpacing.space4,
-                        0,
-                      ),
-                      child: BeachCard(
-                        moods: dayMoodsOfWeek(entries, week),
-                        onTap: _openWeek,
-                      ),
-                    ),
-                    ..._entryTiles(groupByDay(entries, now)),
-                  ],
-                ],
+          // Liste aplatie : intertitre de jour (String) ou entrée (Entry),
+          // construite à la demande en défilant.
+          final items = <Object>[
+            if (hasEntries)
+              for (final group in groupByDay(entries, now)) ...[
+                group.label,
+                ...group.entries,
               ],
-            ),
+          ];
+          return CustomScrollView(
+            slivers: [
+              // En-tête, check-in et plage dans un même bloc : la scène de
+              // l'en-tête descend sous le check-in, qui doit se peindre
+              // par-dessus (un viewport peint ses slivers du dernier au
+              // premier).
+              SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    HomeHeader(
+                      moment: moment,
+                      onOpenSettings: _openSettings,
+                      count: hasEntries
+                          ? shellCountLabel(entriesInWeek(entries, week))
+                          : null,
+                      overlap: loaded ? homeHeaderOverlap : 0,
+                    ),
+                    if (snapshot.hasError)
+                      const _ReadError()
+                    else if (entries != null) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: TidemarkSpacing.space4,
+                        ),
+                        child: CheckInCard(
+                          title: checkInTitleFor(moment),
+                          onPick: (mood) => _openForm(mood: mood),
+                        ),
+                      ),
+                      if (entries.isEmpty)
+                        _EmptyState(wiped: _wiped)
+                      else
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            TidemarkSpacing.space4,
+                            TidemarkSpacing.space3,
+                            TidemarkSpacing.space4,
+                            0,
+                          ),
+                          child: BeachCard(
+                            moods: dayMoodsOfWeek(entries, week),
+                            onTap: _openWeek,
+                          ),
+                        ),
+                    ],
+                  ],
+                ),
+              ),
+              SliverList.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) => switch (items[index]) {
+                  final Entry entry => _entryTile(entry),
+                  final label => _dayLabel(label as String),
+                },
+              ),
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height:
+                      TidemarkSpacing.space6 +
+                      MediaQuery.paddingOf(context).bottom,
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -387,6 +405,9 @@ class _EntryCard extends StatelessWidget {
   final ModelDownloader downloader;
   final DateTime Function() clock;
 
+  /// Thème clair des cartes, construit une fois pour toutes (spec 008, CA12).
+  static final _lightTheme = buildTidemarkTheme(Brightness.light);
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -420,7 +441,7 @@ class _EntryCard extends StatelessWidget {
     // Fond `mood-n-soft`, clair dans les deux thèmes : le contenu de la carte
     // prend les jetons du thème clair, texte en `on-mood` (spec 008, CA12).
     return Theme(
-      data: buildTidemarkTheme(Brightness.light),
+      data: _lightTheme,
       child: Builder(
         builder: (context) => _softCard(context, context.colors, text),
       ),

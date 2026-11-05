@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/ui/screens/entry_list_screen.dart';
 import 'package:tidemark/ui/screens/weekly_review_screen.dart';
 import 'package:tidemark/ui/theme/tidemark_colors.dart';
+import 'package:tidemark/ui/widgets/beach_card.dart' show BeachCard;
 import 'package:tidemark/ui/widgets/mood_bubble.dart';
 import 'package:tidemark/ui/widgets/tidemark_logo.dart';
 
@@ -491,20 +492,47 @@ void main() {
       expect(title.left, greaterThanOrEqualTo(0));
       expect(title.right, lessThanOrEqualTo(393));
       expect(initialsOnScreen(tester), dayInitials);
+      // Texte jamais plafonné : à 200 %, le titre (17 points) est rendu à 34,
+      // « Voir » (14) à 28 et les initiales (13) à 26.
+      expect(renderedFontSize(tester, find.text(beachTitle), 17), 34);
+      expect(renderedFontSize(tester, find.text('Voir'), 14), 28);
+      expect(renderedFontSize(tester, find.text('L'), 13), 26);
     }, tall: false);
 
+    // Test modifié (revue d'accessibilité) : le bandeau de mer de la plage passe
+    // de `sea` à `hero-wave-1`, pour que le titre et « Voir » en `on-hero` y
+    // gardent 4,5:1 (`sea` clair : 3,96:1). Compté sous le haut de la carte, pour
+    // ne pas compter les vagues de l'en-tête.
     homeTest('CA28 : thème sombre, la plage prend les valeurs sombres de '
-        'sea et de sand', (tester) async {
+        'hero-wave-1 et de sand', (tester) async {
       tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
       addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
       final key = GlobalKey();
       await showHome(tester, HomeEnv(weekJournal({1: 4})), boundary: key);
 
       final pixels = await capture(tester, key);
-      expect(countColor(pixels, dark.sea), greaterThan(1000));
+      final top = tester.getTopLeft(find.byType(BeachCard)).dy.round();
+      int band(Color color) =>
+          countColor(pixels, color) - countColorAbove(pixels, color, top);
+      expect(band(dark.heroWave1), greaterThan(1000));
       expect(countColor(pixels, dark.sand), greaterThan(500));
+      expect(band(dark.sea), 0);
+      expect(countColor(pixels, light.heroWave1), 0);
       expect(countColor(pixels, light.sea), 0);
       expect(countColor(pixels, light.sand), 0);
+    });
+
+    homeTest('contraste : thème clair, le titre de la plage est sur '
+        'hero-wave-1, pas sur sea', (tester) async {
+      final key = GlobalKey();
+      await showHome(tester, HomeEnv(weekJournal({1: 4})), boundary: key);
+
+      final pixels = await capture(tester, key);
+      final top = tester.getTopLeft(find.byType(BeachCard)).dy.round();
+      int band(Color color) =>
+          countColor(pixels, color) - countColorAbove(pixels, color, top);
+      expect(band(light.heroWave1), greaterThan(1000));
+      expect(band(light.sea), 0);
     });
 
     homeTest('CA28 : thème clair, la plage prend la valeur claire de sand', (

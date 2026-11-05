@@ -26,17 +26,24 @@ class AmbientMotion extends InheritedWidget {
 /// Contrôleur d'une animation d'ambiance en boucle : créé quand
 /// [AmbientMotion.of] est vrai, libéré sinon. À appeler depuis
 /// `didChangeDependencies` ; rend le contrôleur, ou `null` au repos.
+///
+/// [initialValue], de 0 à 1, décale le départ du cycle : deux éléments animés
+/// côte à côte ne bougent pas à l'unisson.
 AnimationController? syncAmbientController({
   required BuildContext context,
   required TickerProvider vsync,
   required AnimationController? current,
   required Duration period,
   bool reverse = false,
+  double initialValue = 0,
 }) {
   final on = AmbientMotion.of(context);
   if (on && current == null) {
-    return AnimationController(vsync: vsync, duration: period)
-      ..repeat(reverse: reverse);
+    return AnimationController(
+      vsync: vsync,
+      duration: period,
+      value: initialValue,
+    )..repeat(reverse: reverse);
   }
   if (!on && current != null) {
     current.dispose();

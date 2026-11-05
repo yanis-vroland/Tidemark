@@ -54,6 +54,14 @@ final pairs = <(List<String>, List<String>, double)>[
   (['on-tide'], ['tide'], 4.5),
   (['danger'], ['surface', 'surface-raised'], 4.5),
   (['line'], ['surface', 'surface-raised'], 3),
+  // Titre et « Voir » de la plage de l'accueil, sur son bandeau de mer.
+  (['on-hero'], ['hero-wave-1'], 4.5),
+];
+
+/// Paires propres au thème clair : les cartes d'entrée gardent le thème clair dans
+/// les deux thèmes (spec 008, CA12), leur heure est en `ink-muted`.
+final lightOnlyPairs = <(List<String>, List<String>, double)>[
+  (['ink-muted'], _range('mood-', '-soft'), 4.5),
 ];
 
 void main() {
@@ -71,7 +79,10 @@ void main() {
 
   for (final theme in ['light', 'dark']) {
     group('CA3 : thème $theme', () {
-      for (final (foregrounds, backgrounds, threshold) in pairs) {
+      for (final (foregrounds, backgrounds, threshold) in [
+        ...pairs,
+        if (theme == 'light') ...lightOnlyPairs,
+      ]) {
         for (final fg in foregrounds) {
           for (final bg in backgrounds) {
             test('$fg sur $bg : au moins $threshold:1', () {

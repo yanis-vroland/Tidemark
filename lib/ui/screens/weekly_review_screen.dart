@@ -746,21 +746,51 @@ class _StatStickers extends StatelessWidget {
         angle: _angles[2],
       ),
     ];
-    // Texte agrandi : un autocollant par ligne, pour que rien ne se coupe (CA27).
-    if (MediaQuery.textScalerOf(context).scale(1) > 1.3) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: TidemarkSpacing.space3,
-        children: stickers,
-      );
-    }
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 10,
-        children: [for (final s in stickers) Expanded(child: s)],
-      ),
+    // Côte à côte si chaque chiffre et chaque mot des libellés tiennent dans un
+    // tiers de la largeur, à la taille de texte choisie ; sinon un autocollant
+    // par ligne, pour que rien ne se coupe ni ne rétrécisse (CA27).
+    final scaler = MediaQuery.textScalerOf(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = 10.0;
+        final inner =
+            (constraints.maxWidth - 2 * gap) / 3 - 2 * TidemarkSpacing.space3;
+        final widest = [
+          for (final v in [average, '$days/7', '${review.entryCount}'])
+            _textWidth(v, TidemarkTypography.stat, scaler),
+          for (final label in ['Humeur moyenne', 'Jours notés', 'Entrées'])
+            for (final word in label.split(' '))
+              _textWidth(word, _StatSticker.labelStyle, scaler),
+        ].reduce(math.max);
+        if (widest > inner) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: TidemarkSpacing.space3,
+            children: stickers,
+          );
+        }
+        return IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: gap,
+            children: [for (final s in stickers) Expanded(child: s)],
+          ),
+        );
+      },
     );
+  }
+
+  /// Largeur de [text] en [style], à l'échelle [scaler].
+  static double _textWidth(String text, TextStyle style, TextScaler scaler) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+      textScaler: scaler,
+      maxLines: 1,
+    )..layout();
+    final width = painter.width;
+    painter.dispose();
+    return width;
   }
 }
 
@@ -783,6 +813,12 @@ class _StatSticker extends StatelessWidget {
   /// Rotation, en degrés.
   final double angle;
 
+  /// Style du libellé, sans couleur.
+  static final labelStyle = TidemarkTypography.caption.copyWith(
+    fontWeight: FontWeight.w600,
+    fontVariations: const [FontVariation.weight(600)],
+  );
+
   @override
   Widget build(BuildContext context) {
     final ink = context.colors.onMood;
@@ -804,23 +840,13 @@ class _StatSticker extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                // Un chiffre : réduit plutôt que coupé s'il ne tient pas.
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: AlignmentDirectional.centerStart,
-                  child: DefaultTextStyle(
-                    style: TidemarkTypography.stat.copyWith(color: ink),
-                    child: value,
-                  ),
+                // Jamais rétréci : la mise en page passe en colonne avant
+                // (CA27).
+                DefaultTextStyle(
+                  style: TidemarkTypography.stat.copyWith(color: ink),
+                  child: value,
                 ),
-                Text(
-                  label,
-                  style: TidemarkTypography.caption.copyWith(
-                    color: ink,
-                    fontWeight: FontWeight.w600,
-                    fontVariations: const [FontVariation.weight(600)],
-                  ),
-                ),
+                Text(label, style: labelStyle.copyWith(color: ink)),
               ],
             ),
           ),

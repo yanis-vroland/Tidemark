@@ -36,6 +36,11 @@ void usePhoneScreen(WidgetTester tester) {
   addTearDown(tester.view.reset);
 }
 
+/// Taille, en points, à laquelle le texte [finder] rend une police de [fontSize] :
+/// vaut `2 * fontSize` à 200 % si rien ne plafonne l'échelle du texte (CA27).
+double renderedFontSize(WidgetTester tester, Finder finder, double fontSize) =>
+    tester.renderObject<RenderParagraph>(finder).textScaler.scale(fontSize);
+
 /// Application de test autour d'un écran, avec les thèmes de la charte et, au besoin,
 /// une taille de texte du système.
 Widget testApp(Widget home, {double textScale = 1.0}) {
