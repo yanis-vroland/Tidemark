@@ -8,15 +8,21 @@ Projet de démonstration, fictif, planifié sur 3 semaines (13 octobre → 3 nov
 
 ## Démo
 
-<p align="center"><img src="docs/demo/tidemark.gif" width="320" alt="Démo : écran de lancement avec le logo, liste vide, saisie d'une entrée « Bien » avec un court texte, analyse sur le téléphone, puis les étiquettes solitude, joie, nature et travail apparaissent ; le détail de l'entrée les range en émotions et thèmes, avec la mention « Analysé sur ton téléphone »."></p>
+<p align="center"><img src="docs/demo/tidemark.gif" width="320" alt="Démo : bienvenue au premier lancement ; accueil du soir animé avec la lune, un voilier et le check-in « Comment va ta marée ce soir ? » ; choix de la bulle « Bien », des sujets amis et nature et d'une phrase ; coquillage ramassé, cinquième de la semaine ; plage de la semaine ; détail de l'entrée ; onglet Semaine avec la marée des humeurs et les chiffres du bilan."></p>
 
-<p align="center"><em>Une entrée, étiquetée par le modèle local Qwen2.5-1.5B, sans réseau. Enregistré sur le simulateur iOS (iPhone 17 Pro, processeur du Mac) avec le vrai modèle ; l'attente de l'analyse, 13 s sur le simulateur, est accélérée 4 fois, et le téléchargement du modèle est coupé.</em></p>
+<p align="center"><em>Une soirée dans Tidemark, sur le simulateur iOS (iPhone 17 Pro), avec l'app réelle et des données fictives. Les touchers et la frappe sont accélérés (×1,5 et ×2) ; le modèle local n'est pas téléchargé dans cette démo, d'où l'absence d'étiquettes. <a href="docs/demo/tidemark.mp4">Vidéo en MP4</a> (31 s).</em></p>
 
-Captures de l'app réelle sur l'émulateur Android (Pixel 7, API 35), modèle local chargé :
+Captures de l'app réelle sur le simulateur iOS, refonte « la marée de ton humeur » ([specs 008 à 010](docs/specs/)) :
 
-| Entrée étiquetée par le modèle local | Même écran, thème sombre | Bilan de la semaine | Réglages |
+| Bienvenue | Accueil du soir | Saisie | Coquillage ramassé |
 | --- | --- | --- | --- |
-| ![Détail d'une entrée avec ses étiquettes](docs/captures/android-detail.png) | ![Détail d'une entrée, thème sombre](docs/captures/android-detail-sombre.png) | ![Bilan de la semaine](docs/captures/android-bilan.png) | ![Réglages : modèle et écran d'aide](docs/captures/android-reglages.png) |
+| ![Écran de bienvenue](docs/captures/ios-bienvenue.png) | ![Accueil : check-in et plage de la semaine](docs/captures/ios-accueil.png) | ![Saisie : bulle Bien et sujets](docs/captures/ios-saisie.png) | ![Célébration après l'enregistrement](docs/captures/ios-coquillage.png) |
+
+| Détail d'une entrée | Ta semaine | Accueil, thème sombre |
+| --- | --- | --- |
+| ![Détail : bulle, texte et sujets](docs/captures/ios-detail.png) | ![Onglet Semaine : marée et chiffres](docs/captures/ios-semaine.png) | ![Accueil en thème sombre](docs/captures/ios-accueil-sombre.png) |
+
+L'étiquetage par le modèle local, sur l'ancien design, reste visible dans les [captures Android du 16 octobre](docs/captures/).
 
 Chaque écran a d'abord été dessiné en maquette (artefact Claude, sur la charte du projet), validé avec sa spec, puis transcrit en Flutter : sources HTML dans [`docs/maquettes/`](docs/maquettes/). Les captures PNG des maquettes, pour les comparer à l'app côte à côte, restent à produire ([issue #20](https://github.com/yanis-vroland/Tidemark/issues/20)).
 
