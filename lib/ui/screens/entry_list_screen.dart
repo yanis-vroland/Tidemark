@@ -406,6 +406,10 @@ class _EntryCard extends StatelessWidget {
   final DateTime Function() clock;
 
   /// Thème clair des cartes, construit une fois pour toutes (spec 008, CA12).
+  ///
+  /// Figé pour toute la vie de l'app : `buildTidemarkTheme` ne dépend que de la
+  /// luminosité, ici toujours claire. Si le thème venait à dépendre d'autre
+  /// chose (taille de texte, réglage), il faudrait le reconstruire.
   static final _lightTheme = buildTidemarkTheme(Brightness.light);
 
   @override
