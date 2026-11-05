@@ -129,3 +129,57 @@
 ### Prochaine étape
 
 - Fusionner l'implémentation de la spec 009 (agent en copie isolée), puis implémenter la spec 010.
+
+## 2026-11-05 23:30
+
+### Fait
+
+- Spec 009 implémentée par un agent dans une copie isolée (`impl-009`), puis spec 010 par un second agent en parallèle (`impl-010`), qui a fusionné `impl-009` : la migration en version 5 porte `welcome_shown` et `entry_topics`.
+- Corrections après fusion (`fix-008-009`) :
+  - puces d'étiquette remises en `tide-soft` (spec 004, CA26) ;
+  - écran d'aide : titre en `title` et numéro en `stat`, car « Appeler le 112 » passait sous la zone fixe ;
+  - mer de l'illustration du modèle en `hero-wave-2`, car `sea` sombre vaut `tide` clair.
+- Intégration poussée sur `feat/refonte-ludique` : 2 497 tests au vert, format et analyse propres, `generate_brand.py --check` et noms exclus au vert.
+- Revue `security-reviewer` : rien de bloquant ni à corriger. Deux points « À noter », traités :
+  - un sujet inconnu en base rendait le journal illisible ;
+  - lecture des sujets en `isIn` non borné.
+- Revue `reviewer`, constats traités par deux agents en parallèle (`fix-accueil`, `fix-sujets`) et par l'agent :
+  - échelle de texte plafonnée à 130 % sur l'accueil : retirée, et tests CA27 renforcés sur la taille rendue ;
+  - contraste du bandeau de la plage (3,96:1) : passé sur `hero-wave-1` ;
+  - accueil rendu paresseux, thème clair des cartes en constante ;
+  - `Topic` en anglais avec libellés français ;
+  - flottement décalé par bulle, bulles d'air dans la saisie, voilier animé le soir seulement ;
+  - étiquette du groupe « Ce qui a compté » ;
+  - tests de migration depuis les versions 1 à 3 ;
+  - dessin du coquillage mis en commun.
+- Specs complétées :
+  - 008 : CA12 et CA19, le contenu des cartes d'entrée garde les jetons clairs et remplace la spec 004, CA30, pour la carte ; nouvelles paires de contraste ; mouvement ;
+  - 009 : CA27, le texte grandit sans plafond ; coquille ;
+  - 010 : noms du code et sujet inconnu ignoré.
+- Architecture : navigation (`Stack`, `Offstage`, `TickerMode`) et stockage des sujets. Maquette `Journal` alignée sur le jeton `sea` sombre.
+- Contrôle par mutation des nouvelles protections lancé (agent en copie isolée).
+
+### Décisions
+
+- Agent, par délégation de Yanis :
+  - la carte d'entrée garde les jetons clairs sur son fond `mood-n-soft`, pour la lisibilité ;
+  - le bilan garde la mise en page de la spec 006 hors de l'onglet (`showBack: true`) et montre les autocollants dans l'onglet ;
+  - l'onglet « Semaine » n'est construit qu'à sa première ouverture, pour ne pas lancer la mise en mots au démarrage ;
+  - toucher la plage ramène l'onglet sur la semaine en cours.
+- Agent : le plafond de 130 % de l'échelle de texte, décidé par l'agent de la spec 009, est retiré après la revue ; le CA27 l'exclut désormais explicitement.
+
+### Corrections et limites
+
+- Tests d'avant modifiés dans `fix-008-009`, avec le critère qui les remplace :
+  - `analysis_display_test` : ordre des puces avec une tolérance de rangée de 8 points (rotation des autocollants, spec 008, CA12) ; thème sombre avec `on-mood` et les jetons clairs admis dans la carte d'entrée (spec 008, CA12 et CA19 complétés) ;
+  - `model_download_screen_test`, CA30 : `ink` clair admis (`on-mood` des autocollants, spec 008, CA15) ;
+  - `weekly_review_screen_test`, CA33 : absence des couleurs d'humeur de l'autre thème retirée (`mood-n` identique dans les deux thèmes, spec 008) ;
+  - `accessibility_and_theme_test`, `entry_detail_screen_test` : défilement avant de toucher un élément que l'accueil plus haut pousse sous la ligne de flottaison (spec 009) ;
+  - `entry_form_screen_test`, CA9 : deux « Bien » (carte et check-in, spec 009, CA11) ;
+  - `home_shell_test` : entrée ajoutée la semaine précédente pour que « Semaine précédente » soit active (spec 006, CA5), et onglets cherchés dans `HomeShell`, pour ne pas confondre avec le bouton retour « Journal ».
+- La copie principale du dépôt était restée sur un état intermédiaire (fusion de la spec 009 seule), testé par le hook de fin de tour : réalignée sur `origin/feat/refonte-ludique`, sans perte.
+- Test humain : pas fait, à faire par Yanis ; la PR reste en brouillon d'ici là.
+
+### Prochaine étape
+
+- Fusionner `fix-accueil`, `fix-sujets` et `fix-docs`, relancer la suite complète, intégrer les résultats des mutations, ouvrir la PR en brouillon et publier la réponse à la revue IA.

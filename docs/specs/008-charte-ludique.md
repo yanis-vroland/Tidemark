@@ -73,10 +73,10 @@ Elle remplace la charte v1 dans [`docs/maquettes/000-charte/`](../maquettes/000-
 | Animation | Durée | Où |
 | --- | --- | --- |
 | Houle (l'eau d'une bulle se déplace) | 3,2 s, en boucle | Bulles |
-| Flottement (la bulle monte de 3 points et redescend) | 3,4 s, en boucle, décalée par bulle | Bulles |
+| Flottement (la bulle monte de 3 points et redescend) | 3,4 s, en boucle, décalée par bulle (phase propre à chaque bulle d'une rangée) | Bulles |
 | Vagues (translation horizontale) | 9 s et 15 s, en boucle | En-têtes |
 | Tangage (le voilier) | 4 s, en boucle | En-tête du soir |
-| Bulles d'air qui montent | 8 s, en boucle | Saisie, célébration |
+| Bulles d'air qui montent | 8 s, en boucle | Saisie, célébration (décoratives, sous le contenu) |
 | Apparition du coquillage | 0,7 s, une fois | Célébration |
 
 Les animations en boucle sont dites **d'ambiance**. Elles ne tournent que si l'app les autorise (`AmbientMotion`, activé par `main`) **et** si le téléphone ne demande pas de réduire les animations. Sinon, chaque élément est dessiné immobile, dans sa position de repos.
@@ -119,7 +119,7 @@ L'humeur ne repose donc jamais sur la couleur seule : le niveau d'eau et le visa
 ### Écrans existants
 
 - CA11 : Étant donné l'écran de saisie (spec 001), quand il s'affiche, alors le sélecteur montre cinq bulles de taille `bubble-select`, celle choisie en `bubble-select-on` avec un anneau `ring-width` ; au-dessus, une grande bulle `bubble-xl` montre l'humeur choisie, ou un cercle pointillé `line` tant qu'aucune n'est choisie ; le fond de l'écran prend la couleur `mood-n-night` de l'humeur choisie, `surface` sans humeur. Les libellés, l'aide « Choisis une humeur pour enregistrer. » et les annonces « Humeur 4 sur 5 : Bien » (spec 001, CA7, CA8, CA26) sont inchangés. Remplace l'aspect décrit par la spec 001, CA8 (pastilles).
-- CA12 : Étant donné une carte d'entrée de la liste, quand elle s'affiche, alors elle montre une bulle `bubble-md` à la place de la pastille chiffrée, sur un fond `mood-n-soft` avec le texte en `on-mood` ; ses étiquettes sont des autocollants. Le libellé, l'heure, le texte sur deux lignes et l'annonce de la carte (spec 001, CA4, CA5, CA36 ; RM59) sont inchangés. Remplace « la pastille de l'humeur avec son chiffre » de la spec 001, CA4 et CA5.
+- CA12 : Étant donné une carte d'entrée de la liste, quand elle s'affiche, alors elle montre une bulle `bubble-md` à la place de la pastille chiffrée, sur un fond `mood-n-soft` avec le texte en `on-mood` ; ses étiquettes sont des autocollants. Le libellé, l'heure, le texte sur deux lignes et l'annonce de la carte (spec 001, CA4, CA5, CA36 ; RM59) sont inchangés. Le contenu de la carte (texte, heure, puces, mention d'analyse) garde les jetons du thème clair dans les deux thèmes, puisque son fond `mood-n-soft` est clair : remplace la spec 004, CA30, pour la carte de la liste (puces `tide-soft` claires en thème sombre). Remplace « la pastille de l'humeur avec son chiffre » de la spec 001, CA4 et CA5.
 - CA13 : Étant donné le détail d'une entrée, quand il s'affiche, alors un en-tête `mood-n-soft` montre la bulle `bubble-lg`, le libellé de l'humeur en `display` et « Humeur 4 sur 5 » ; la date, l'heure, le texte, la section « Étiquettes » et la suppression (spec 001, CA16 à CA20 ; spec 004) sont inchangés. Remplace « la pastille » de la spec 001, CA16.
 - CA14 : Étant donné l'écran d'aide (spec 002), quand il s'affiche, avec `AmbientMotion` activé, alors il ne contient aucune bulle, aucun autocollant pivoté, aucune animation d'ambiance ni aucun élément de célébration : il reste calme, comme le veut la spec 002. Seuls les jetons de fond et de texte v2 s'y appliquent.
 - CA15 : Étant donné l'écran du modèle (spec 003), quand la proposition s'affiche, alors une illustration décorative (bulle « Neutre » et quatre autocollants d'étiquettes fictives) est au-dessus du titre ; tous les textes et boutons de la spec 003 sont inchangés.
@@ -129,7 +129,7 @@ L'humeur ne repose donc jamais sur la couleur seule : le niveau d'eau et le visa
 ### Accessibilité
 
 - CA18 : Étant donné la taille de texte du système à 200 %, quand la saisie, la liste, le détail, l'écran du modèle et l'écran d'aide s'affichent, alors aucun texte n'est tronqué ni ne déborde (les écrans défilent).
-- CA19 : Étant donné le thème sombre du système, quand ces écrans s'affichent, alors ils prennent les valeurs sombres des jetons.
+- CA19 : Étant donné le thème sombre du système, quand ces écrans s'affichent, alors ils prennent les valeurs sombres des jetons, sauf le contenu des cartes d'entrée (CA12), l'en-tête du détail (texte `on-mood`, CA13) et les autocollants posés sur une couleur d'humeur (texte `on-mood`).
 
 ## Contrastes
 
@@ -142,6 +142,8 @@ Seuils : 4,5:1 pour un texte de moins de 24 points, 3:1 pour un texte de 24 poin
 | `on-mood` | `mood-3`, `mood-4`, `mood-5` (visage sur l'eau) | 3 |
 | `ink`, `ink-muted` | `mood-1-night` à `mood-5-night` | 4,5 |
 | `on-hero`, `on-hero-muted` | `hero` | 4,5 |
+| `on-hero` | `hero-wave-1` (bandeau de la plage) | 4,5 |
+| `ink-muted` clair | `mood-1-soft` à `mood-5-soft` (heure d'une carte) | 4,5 |
 | `on-sky` | `sky` | 4,5 |
 | `on-sand` | `sand` | 4,5 |
 | `on-tide` | `tide` | 4,5 |

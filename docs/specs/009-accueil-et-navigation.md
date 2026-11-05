@@ -59,13 +59,13 @@ Cette spec s'appuie sur la charte v2 ([spec 008](008-charte-ludique.md)) et modi
 ### Onglet « Semaine »
 
 - CA23 : Étant donné l'onglet « Semaine », quand il s'affiche, alors il montre l'écran du bilan (spec 006) de la semaine en cours, sans le retour « Journal », que la barre remplace. Le titre « Ta semaine », les dates et les flèches de semaine (spec 006, CA4, CA5) sont inchangés. Remplace le retour « Journal » de la spec 006, CA4.
-- CA24 : Étant donné une semaine affichée dans l'onglet, quand l'écran s'affiche, alors l'en-tête `sky` montre la marée de la semaine : pour chaque jour noté, une bulle de l'humeur du jour posée sur une mer `sea` dont la surface passe par ces bulles ; un cercle pointillé pour un jour sans entrée ; les initiales des jours sur une bande `sand`. La scène est décorative ; elle est annoncée par un seul libellé : « Humeur par jour : lundi Bien, mardi pas d'entrée, … ». Elle s'affiche quelle que soit le nombre d'entrées de la semaine.
+- CA24 : Étant donné une semaine affichée dans l'onglet, quand l'écran s'affiche, alors l'en-tête `sky` montre la marée de la semaine : pour chaque jour noté, une bulle de l'humeur du jour posée sur une mer `sea` dont la surface passe par ces bulles ; un cercle pointillé pour un jour sans entrée ; les initiales des jours sur une bande `sand`. La scène est décorative ; elle est annoncée par un seul libellé : « Humeur par jour : lundi Bien, mardi pas d'entrée, … ». Elle s'affiche quel que soit le nombre d'entrées de la semaine.
 - CA25 : Étant donné une semaine d'au moins 3 entrées, quand le bilan s'affiche, alors « Humeur moyenne », « Jours notés » et « Entrées » sont présentés en autocollants (spec 008) en tête du bilan, avec exactement les valeurs de `WeeklyReviewCalculator` (spec 006, CA16) ; les sections de la spec 006 (répartition, étiquettes fréquentes, évolution, texte) suivent, avec leurs textes inchangés.
 - CA26 : Étant donné l'onglet « Semaine » ouvert, quand une entrée est ajoutée ou supprimée, alors la marée et les chiffres sont recalculés au retour sur l'onglet (spec 006, CA17).
 
 ### Accessibilité
 
-- CA27 : Étant donné la taille de texte du système à 200 %, quand la bienvenue, l'accueil et l'onglet « Semaine » s'affichent, alors aucun texte n'est tronqué ni ne déborde : les écrans défilent ; la barre de navigation garde des libellés lisibles.
+- CA27 : Étant donné la taille de texte du système à 200 %, quand la bienvenue, l'accueil et l'onglet « Semaine » s'affichent, alors le texte grandit avec le réglage, sans plafond ni rétrécissement, et aucun texte n'est tronqué ni ne déborde : les écrans défilent ; la barre de navigation garde des libellés lisibles.
 - CA28 : Étant donné le thème sombre du système, quand ces écrans s'affichent, alors ils prennent les valeurs sombres des jetons.
 
 ## Cas limites et erreurs

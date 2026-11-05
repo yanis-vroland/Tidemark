@@ -81,7 +81,7 @@ Schéma en version 5 : la version 2 crée la table `settings` (spec 002), la ver
 | --- | --- | --- |
 | `Entry` (table `entries`) | `mood` entre 1 et 5 (contrainte `CHECK`) ; texte absent plutôt que vide ; date de saisie en UTC avec le décalage local, pour ranger l'entrée dans son jour local ; statut décidé par le garde-fou : `skipped` sans texte ou en détresse, `pending` sinon | RM3, RM13, RM16, RM17, RM24, RM27 ([spec 001](specs/001-saisie-et-liste-des-entrees.md), [spec 002](specs/002-garde-fou-detresse.md)) |
 | Réglages (table `settings`) | Une seule ligne (`CHECK id = 1`) ; degré stocké par son nom ; absent ou inconnu → `normal`, jamais désactivé ; proposition du modèle affichée une seule fois ; bienvenue passée | RM25, RM29, RM31, RM64 ([spec 002](specs/002-garde-fou-detresse.md), [spec 003](specs/003-telechargement-du-modele.md), [spec 009](specs/009-accueil-et-navigation.md)) |
-| Sujets (table `entry_topics`) | Libellé de la liste fixe (`Topic`, stocké par son nom) ; au plus un par sujet et par entrée ; position dans l'ordre de la liste ; effacés avec l'entrée | RM62 ([spec 010](specs/010-ce-qui-a-compte-et-coquillage.md)) |
+| Sujets (table `entry_topics`) | Sujet de la liste fixe (`Topic`, stocké par son nom anglais en texte ; un nom inconnu est ignoré à la lecture) ; au plus un par sujet et par entrée ; position dans l'ordre de la liste ; effacés avec l'entrée | RM62 ([spec 010](specs/010-ce-qui-a-compte-et-coquillage.md)) |
 
 Fichiers de l'app ([spec 005](specs/005-export-et-suppression-totale.md)) ; dossier de la base et cache de l'app réunis dans `AppStorage` (`lib/storage/app_storage.dart`) :
 
@@ -121,7 +121,7 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 
 - Thème construit uniquement depuis les jetons de la charte v2 ([spec 008](specs/008-charte-ludique.md)) : `lib/ui/theme/` est le seul endroit où une couleur s'écrit en dur, y compris pour les peintres (`MoodBubble`, vagues, coquillages).
 - **`AmbientMotion`** (`lib/ui/motion/`) : `InheritedWidget` qui autorise les animations d'ambiance. Activé seulement par `main` ; absent dans les tests, qui restent déterministes. Chaque élément animé vérifie aussi `MediaQuery.disableAnimations` (RM66).
-- Navigation : `HomeShell` porte deux onglets (`EntryListScreen`, `WeeklyReviewScreen`) dans un `IndexedStack`, et la barre de navigation ; les autres écrans s'ouvrent par-dessus, sans la barre ([spec 009](specs/009-accueil-et-navigation.md)).
+- Navigation : `HomeShell` porte deux onglets (`EntryListScreen`, `WeeklyReviewScreen`) superposés dans un `Stack`, l'onglet caché en `Offstage` avec `TickerMode` coupé (l'onglet « Semaine » n'est construit qu'à sa première ouverture), et la barre de navigation ; les autres écrans s'ouvrent par-dessus, sans la barre ([spec 009](specs/009-accueil-et-navigation.md)).
 
 ## Conventions d'API
 
