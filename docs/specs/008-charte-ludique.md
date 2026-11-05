@@ -64,7 +64,7 @@ Elle remplace la charte v1 dans [`docs/maquettes/000-charte/`](../maquettes/000-
 ### Formes, ombres et tailles
 
 - Rayons : `radius-sm` 8, `radius-md` 16, `radius-lg` 24 (cartes), `radius-xl` 28 (carte du check-in, barre de navigation), `radius-pill`.
-- Ombres : `shadow-card` (0, 12, flou 32, `ink` clair à 12 %), `shadow-sticker` (0, 3, sans flou, `ink` clair à 14 %), `shadow-press` (ombre intérieure en bas de 4 points, noir à 18 %, sur les boutons pleins).
+- Ombres, identiques dans les deux thèmes, écrites dans `tokens.json` sous la forme CSS `x y flou couleur` : `shadow-card` `0px 12px 32px rgba(20, 38, 43, 0.12)` (carte du check-in, barre de navigation), `shadow-sticker` `0px 3px 0px rgba(20, 38, 43, 0.14)` (autocollants), `shadow-press` `0px 4px 0px rgba(10, 34, 38, 0.3)` (sous les boutons pleins, effet de bouton en relief).
 - Tailles : `tap-min` 44, `button-height` 56, `bubble-sm` 36 (plage), `bubble-md` 48 (carte d'entrée), `bubble-check` 54 (check-in), `bubble-select` 44 et `bubble-select-on` 52 (sélecteur), `bubble-lg` 120 (détail), `bubble-xl` 150 (saisie), `nav-bubble` 64 (bouton « Nouvelle entrée »), et les tailles v1 `icon-*`, `progress-height`, `ring-width`, `bar-thickness`, `day-cell`, `logo-md`. `mood-dot`, `mood-dot-sm`, `mood-dot-lg` et l'opacité `mood-dimmed` sont retirés.
 - Autocollant : fond plein, `radius-pill` ou `radius-lg`, `shadow-sticker`, légère rotation entre −3° et +3°, fixe pour un même élément.
 
