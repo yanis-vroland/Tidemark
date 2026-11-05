@@ -626,11 +626,14 @@ void main() {
           ambient: true,
         ),
       );
-      await tester.pump(const Duration(milliseconds: 400));
+      // Au-delà des transitions finies de l'affichage : seule une animation
+      // d'ambiance tournerait encore.
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.byType(MoodBubble), findsNothing);
       expect(tester.hasRunningAnimations, isFalse);
-      expect(scaffoldColor(tester, find.byType(SettingsScreen)), light.surface);
+      // Le Scaffold est construit par l'écran : on part de son titre.
+      expect(scaffoldColor(tester, find.text('Réglages')), light.surface);
       final rounded = find.byWidgetPredicate((w) {
         if (w is DecoratedBox && w.decoration is BoxDecoration) {
           final r = (w.decoration as BoxDecoration).borderRadius;
@@ -740,6 +743,10 @@ void main() {
         'bulles gardent leur taille', (tester) async {
       await tester.pumpWidget(formScreen(textScale: 2.0));
       await tester.pump(const Duration(milliseconds: 400));
+      // À 200 %, la saisie défile : le sélecteur est sous la ligne de
+      // flottaison.
+      await tester.ensureVisible(find.bySemanticsLabel(moodSemantics(5)));
+      await tester.pump();
       await pickMood(tester, 5);
       await tester.pump(const Duration(milliseconds: 400));
 

@@ -12,7 +12,7 @@ import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
 import '../widgets/error_banner.dart';
 import '../widgets/loading_note.dart';
-import '../widgets/mood_dot.dart';
+import '../widgets/mood_bubble.dart';
 
 /// Bilan de la semaine (spec 006), ouvert depuis la liste sur la semaine en cours.
 class WeeklyReviewScreen extends StatefulWidget {
@@ -369,7 +369,7 @@ class _Card extends StatelessWidget {
   Widget build(BuildContext context) => DecoratedBox(
     decoration: BoxDecoration(
       color: context.colors.surfaceRaised,
-      borderRadius: BorderRadius.circular(TidemarkRadius.radiusMd),
+      borderRadius: BorderRadius.circular(TidemarkRadius.radiusLg),
     ),
     child: Padding(
       padding: const EdgeInsets.all(TidemarkSpacing.space4),
@@ -613,7 +613,7 @@ class _Distribution extends StatelessWidget {
               for (var mood = 1; mood <= 5; mood++)
                 Row(
                   children: [
-                    MoodDot(mood: mood, size: TidemarkSize.moodDotSm),
+                    MoodBubble(mood: mood, size: TidemarkSize.bubbleSm),
                     const SizedBox(width: TidemarkSpacing.space3),
                     // Le libellé passe à la ligne à 200 % (CA32).
                     Expanded(

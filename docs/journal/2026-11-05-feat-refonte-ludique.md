@@ -73,3 +73,32 @@
 ### Prochaine étape
 
 - Finir la spec 008 (écran d'aide, Réglages, 200 %), puis tests de la spec 010 et implémentation de la spec 009.
+
+## 2026-11-05 21:45
+
+### Fait
+
+- Spec 008 implémentée :
+  - `tokens.json` en version 2 et `charte.md` v2 (marée, bulle, autocollants, mouvement, exception de l'écran d'aide).
+  - Jetons Dart générés depuis `tokens.json` : couleurs, `TidemarkShadows`, tailles des bulles, typographie v2.
+  - `MoodBubble` (peintre : eau, houle, visage, reflet), qui remplace `MoodDot`, supprimé.
+  - `AmbientMotion` et `syncAmbientController` ; `main` seul active le mouvement.
+  - Autocollants (`Sticker`, `PressShadow`), sélecteur en bulles et fond `mood-n-night` dans la saisie.
+  - Carte de la liste sur `mood-n-soft`, contenu au thème clair ; en-tête du détail ; illustration de la proposition du modèle ; cartes des Réglages et du bilan en `radius-lg`.
+  - Écran de lancement aux couleurs v2 : Android par `tool/generate_brand.py`, `LaunchBackground` et storyboard iOS à la main.
+- Tests de la spec 008 au vert, sauf deux qui attendent l'accueil de la spec 009 (deux libellés « Bien » à cause du check-in ; carte cherchée par taille).
+
+### Décisions
+
+- Agent : texte indicatif de la saisie sur 5 lignes au plus (il était tronqué à 200 %) ; le contenu d'une carte d'entrée prend les jetons du thème clair, puisque son fond `mood-n-soft` est clair dans les deux thèmes.
+
+### Corrections et limites
+
+- Tests du subagent corrigés par l'agent (signalés) :
+  - `help_screen_calm_test` : ne compte que les rotations qui portent un contenu, car le `Scaffold` garde une transition interne pivotée et vide ;
+  - `playful_restyle_test`, CA16 : attente d'une seconde au lieu de 400 ms, pour laisser finir une transition finie, et titre de l'écran comme repère du `Scaffold` ; CA18 : défilement jusqu'au sélecteur à 200 % ;
+  - `brand_docs_test` : le logo monochrome est en `ink` clair v2 (`#14262b`), comme le veut la spec 007.
+
+### Prochaine étape
+
+- Fin des tests de la spec 010 (subagent), puis implémentation des specs 009 et 010 en parallèle, par deux agents dans des copies de travail isolées (demande de Yanis : « hésite pas à multi-threader »).

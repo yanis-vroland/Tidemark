@@ -27,6 +27,7 @@ import 'storage/app_storage.dart';
 import 'storage/database_key.dart';
 import 'ui/analysis_scope.dart';
 import 'ui/app_host.dart';
+import 'ui/motion/ambient_motion.dart';
 import 'ui/phone_dialer.dart';
 import 'ui/screens/entry_list_screen.dart';
 import 'ui/screens/wipe_confirmation_screen.dart';
@@ -46,14 +47,17 @@ Future<void> main() async {
   // d'analyse de l'app précédente.
   runApp(
     AppHost(
+      // Animations d'ambiance activées ici seulement (spec 008, CA10).
       initial: await startApp(
         storage: storage,
         lifecycle: appLifecycleStates(),
+        ambientMotion: true,
       ),
       restart: ({required wiped}) => startApp(
         storage: storage,
         lifecycle: appLifecycleStates(),
         wiped: wiped,
+        ambientMotion: true,
       ),
     ),
   );
@@ -120,6 +124,8 @@ Future<Widget> startApp({
   ShareSheet shareSheet = const SharePlusShareSheet(),
   bool wiped = false,
   Stream<AppLifecycleState>? lifecycle,
+  // Animations d'ambiance (spec 008) : seul `main` les active.
+  bool ambientMotion = false,
 }) async {
   if (open == null && storage == null) {
     storage = await AppStorage.system();
@@ -182,6 +188,7 @@ Future<Widget> startApp({
       downloader: journal.downloader,
       analysisQueue: queue,
       wiped: wiped,
+      ambientMotion: ambientMotion,
       data: store == null
           ? null
           : DataActions(
@@ -316,7 +323,11 @@ class TidemarkApp extends StatelessWidget {
     this.clock,
     this.data,
     this.wiped = false,
+    this.ambientMotion = false,
   });
+
+  /// Animations d'ambiance autorisées (spec 008, CA10) ; seul `main` les active.
+  final bool ambientMotion;
 
   /// Export et suppression totale, dans les Réglages (spec 005) ; `null` : section
   /// « Mes données » absente.
@@ -347,6 +358,8 @@ class TidemarkApp extends StatelessWidget {
       title: 'Tidemark',
       theme: buildTidemarkTheme(Brightness.light),
       darkTheme: buildTidemarkTheme(Brightness.dark),
+      builder: (context, child) =>
+          AmbientMotion(enabled: ambientMotion, child: child!),
       home: EntryListScreen(
         repository: repository,
         settings: settings,

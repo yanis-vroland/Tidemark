@@ -13,7 +13,9 @@ import '../theme/tidemark_colors.dart';
 import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
 import '../widgets/error_banner.dart';
-import '../widgets/mood_dot.dart';
+import '../widgets/dashed_circle.dart';
+import '../widgets/mood_bubble.dart';
+import '../widgets/sticker.dart';
 import 'help_screen.dart';
 import 'model_download_screen.dart';
 
@@ -178,6 +180,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         if (!didPop && !_saving) _cancel();
       },
       child: Scaffold(
+        // Le fond prend la teinte de l'humeur choisie (spec 008, CA11).
+        backgroundColor: _mood == null
+            ? colors.surface
+            : colors.moodNightColor(_mood!),
         body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -221,7 +227,16 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               'ton texte est conservé.',
                         ),
                       ],
-                      const SizedBox(height: TidemarkSpacing.space6),
+                      const SizedBox(height: TidemarkSpacing.space4),
+                      Center(
+                        child: _mood == null
+                            ? const _MoodPlaceholder()
+                            : MoodBubble(
+                                mood: _mood!,
+                                size: TidemarkSize.bubbleXl,
+                              ),
+                      ),
+                      const SizedBox(height: TidemarkSpacing.space4),
                       Text(
                         'Ton humeur, de 1 à 5',
                         style: TidemarkTypography.label.copyWith(
@@ -289,7 +304,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         ),
                         decoration: InputDecoration(
                           hintText: 'Une phrase suffit, ou rien du tout.',
-                          hintMaxLines: 3,
+                          hintMaxLines: 5,
                           filled: true,
                           fillColor: colors.surfaceRaised,
                           border: OutlineInputBorder(
@@ -351,14 +366,16 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                       ),
                       const SizedBox(height: TidemarkSpacing.space2),
                     ],
-                    FilledButton(
-                      onPressed: _mood == null || _saving ? null : _save,
-                      child: Text(
-                        _saving
-                            ? 'Enregistrement…'
-                            : _failed
-                            ? 'Réessayer'
-                            : 'Enregistrer',
+                    PressShadow(
+                      child: FilledButton(
+                        onPressed: _mood == null || _saving ? null : _save,
+                        child: Text(
+                          _saving
+                              ? 'Enregistrement…'
+                              : _failed
+                              ? 'Réessayer'
+                              : 'Enregistrer',
+                        ),
                       ),
                     ),
                   ],
@@ -372,7 +389,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 }
 
-/// Sélecteur d'humeur (charte : `MoodSelector`).
+/// Sélecteur d'humeur (charte v2 : cinq bulles de marée, spec 008, CA11).
 class _MoodSelector extends StatelessWidget {
   const _MoodSelector({required this.selected, required this.onSelected});
 
@@ -381,7 +398,6 @@ class _MoodSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -393,24 +409,19 @@ class _MoodSelector extends StatelessWidget {
             excludeSemantics: true,
             onTap: onSelected == null ? null : () => onSelected!(mood),
             child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: onSelected == null ? null : () => onSelected!(mood),
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 150),
-                opacity: selected != null && selected != mood
-                    ? TidemarkOpacity.moodDimmed
-                    : 1,
-                child: Container(
-                  padding: const EdgeInsets.all(TidemarkSize.ringWidth),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      width: TidemarkSize.ringWidth,
-                      color: selected == mood
-                          ? colors.tide
-                          : colors.surface.withValues(alpha: 0),
-                    ),
+              child: SizedBox.square(
+                // Cible tactile constante, quelle que soit la taille de la bulle.
+                dimension: TidemarkSize.bubbleSelectOn,
+                child: Center(
+                  child: MoodBubble(
+                    mood: mood,
+                    size: selected == mood
+                        ? TidemarkSize.bubbleSelectOn
+                        : TidemarkSize.bubbleSelect,
+                    ring: selected == mood,
                   ),
-                  child: MoodDot(mood: mood, size: TidemarkSize.moodDot),
                 ),
               ),
             ),
@@ -418,4 +429,19 @@ class _MoodSelector extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Cercle pointillé `line` à la place de la grande bulle, tant qu'aucune humeur
+/// n'est choisie (spec 008, CA11).
+class _MoodPlaceholder extends StatelessWidget {
+  const _MoodPlaceholder();
+
+  @override
+  Widget build(BuildContext context) => ExcludeSemantics(
+    child: CustomPaint(
+      key: const Key('mood-placeholder'),
+      size: const Size.square(TidemarkSize.bubbleXl),
+      painter: DashedCirclePainter(color: context.colors.line),
+    ),
+  );
 }

@@ -57,12 +57,28 @@ void main() {
   ) async {
     await showHelp(tester);
 
-    final transforms = tester.widgetList<Transform>(
-      find.descendant(
-        of: find.byType(HelpScreen),
-        matching: find.byType(Transform),
-      ),
-    );
+    // Seuls les éléments qui portent un contenu visible (texte, bulle) : le
+    // Scaffold garde en interne une transition du bouton flottant, pivotée et
+    // vide, sans rapport avec la charte.
+    bool carriesContent(Element e) => find
+        .descendant(
+          of: find.byElementPredicate((x) => x == e),
+          matching: find.byWidgetPredicate(
+            (w) => w is Text || w is RichText || w is MoodBubble,
+          ),
+        )
+        .evaluate()
+        .isNotEmpty;
+    final transforms = [
+      for (final e
+          in find
+              .descendant(
+                of: find.byType(HelpScreen),
+                matching: find.byType(Transform),
+              )
+              .evaluate())
+        if (carriesContent(e)) e.widget as Transform,
+    ];
     for (final t in transforms) {
       final m = t.transform.storage;
       expect(
@@ -72,11 +88,14 @@ void main() {
       );
     }
     expect(
-      find.descendant(
-        of: find.byType(HelpScreen),
-        matching: find.byType(RotationTransition),
-      ),
-      findsNothing,
+      find
+          .descendant(
+            of: find.byType(HelpScreen),
+            matching: find.byType(RotationTransition),
+          )
+          .evaluate()
+          .where(carriesContent),
+      isEmpty,
     );
   });
 

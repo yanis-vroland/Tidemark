@@ -53,7 +53,7 @@ class _ModelSettingsSectionState extends State<ModelSettingsSection> {
             DecoratedBox(
               decoration: BoxDecoration(
                 color: colors.surfaceRaised,
-                borderRadius: BorderRadius.circular(TidemarkRadius.radiusMd),
+                borderRadius: BorderRadius.circular(TidemarkRadius.radiusLg),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(TidemarkSpacing.space4),

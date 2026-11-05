@@ -8,7 +8,7 @@ import '../theme/tidemark_colors.dart';
 import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
 import '../widgets/entry_tags_section.dart';
-import '../widgets/mood_dot.dart';
+import '../widgets/mood_bubble.dart';
 
 /// Détail d'une entrée et sa suppression (spec 001). Aucun moyen de la modifier
 /// (RM15).
@@ -128,75 +128,110 @@ class _EntryDetailScreenState extends State<EntryDetailScreen> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TidemarkSpacing.space4,
-                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: TextButton.icon(
-                        onPressed: () => Navigator.of(context).maybePop(),
-                        icon: const Icon(Icons.chevron_left),
-                        label: const Text('Journal'),
-                      ),
-                    ),
-                    const SizedBox(height: TidemarkSpacing.space4),
-                    Text(
-                      local.year == (widget.clock ?? DateTime.now)().year
-                          ? weekdayAndDate(local)
-                          : fullDateLabel(local),
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    Text(
-                      timeLabel(local),
-                      style: TidemarkTypography.caption.copyWith(
-                        color: colors.inkMuted,
-                      ),
-                    ),
-                    const SizedBox(height: TidemarkSpacing.space6),
-                    Row(
-                      children: [
-                        MoodDot(mood: entry.mood, size: TidemarkSize.moodDotLg),
-                        const SizedBox(width: TidemarkSpacing.space4),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                moodLabel(entry.mood),
-                                style: TidemarkTypography.headline,
-                              ),
-                              Text(
-                                'Humeur ${entry.mood} sur 5',
-                                style: TidemarkTypography.caption.copyWith(
-                                  color: colors.inkMuted,
-                                ),
-                              ),
-                            ],
-                          ),
+                    // En-tête aux couleurs de l'humeur (spec 008, CA13).
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: colors.moodSoftColor(entry.mood),
+                        borderRadius: const BorderRadius.vertical(
+                          bottom: Radius.circular(TidemarkRadius.radiusXl),
                         ),
-                      ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          TidemarkSpacing.space4,
+                          0,
+                          TidemarkSpacing.space4,
+                          TidemarkSpacing.space6,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: TextButton.icon(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: colors.onMood,
+                                ),
+                                onPressed: () =>
+                                    Navigator.of(context).maybePop(),
+                                icon: const Icon(Icons.chevron_left),
+                                label: const Text('Journal'),
+                              ),
+                            ),
+                            const SizedBox(height: TidemarkSpacing.space2),
+                            Text(
+                              local.year ==
+                                      (widget.clock ?? DateTime.now)().year
+                                  ? weekdayAndDate(local)
+                                  : fullDateLabel(local),
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(color: colors.onMood),
+                            ),
+                            Text(
+                              timeLabel(local),
+                              textAlign: TextAlign.center,
+                              style: TidemarkTypography.caption.copyWith(
+                                color: colors.onMood,
+                              ),
+                            ),
+                            const SizedBox(height: TidemarkSpacing.space4),
+                            Center(
+                              child: MoodBubble(
+                                mood: entry.mood,
+                                size: TidemarkSize.bubbleLg,
+                              ),
+                            ),
+                            const SizedBox(height: TidemarkSpacing.space2),
+                            Text(
+                              moodLabel(entry.mood),
+                              textAlign: TextAlign.center,
+                              style: TidemarkTypography.display.copyWith(
+                                color: colors.onMood,
+                              ),
+                            ),
+                            Text(
+                              'Humeur ${entry.mood} sur 5',
+                              textAlign: TextAlign.center,
+                              style: TidemarkTypography.label.copyWith(
+                                color: colors.onMood,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    if (text != null) ...[
-                      const SizedBox(height: TidemarkSpacing.space6),
-                      Text(text, style: TidemarkTypography.body),
-                    ],
-                    // L'entrée relue à chaque changement : ses étiquettes
-                    // apparaissent dès que l'analyse se termine (CA18).
-                    StreamBuilder<Entry?>(
-                      // Une autre entrée repart de zéro : jamais les étiquettes
-                      // de la précédente, ni une fin d'analyse annoncée à tort
-                      // (CA28).
-                      key: ValueKey(entry.id),
-                      stream: _entry,
-                      builder: (context, snapshot) => EntryTagsSection(
-                        entry: snapshot.data ?? entry,
-                        downloader: widget.downloader,
-                        // L'entrée vient du journal, pas de la liste : seule une
-                        // transition vue ici est une fin d'analyse (CA28).
-                        live: snapshot.hasData,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: TidemarkSpacing.space4,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (text != null) ...[
+                            const SizedBox(height: TidemarkSpacing.space6),
+                            Text(text, style: TidemarkTypography.body),
+                          ],
+                          // L'entrée relue à chaque changement : ses étiquettes
+                          // apparaissent dès que l'analyse se termine (CA18).
+                          StreamBuilder<Entry?>(
+                            // Une autre entrée repart de zéro : jamais les étiquettes
+                            // de la précédente, ni une fin d'analyse annoncée à tort
+                            // (CA28).
+                            key: ValueKey(entry.id),
+                            stream: _entry,
+                            builder: (context, snapshot) => EntryTagsSection(
+                              entry: snapshot.data ?? entry,
+                              downloader: widget.downloader,
+                              // L'entrée vient du journal, pas de la liste : seule une
+                              // transition vue ici est une fin d'analyse (CA28).
+                              live: snapshot.hasData,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],

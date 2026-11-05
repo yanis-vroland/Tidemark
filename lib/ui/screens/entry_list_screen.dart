@@ -10,12 +10,13 @@ import '../../review/review_writer.dart';
 import '../../settings/settings_repository.dart';
 import '../phone_dialer.dart';
 import '../theme/tidemark_colors.dart';
+import '../theme/tidemark_theme.dart';
 import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
 import '../analysis_scope.dart';
 import '../widgets/entry_tags_section.dart' show analysingText;
 import '../widgets/loading_note.dart';
-import '../widgets/mood_dot.dart';
+import '../widgets/mood_bubble.dart';
 import '../widgets/my_data_section.dart';
 import '../widgets/tag_chip.dart';
 import '../widgets/tidemark_logo.dart';
@@ -451,9 +452,20 @@ class _EntryCard extends StatelessWidget {
   );
 
   Widget _cardBody(BuildContext context, TidemarkColors colors, String? text) {
+    // Fond `mood-n-soft`, clair dans les deux thèmes : le contenu de la carte
+    // prend les jetons du thème clair, texte en `on-mood` (spec 008, CA12).
+    return Theme(
+      data: buildTidemarkTheme(Brightness.light),
+      child: Builder(
+        builder: (context) => _softCard(context, context.colors, text),
+      ),
+    );
+  }
+
+  Widget _softCard(BuildContext context, TidemarkColors colors, String? text) {
     return Material(
-      color: colors.surfaceRaised,
-      borderRadius: BorderRadius.circular(TidemarkRadius.radiusMd),
+      color: colors.moodSoftColor(entry.mood),
+      borderRadius: BorderRadius.circular(TidemarkRadius.radiusLg),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => _open(context),
@@ -464,7 +476,7 @@ class _EntryCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  MoodDot(mood: entry.mood, size: TidemarkSize.moodDotSm),
+                  MoodBubble(mood: entry.mood, size: TidemarkSize.bubbleMd),
                   const SizedBox(width: TidemarkSpacing.space3),
                   Expanded(
                     child: Column(
@@ -472,7 +484,9 @@ class _EntryCard extends StatelessWidget {
                       children: [
                         Text(
                           moodLabel(entry.mood),
-                          style: TidemarkTypography.headline,
+                          style: TidemarkTypography.headline.copyWith(
+                            color: colors.onMood,
+                          ),
                         ),
                         Text(
                           timeLabel(entry.localCreatedAt),
@@ -491,7 +505,7 @@ class _EntryCard extends StatelessWidget {
                   text,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TidemarkTypography.body,
+                  style: TidemarkTypography.body.copyWith(color: colors.onMood),
                 ),
               ],
               if (AnalysisScope.maybeOf(context)?.currentEntryId ==
@@ -544,7 +558,7 @@ class _ReviewCard extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   child: SizedBox.square(
-                    dimension: TidemarkSize.moodDotSm,
+                    dimension: TidemarkSize.bubbleMd,
                     child: Icon(
                       Icons.bar_chart,
                       size: TidemarkSize.iconMd,

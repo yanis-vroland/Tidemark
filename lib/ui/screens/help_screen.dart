@@ -84,7 +84,7 @@ class _HelpScreenState extends State<HelpScreen> {
                               excludeSemantics: true,
                               child: Text(
                                 '3114',
-                                style: TidemarkTypography.moodNumeral.copyWith(
+                                style: TidemarkTypography.display.copyWith(
                                   color: colors.tide,
                                 ),
                               ),

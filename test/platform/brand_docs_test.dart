@@ -58,7 +58,8 @@ void main() {
       () {
         final svg = text('$charter/logo/tidemark-mark-mono.svg').toLowerCase();
         final colors = RegExp(r'#[0-9a-f]{6}').allMatches(svg).map((m) => m[0]);
-        expect(colors.toSet(), {'#13272c'});
+        // `ink` clair de la charte v2 (spec 008).
+        expect(colors.toSet(), {'#14262b'});
       },
     );
 

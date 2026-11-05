@@ -4,9 +4,11 @@ import '../../analysis/mood_analyzer.dart';
 import '../theme/tidemark_colors.dart';
 import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
+import 'sticker.dart';
 
-/// Puce d'étiquette (charte : `TagChip`) : `label` en `ink` sur `tide-soft`, même
-/// couleur pour toutes les émotions, ni cliquable ni modifiable (RM19, CA26).
+/// Puce d'étiquette (charte v2 : autocollant, spec 008) : `ink` sur
+/// `surface-raised`, ombre `shadow-sticker`, rotation fixe ; ni cliquable ni
+/// modifiable (RM19, RM58).
 class TagChip extends StatelessWidget {
   const TagChip({super.key, required this.label});
 
@@ -15,21 +17,11 @@ class TagChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.tideSoft,
-        borderRadius: BorderRadius.circular(TidemarkRadius.radiusPill),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TidemarkSpacing.space3,
-          vertical: TidemarkSpacing.space1,
-        ),
-        child: Text(
-          label,
-          style: TidemarkTypography.label.copyWith(color: colors.ink),
-        ),
-      ),
+    return Sticker(
+      text: label,
+      background: colors.surfaceRaised,
+      foreground: colors.ink,
+      style: TidemarkTypography.label,
     );
   }
 }

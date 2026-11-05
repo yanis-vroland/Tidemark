@@ -2,6 +2,6 @@
 <!-- GÉNÉRÉ par tool/generate_brand.py (spec 007) : ne pas modifier à la main. -->
 <!-- Couleurs de la charte utilisées hors de Flutter (écran de lancement, icône). -->
 <resources>
-    <color name="tidemark_surface">#0E191C</color>
+    <color name="tidemark_surface">#0C1719</color>
     <color name="ic_launcher_background">#1D5F6B</color>
 </resources>
