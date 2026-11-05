@@ -46,7 +46,7 @@ class Flow {
 
   /// Un vrai journal de [count] entrées avec texte et le degré « Haute » ; rend la
   /// clé de la base. Les entrées sont « non analysées » : aucune analyse ne démarre.
-  Future<String> seed({int count = 2}) async {
+  Future<String> seed({int count = 2, bool welcomeShown = false}) async {
     final journal = await openJournal(
       folder: env.folder,
       keyStore: env.keyStore,
@@ -59,6 +59,7 @@ class Flow {
       );
     }
     await journal.settings.setLowMoodSensitivity(LowMoodSensitivity.high);
+    if (welcomeShown) await journal.settings.setWelcomeShown();
     await (journal.entries as DriftEntryRepository).db.close();
     env.log.clear();
     return env.keyStore.stored!;
@@ -126,6 +127,16 @@ void flowTest(
 
 bool shown(String text) => find.text(text).evaluate().isNotEmpty;
 
+/// Après une suppression totale (ou sa reprise), le journal est vide et le réglage
+/// « bienvenue vue » est effacé avec la base : la bienvenue s'affiche d'abord (spec
+/// 009, CA4), puis « C'est parti » mène à l'accueil et à son message de fin.
+Future<void> continueFromWelcome(WidgetTester tester) async {
+  await pumpUntil(tester, () => shown("C'est parti"), rounds: 600);
+  expect(shown(doneTitle), isFalse, reason: 'avant le message de fin');
+  await tester.tap(find.text("C'est parti"));
+  await pumpUntil(tester, () => shown(doneTitle));
+}
+
 /// Application affichée en ce moment (celle qui vient d'être rouverte).
 TidemarkApp currentApp(WidgetTester tester) =>
     tester.widget<TidemarkApp>(find.byType(TidemarkApp));
@@ -152,7 +163,7 @@ void main() {
     await settle(tester);
     await typeConfirmation(tester, 'supprimer');
     await tester.tap(find.text(confirmLabel));
-    await pumpUntil(tester, () => shown(doneTitle), rounds: 600);
+    await continueFromWelcome(tester);
     await settleIo(tester);
 
     // Le message de fin, au-dessus de l'état vide habituel.
@@ -181,6 +192,59 @@ void main() {
     expect(flow.sheet.shared, isEmpty);
   });
 
+  flowTest('CA4 (spec 009) : après la suppression totale, le réglage « '
+      'bienvenue vue » est effacé avec la base : la bienvenue s\'affiche de '
+      'nouveau, avant le message de fin, qui s\'affiche ensuite sur '
+      'l\'accueil', (tester, flow) async {
+    await tester.runAsync(() => flow.seed(welcomeShown: true));
+    final initial = (await tester.runAsync(flow.start))!;
+    await tester.pumpWidget(flow.host(initial));
+    await pumpUntil(tester, () => shown('Nouvelle entrée'));
+    expect(shown("C'est parti"), isFalse, reason: 'bienvenue déjà vue');
+    expect(
+      await tester.runAsync(
+        () => currentApp(tester).settings.readWelcomeShown(),
+      ),
+      isTrue,
+    );
+
+    await tester.tap(find.bySemanticsLabel('Réglages').first);
+    await settle(tester);
+    await tester.tap(find.text('Tout supprimer'));
+    await settle(tester);
+    await typeConfirmation(tester, 'supprimer');
+    await tester.tap(find.text(confirmLabel));
+    await pumpUntil(tester, () => shown("C'est parti"), rounds: 600);
+    await settleIo(tester);
+
+    // La bienvenue d'abord : ni l'accueil, ni le message de fin.
+    expect(currentApp(tester).showWelcome, isTrue);
+    expect(currentApp(tester).wiped, isTrue);
+    expect(shown(doneTitle), isFalse);
+    expect(shown('Nouvelle entrée'), isFalse);
+    expect(
+      await tester.runAsync(
+        () => currentApp(tester).settings.readWelcomeShown(),
+      ),
+      isFalse,
+      reason: 'le réglage est parti avec la base',
+    );
+
+    await tester.tap(find.text("C'est parti"));
+    await pumpUntil(tester, () => shown(doneTitle));
+    await settleIo(tester);
+
+    expect(find.text(doneBody), findsOneWidget);
+    expect(find.text(emptyTitle), findsOneWidget);
+    expect(shown('Nouvelle entrée'), isTrue);
+    expect(
+      await tester.runAsync(
+        () => currentApp(tester).settings.readWelcomeShown(),
+      ),
+      isTrue,
+    );
+  });
+
   flowTest('CA17 : les étapes ont eu lieu dans l\'ordre, la base fermée '
       'avant l\'effacement de ses fichiers', (tester, flow) async {
     await tester.runAsync(flow.seed);
@@ -195,7 +259,7 @@ void main() {
     await typeConfirmation(tester, 'SUPPRIMER');
 
     await tester.tap(find.text(confirmLabel));
-    await pumpUntil(tester, () => shown(doneTitle), rounds: 600);
+    await continueFromWelcome(tester);
 
     final log = flow.env.log;
     final firstDelete = log.indexOf('deleteFile tidemark/journal.db-wal');
@@ -224,7 +288,7 @@ void main() {
     await settle(tester);
     await typeConfirmation(tester, 'SUPPRIMER');
     await tester.tap(find.text(confirmLabel));
-    await pumpUntil(tester, () => shown(doneTitle), rounds: 600);
+    await continueFromWelcome(tester);
     await settleIo(tester);
 
     await openForm(tester);
@@ -250,7 +314,7 @@ void main() {
     final initial = (await tester.runAsync(flow.start))!;
 
     await tester.pumpWidget(flow.host(initial));
-    await pumpUntil(tester, () => shown(doneTitle));
+    await continueFromWelcome(tester);
 
     expect(find.text(doneBody), findsOneWidget);
     expect(find.text(emptyTitle), findsOneWidget);
@@ -277,7 +341,7 @@ void main() {
 
     flow.env.repair();
     await tester.tap(find.text('Réessayer'));
-    await pumpUntil(tester, () => shown(doneTitle), rounds: 600);
+    await continueFromWelcome(tester);
 
     expect(find.text(emptyTitle), findsOneWidget);
     expect(flow.env.exists('tidemark/wipe-pending'), isFalse);
@@ -315,7 +379,7 @@ void main() {
 
     await typeConfirmation(tester, 'Supprimer');
     await tester.tap(find.text(confirmLabel));
-    await pumpUntil(tester, () => shown(doneTitle), rounds: 600);
+    await continueFromWelcome(tester);
     await settleIo(tester);
 
     expect(find.text(doneBody), findsOneWidget);

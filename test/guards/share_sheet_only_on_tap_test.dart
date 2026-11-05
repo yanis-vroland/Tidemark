@@ -130,11 +130,19 @@ void main() {
       ))!;
       try {
         await tester.pumpWidget(app);
+        // Spec 009, CA1 : journal vide et réglage à faux, la bienvenue s'affiche
+        // d'abord ; « C'est parti » mène à l'accueil.
+        await pumpUntil(
+          tester,
+          () => find.text("C'est parti").evaluate().isNotEmpty,
+        );
+        expect(sheet.shared, isEmpty, reason: 'au démarrage');
+        await tester.tap(find.text("C'est parti"));
         await pumpUntil(
           tester,
           () => find.text('Nouvelle entrée').evaluate().isNotEmpty,
         );
-        expect(sheet.shared, isEmpty, reason: 'au démarrage');
+        expect(sheet.shared, isEmpty, reason: 'à la fin de la bienvenue');
 
         await openForm(tester);
         await pickMood(tester, 3);

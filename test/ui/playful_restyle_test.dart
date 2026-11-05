@@ -367,7 +367,8 @@ void main() {
       expect(card.single.mood, 4);
       expect(find.text('4'), findsNothing);
       expect(find.text('21:40'), findsOneWidget);
-      expect(find.text('Bien'), findsOneWidget);
+      // Spec 009, CA11 : « Bien » est aussi le libellé de la bulle du check-in.
+      expect(find.text('Bien'), findsNWidgets(2));
     });
 
     uiTest('CA12 : la carte a le fond mood-n-soft, texte en on-mood, pour '
@@ -392,7 +393,9 @@ void main() {
           light.onMood,
           reason: '$mood',
         );
-        final label = find.text(moodLabel(mood));
+        // Spec 009, CA11 : le même libellé est sous la bulle du check-in ; la carte
+        // d'entrée est plus bas.
+        final label = find.text(moodLabel(mood)).last;
         expect(paintedTextColor(tester, label), light.onMood, reason: '$mood');
       }
     });
@@ -759,8 +762,11 @@ void main() {
       await settle(tester);
 
       expectNoOverflow(tester, 'liste');
+      // Spec 009 : les bulles du check-in (54) précèdent celle de la carte (48).
       expect(
-        tester.getSize(find.byType(MoodBubble).first),
+        tester.getSize(
+          find.byWidgetPredicate((w) => w is MoodBubble && w.size == 48),
+        ),
         const Size.square(48),
       );
     });
@@ -814,7 +820,7 @@ void main() {
           reason: 'humeur $mood',
         );
         expect(
-          paintedTextColor(tester, find.text(moodLabel(mood))),
+          paintedTextColor(tester, find.text(moodLabel(mood)).last),
           dark.onMood,
           reason: 'humeur $mood',
         );

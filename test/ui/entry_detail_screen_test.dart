@@ -90,7 +90,8 @@ void main() {
       await tester.pumpWidget(env.app());
       await settle(tester);
 
-      await tester.tap(find.text('Neutre'));
+      // Spec 009 : « Neutre » est aussi sous la bulle du check-in, plus haut.
+      await tester.tap(find.text('Neutre').last);
       await settle(tester);
 
       expect(find.textContaining('Mercredi 14 octobre'), findsOneWidget);
@@ -231,7 +232,8 @@ void main() {
       await env.add(tester, DateTime(2026, 10, 14, 8, 15), 3);
       await tester.pumpWidget(env.app());
       await settle(tester);
-      await tester.tap(find.text('Neutre'));
+      // Spec 009 : « Neutre » est aussi sous la bulle du check-in, plus haut.
+      await tester.tap(find.text('Neutre').last);
       await settle(tester);
       await tester.tap(find.text('Supprimer cette entrée'));
       await settle(tester);

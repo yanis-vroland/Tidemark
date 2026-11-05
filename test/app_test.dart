@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/main.dart';
+import 'package:tidemark/ui/screens/entry_list_screen.dart';
+import 'package:tidemark/ui/screens/home_shell.dart';
+import 'package:tidemark/ui/screens/welcome_screen.dart';
 import 'package:tidemark/ui/theme/tidemark_colors.dart';
 
 import 'support/fake_entry_repository.dart';
@@ -10,7 +13,7 @@ import 'support/fake_settings_repository.dart';
 void main() {
   for (final brightness in Brightness.values) {
     testWidgets(
-      'l\'accueil est la liste, avec le fond de la charte ($brightness)',
+      'l\'accueil est HomeShell (liste et barre), avec le fond de la charte ($brightness)',
       (tester) async {
         tester.platformDispatcher.platformBrightnessTestValue = brightness;
         addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
@@ -25,6 +28,11 @@ void main() {
         );
         await tester.pumpAndSettle();
 
+        // Spec 009 : l'accueil est HomeShell (la liste dans l'onglet « Journal »),
+        // sans bienvenue par défaut.
+        expect(find.byType(HomeShell), findsOneWidget);
+        expect(find.byType(EntryListScreen), findsOneWidget);
+        expect(find.byType(WelcomeScreen), findsNothing);
         expect(find.text('Ton journal'), findsOneWidget);
         expect(find.text('Ta première entrée apparaîtra ici'), findsOneWidget);
         expect(find.text('Nouvelle entrée'), findsOneWidget);

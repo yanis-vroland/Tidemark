@@ -50,7 +50,9 @@ void main() {
       );
       await settle(tester);
 
-      expect(find.text('Nouvelle entrée'), findsOneWidget);
+      // Spec 009, CA19 : « Nouvelle entrée » est dans la barre de HomeShell, testée
+      // à 200 % dans test/ui/home_shell_test.dart (CA27).
+      expect(find.text('Ton journal'), findsOneWidget);
       expectNoOverflow(tester, 'liste');
     });
 
@@ -203,7 +205,11 @@ void main() {
       // identique dans les deux thèmes, à la place de surface-raised.
       final card = tester.widget<Material>(
         find
-            .ancestor(of: find.text('Neutre'), matching: find.byType(Material))
+            .ancestor(
+              // Spec 009 : le libellé du check-in précède celui de la carte.
+              of: find.text('Neutre').last,
+              matching: find.byType(Material),
+            )
             .first,
       );
       expect(card.color, TidemarkColors.dark.moodSoftColor(3), reason: 'carte');
@@ -231,7 +237,7 @@ void main() {
       await env.seedJournal(tester);
       await tester.pumpWidget(env.app());
       await settle(tester);
-      await tester.tap(find.text('Neutre'));
+      await tester.tap(find.text('Neutre').last);
       await settle(tester);
 
       expect(find.text('Supprimer cette entrée'), findsOneWidget);

@@ -22,13 +22,14 @@ double top(WidgetTester tester, Finder finder) =>
 
 void main() {
   group('liste vide', () {
-    dbTestWidgets('CA1 : sans entrée, l\'état vide et le bouton « Nouvelle '
-        'entrée » s\'affichent', (tester, env) async {
+    dbTestWidgets('CA1 : sans entrée, l\'état vide s\'affiche ; le bouton '
+        '« Nouvelle entrée » n\'est plus en bas de la liste (spec 009, CA19 : il '
+        'est dans la barre de HomeShell)', (tester, env) async {
       await tester.pumpWidget(listScreen(env));
       await settle(tester);
 
       expect(find.text('Ta première entrée apparaîtra ici'), findsOneWidget);
-      expect(find.text('Nouvelle entrée'), findsOneWidget);
+      expect(find.text('Nouvelle entrée'), findsNothing);
     });
 
     dbTestWidgets('CA1 : l\'état vide reprend le titre et le texte de la '
@@ -52,7 +53,7 @@ void main() {
       await settle(tester);
 
       expect(find.text('Ta première entrée apparaîtra ici'), findsNothing);
-      expect(find.text('Nouvelle entrée'), findsOneWidget);
+      expect(find.text('Nouvelle entrée'), findsNothing);
     });
   });
 
@@ -113,7 +114,8 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('21:40'), findsOneWidget);
-      expect(find.text('Bien'), findsOneWidget);
+      // Spec 009, CA11 : « Bien » est aussi le libellé de la bulle du check-in.
+      expect(find.text('Bien'), findsNWidgets(2));
       expect(find.textContaining('Longue journée au travail'), findsOneWidget);
     });
 
@@ -145,7 +147,8 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('08:15'), findsOneWidget);
-      expect(find.text('Neutre'), findsOneWidget);
+      // Spec 009, CA11 : « Neutre » est aussi le libellé de la bulle du check-in.
+      expect(find.text('Neutre'), findsNWidgets(2));
       expect(emptyText, findsNothing);
     });
 
@@ -196,7 +199,8 @@ void main() {
 
       expect(find.text('Ta première entrée apparaîtra ici'), findsNothing);
       expect(find.text("Aujourd'hui"), findsOneWidget);
-      expect(find.text('Bien'), findsOneWidget);
+      // Spec 009, CA11 : la carte et le libellé de la bulle du check-in.
+      expect(find.text('Bien'), findsNWidgets(2));
     });
   });
 }

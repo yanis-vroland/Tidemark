@@ -293,7 +293,9 @@ void main() {
         'défaut', () {
       final source = File('lib/main.dart').readAsStringSync();
       expect(
-        RegExp(r'bool\s+ambientMotion\s*=\s*false').allMatches(source).length,
+        RegExp(r'(bool\s+|this\.)ambientMotion\s*=\s*false')
+            .allMatches(source)
+            .length,
         greaterThanOrEqualTo(2),
         reason: 'startApp et TidemarkApp',
       );

@@ -58,4 +58,29 @@ class FakeSettingsRepository implements SettingsRepository {
     modelOfferShown = true;
     _offerChanges.add(true);
   }
+
+  /// Bienvenue déjà vue (spec 009) ; faux par défaut, comme un premier lancement.
+  bool welcomeShown = false;
+
+  /// Si non nul, [readWelcomeShown] lève cette erreur (CA6).
+  Object? welcomeReadError;
+
+  /// Si non nul, [setWelcomeShown] lève cette erreur (CA5) ; le réglage reste faux.
+  Object? welcomeWriteError;
+
+  /// Nombre d'appels à [setWelcomeShown], y compris ceux qui ont échoué.
+  int setWelcomeShownCalls = 0;
+
+  @override
+  Future<bool> readWelcomeShown() async {
+    if (welcomeReadError != null) throw welcomeReadError!;
+    return welcomeShown;
+  }
+
+  @override
+  Future<void> setWelcomeShown() async {
+    setWelcomeShownCalls++;
+    if (welcomeWriteError != null) throw welcomeWriteError!;
+    welcomeShown = true;
+  }
 }

@@ -222,7 +222,13 @@ void main() {
       }
 
       visit(
-        tester.binding.rootPipelineOwner.semanticsOwner!.rootSemanticsNode!,
+        tester
+            .binding
+            .renderViews
+            .first
+            .owner!
+            .semanticsOwner!
+            .rootSemanticsNode!,
       );
 
       expect(labelled, [node], reason: 'seul le parent porte un texte');
@@ -259,7 +265,13 @@ void main() {
       }
 
       visit(
-        tester.binding.rootPipelineOwner.semanticsOwner!.rootSemanticsNode!,
+        tester
+            .binding
+            .renderViews
+            .first
+            .owner!
+            .semanticsOwner!
+            .rootSemanticsNode!,
       );
       expect(labelled, isEmpty);
       semantics.dispose();

@@ -44,3 +44,32 @@
 ### Prochaine étape
 
 - Tests de la spec 009 (`test-writer`) ; en parallèle, implémentation de la spec 008.
+
+## 2026-11-05 21:00
+
+### Fait
+
+- Tests de la spec 009 écrits par le subagent `test-writer`, rouges pour la bonne raison : ils ne compilent pas tant que `HomeShell`, `WelcomeScreen`, `week_summary.dart`, `day_moment.dart` et les nouveaux paramètres manquent ; vérifiés par le subagent sur une copie avec des bouchons (147 échecs, tous pour fonctionnalité absente). Nouveaux fichiers : `test/entries/week_summary_test.dart`, `test/startup/welcome_startup_test.dart`, `test/ui/{welcome_screen,home_header,check_in,entry_form_initial_mood,beach_card,home_shell,week_tide,day_moment}_test.dart`, `test/support/home_harness.dart`.
+- Tests existants adaptés aux critères remplacés (signalés) :
+  - `weekly_review_screen_test` : 10 tests de la carte « Bilan de la semaine » retirés, remplacés par `beach_card_test`, CA14 à CA17, CA27, CA28 ; ceux des dates de la carte n'ont plus d'objet.
+  - `review_harness` : la carte ouverte est la plage.
+  - `entry_list_screen_test`, CA1 : « Nouvelle entrée » quitte la liste pour la barre, `home_shell_test`, CA19.
+  - Plusieurs `find.text(libellé)` passent à `.last` ou à deux occurrences, à cause des libellés du check-in.
+  - `app_test` : l'accueil est `HomeShell`.
+  - `wipe_flow_test` et `share_sheet_only_on_tap_test` : la bienvenue est passée d'abord, CA4.
+- Deux tests de la spec 008 corrigés par l'agent (signalés) :
+  - `mood_bubble_test` : l'accès à la sémantique passe par `renderViews.first.owner`, car `rootPipelineOwner.semanticsOwner` est nul dans cette version de Flutter, et le test plantait quelle que soit l'implémentation.
+  - `ambient_motion_test`, CA10 : l'expression régulière admet aussi `this.ambientMotion = false`, la forme d'un paramètre de constructeur qui initialise un champ ; l'exigence, valeur par défaut fausse dans `startApp` et `TidemarkApp`, est inchangée.
+- Implémentation de la spec 008 en cours, non committée : charte v2 (`tokens.json`, `charte.md`, jetons Dart), `MoodBubble`, `AmbientMotion`, saisie, carte, détail, illustration du modèle ; couleurs de lancement régénérées par `tool/generate_brand.py`.
+
+### Décisions
+
+- Agent : les autocollants de la spec 009 suivent la même forme que ceux de la spec 008 (`Transform` autour du texte).
+
+### Corrections et limites
+
+- Ambiguïtés relevées par le subagent, à trancher à l'implémentation : textes des autocollants du bilan, devenir de la section « Jours notés », plage et semaine affichée dans l'onglet.
+
+### Prochaine étape
+
+- Finir la spec 008 (écran d'aide, Réglages, 200 %), puis tests de la spec 010 et implémentation de la spec 009.
