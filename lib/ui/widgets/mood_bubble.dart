@@ -21,7 +21,9 @@ class MoodBubble extends StatefulWidget {
     required this.mood,
     required this.size,
     this.ring = false,
-  }) : assert(mood >= 1 && mood <= 5, 'mood doit valoir de 1 à 5');
+    this.phase = 0,
+  }) : assert(mood >= 1 && mood <= 5, 'mood doit valoir de 1 à 5'),
+       assert(phase >= 0 && phase < 1, 'phase doit valoir de 0 à 1');
 
   final int mood;
 
@@ -30,6 +32,15 @@ class MoodBubble extends StatefulWidget {
 
   /// Anneau `tide` autour de la bulle : bulle choisie du sélecteur.
   final bool ring;
+
+  /// Départ du cycle de houle et de flottement, de 0 à 1 : des bulles voisines
+  /// flottent décalées (spec 008, « Mouvement »). Sans effet au repos.
+  final double phase;
+
+  /// Phase déterministe d'une bulle d'humeur [mood] placée en [position] par son
+  /// parent : même humeur et même position, même phase, d'un affichage à l'autre.
+  static double phaseFor(int mood, int position) =>
+      (position * 0.618034 + mood * 0.137) % 1;
 
   /// Hauteur de l'eau, en part du diamètre, depuis le bas.
   static double waterLevel(int mood) =>
@@ -57,6 +68,7 @@ class _MoodBubbleState extends State<MoodBubble> with TickerProviderStateMixin {
       vsync: this,
       current: _swell,
       period: _swellPeriod,
+      initialValue: widget.phase,
     );
     _bob = syncAmbientController(
       context: context,
@@ -64,6 +76,7 @@ class _MoodBubbleState extends State<MoodBubble> with TickerProviderStateMixin {
       current: _bob,
       period: _bobPeriod,
       reverse: true,
+      initialValue: widget.phase,
     );
   }
 

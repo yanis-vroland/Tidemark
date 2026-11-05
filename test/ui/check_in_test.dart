@@ -243,6 +243,20 @@ void main() {
         expect(rect.left, greaterThanOrEqualTo(0));
         expect(rect.right, lessThanOrEqualTo(393));
       }
+      // Texte jamais plafonné : à 200 %, chaque libellé (13 points) est rendu
+      // à 26, et le titre (22 points) à 44 ; un libellé passe sur deux lignes
+      // s'il le faut.
+      for (final label in moodLabels) {
+        expect(
+          renderedFontSize(tester, find.text(label).first, 13),
+          26,
+          reason: label,
+        );
+      }
+      expect(
+        renderedFontSize(tester, find.textContaining('ta marée').first, 22),
+        44,
+      );
     }, tall: false);
   });
 }

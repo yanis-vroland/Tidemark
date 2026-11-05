@@ -3,8 +3,10 @@
 // premier plan. Dépôt factice ; horloge : mercredi 14 octobre 2026.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tidemark/ui/day_moment.dart';
 import 'package:tidemark/ui/screens/settings_screen.dart';
 import 'package:tidemark/ui/theme/tidemark_colors.dart';
+import 'package:tidemark/ui/widgets/home_header.dart';
 
 import '../support/fake_entry_repository.dart';
 import '../support/home_harness.dart';
@@ -225,6 +227,31 @@ void main() {
       expect(after, isNot(before), reason: 'l\'en-tête est resté figé');
     });
 
+    testWidgets('spec 008, mouvement : le voilier n\'est animé que le soir : '
+        'une animation de moins le jour', (tester) async {
+      usePhoneScreen(tester);
+      // Une animation en cours = un rappel de trame en attente.
+      Future<int> runningAnimations(DayMoment moment) async {
+        await tester.pumpWidget(const SizedBox());
+        await tester.pumpWidget(
+          ambientApp(
+            Scaffold(
+              body: HomeHeader(moment: moment, onOpenSettings: () {}),
+            ),
+            ambient: true,
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+        return tester.binding.transientCallbackCount;
+      }
+
+      final evening = await runningAnimations(DayMoment.evening);
+      final day = await runningAnimations(DayMoment.day);
+      expect(evening, greaterThan(0));
+      expect(day, evening - 1);
+      await tester.pumpWidget(const SizedBox());
+    });
+
     homeTest('CA8 : sans AmbientMotion actif, l\'en-tête est immobile', (
       tester,
     ) async {
@@ -409,6 +436,19 @@ void main() {
         expect(rect.left, greaterThanOrEqualTo(0), reason: text);
         expect(rect.right, lessThanOrEqualTo(393), reason: text);
       }
+      // Texte jamais plafonné ni rétréci : à 200 %, « Ton journal » et le
+      // compteur (14 points) sont rendus à 28, la salutation (40 points) à 80,
+      // et elle occupe au moins 80 points de haut à l'écran.
+      expect(renderedFontSize(tester, find.text('Ton journal'), 14), 28);
+      expect(
+        renderedFontSize(tester, find.text('2 coquillages cette semaine'), 14),
+        28,
+      );
+      expect(renderedFontSize(tester, find.text('Bonsoir'), 40), 80);
+      expect(
+        tester.getRect(find.text('Bonsoir')).height,
+        greaterThanOrEqualTo(80),
+      );
     }, tall: false);
 
     homeTest('CA28 : thème sombre, l\'en-tête est sur le hero sombre et la '

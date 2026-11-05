@@ -4,7 +4,6 @@ import '../../entries/entry.dart';
 import '../theme/tidemark_colors.dart';
 import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
-import 'home_header.dart' show homeMaxTextScale;
 import 'mood_bubble.dart';
 
 /// Carte du check-in de l'accueil (spec 009, CA11 à CA13) : cinq bulles
@@ -22,7 +21,9 @@ class CheckInCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final card = DecoratedBox(
+    // Texte jamais plafonné (spec 009, CA27) : à 200 %, un libellé passe sur
+    // deux lignes et la carte grandit.
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.surfaceRaised,
         borderRadius: BorderRadius.circular(TidemarkRadius.radiusXl),
@@ -65,10 +66,6 @@ class CheckInCard extends StatelessWidget {
         ),
       ),
     );
-    return MediaQuery.withClampedTextScaling(
-      maxScaleFactor: homeMaxTextScale,
-      child: card,
-    );
   }
 }
 
@@ -96,7 +93,11 @@ class _CheckInBubble extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 2),
           child: Column(
             children: [
-              MoodBubble(mood: mood, size: TidemarkSize.bubbleCheck),
+              MoodBubble(
+                mood: mood,
+                size: TidemarkSize.bubbleCheck,
+                phase: MoodBubble.phaseFor(mood, mood - 1),
+              ),
               const SizedBox(height: TidemarkSpacing.space1),
               Text(
                 label,

@@ -7,6 +7,7 @@ import '../support/fake_settings_repository.dart';
 
 import '../support/fake_model_downloader.dart';
 import '../support/ui_harness.dart';
+import '../support/wipe_harness.dart' show useTallScreen;
 
 Widget listScreen(DbEnv env) => testApp(
   EntryListScreen(
@@ -63,6 +64,9 @@ void main() {
       tester,
       env,
     ) async {
+      // L'accueil construit sa liste à la demande (CustomScrollView) : un écran
+      // haut construit toutes les cartes, pour comparer leurs positions.
+      useTallScreen(tester);
       await env.seedJournal(tester);
       await tester.pumpWidget(listScreen(env));
       await settle(tester);
@@ -81,6 +85,9 @@ void main() {
 
     dbTestWidgets('CA3 : les intertitres sont « Aujourd\'hui », « Hier » et '
         'le jour de la semaine avec la date', (tester, env) async {
+      // L'accueil construit sa liste à la demande (CustomScrollView) : un écran
+      // haut construit toutes les cartes, pour comparer leurs positions.
+      useTallScreen(tester);
       await env.seedJournal(tester);
       await tester.pumpWidget(listScreen(env));
       await settle(tester);
@@ -163,6 +170,9 @@ void main() {
 
     dbTestWidgets('CA6 : plusieurs entrées le même jour ont chacune leur carte '
         'sous l\'intertitre de ce jour', (tester, env) async {
+      // L'accueil construit sa liste à la demande (CustomScrollView) : un écran
+      // haut construit toutes les cartes, pour comparer leurs positions.
+      useTallScreen(tester);
       await env.add(tester, DateTime(2026, 10, 14, 7, 30), 2, 'Réveil lourd.');
       await env.add(tester, DateTime(2026, 10, 14, 13, 0), 3);
       await env.add(tester, DateTime(2026, 10, 14, 20, 45), 5, 'Belle fin.');

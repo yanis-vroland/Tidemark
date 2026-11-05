@@ -32,6 +32,7 @@ import '../support/fake_settings_repository.dart';
 import '../support/model_texts.dart'
     show downloadButton, isAnnounced, offerTitle;
 import '../support/ui_harness.dart';
+import '../support/wipe_harness.dart' show useTallScreen;
 
 const analysingText = 'Analyse en cours sur ton téléphone…';
 const queuedText = "En attente d'analyse sur ton téléphone.";
@@ -380,6 +381,9 @@ void main() {
         'cours… » à la place des puces ; les autres cartes sans étiquette ne '
         'montrent ni puce ni mention', (tester) async {
       usePhoneScreen(tester);
+      // L'accueil construit sa liste à la demande (CustomScrollView) : un écran
+      // haut construit toutes les cartes, pour comparer leurs positions.
+      useTallScreen(tester);
       final env = UiEnv();
       await env.tagged(
         DateTime(2026, 10, 14, 21, 40),
@@ -417,6 +421,9 @@ void main() {
     testWidgets('CA20 : la mention suit la file : elle disparaît à la fin de '
         'l\'analyse et passe à l\'entrée suivante', (tester) async {
       usePhoneScreen(tester);
+      // L'accueil construit sa liste à la demande (CustomScrollView) : un écran
+      // haut construit toutes les cartes, pour comparer leurs positions.
+      useTallScreen(tester);
       final env = UiEnv();
       final first = env.pending(DateTime(2026, 10, 14, 18), 'Première');
       final second = env.pending(DateTime(2026, 10, 14, 12), 'Seconde');
@@ -1144,6 +1151,9 @@ void main() {
       await show(tester, env.list(textScale: 2.0));
 
       expect(tester.takeException(), isNull);
+      // À 200 %, sans plafond, l'en-tête pousse la première carte sous la ligne
+      // de flottaison : on y défile.
+      await tester.scrollUntilVisible(find.text(longTagLabels.last), 200);
       expectChipsWrapped(tester, longTagLabels);
       expectNoTruncatedText(tester, find.byType(Scaffold), 'liste à 200 %');
       // La liste ne construit que les cartes proches de l'écran : à 200 %, la

@@ -12,11 +12,6 @@ import '../theme/tidemark_typography.dart';
 /// `margin-top: -36px`).
 const homeHeaderOverlap = 36.0;
 
-/// Agrandissement maximal du texte de l'en-tête, du check-in et de la plage : à
-/// 200 %, l'accueil montre encore la plage et le début de la liste (spec 009, CA27).
-/// Les libellés restent entiers, et le lecteur d'écran les lit en entier.
-const homeMaxTextScale = 1.3;
-
 /// Place réservée sous le texte de l'en-tête pour les vagues, depuis le bas de la
 /// scène.
 const _waveRoom = 76.0;
@@ -62,52 +57,46 @@ class HomeHeader extends StatelessWidget {
             child: _HeroScene(moment: moment, celestialTop: top),
           ),
         ),
-        MediaQuery.withClampedTextScaling(
-          maxScaleFactor: homeMaxTextScale,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(20, top, 20, _waveRoom - overlap),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Semantics(
-                        header: true,
-                        child: Text(
-                          'Ton journal',
-                          style: TidemarkTypography.label.copyWith(
-                            color: colors.onHeroMuted,
-                            fontWeight: FontWeight.w700,
-                            fontVariations: const [FontVariation.weight(700)],
-                            letterSpacing: 0.6,
-                          ),
+        // Texte jamais plafonné (spec 009, CA27) : à 200 %, l'en-tête grandit et
+        // l'accueil défile.
+        Padding(
+          padding: EdgeInsets.fromLTRB(20, top, 20, _waveRoom - overlap),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Semantics(
+                      header: true,
+                      child: Text(
+                        'Ton journal',
+                        style: TidemarkTypography.label.copyWith(
+                          color: colors.onHeroMuted,
+                          fontWeight: FontWeight.w700,
+                          fontVariations: const [FontVariation.weight(700)],
+                          letterSpacing: 0.6,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      // Un seul mot : réduit plutôt que coupé s'il ne tient pas.
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: AlignmentDirectional.centerStart,
-                        child: Text(
-                          greetingFor(moment),
-                          style: TidemarkTypography.display.copyWith(
-                            color: colors.onHero,
-                          ),
-                        ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      greetingFor(moment),
+                      style: TidemarkTypography.display.copyWith(
+                        color: colors.onHero,
                       ),
-                      if (count != null) ...[
-                        const SizedBox(height: 6),
-                        _ShellCount(text: count),
-                      ],
+                    ),
+                    if (count != null) ...[
+                      const SizedBox(height: 6),
+                      _ShellCount(text: count),
                     ],
-                  ),
+                  ],
                 ),
-                const SizedBox(width: TidemarkSpacing.space2),
-                _SettingsButton(onPressed: onOpenSettings),
-              ],
-            ),
+              ),
+              const SizedBox(width: TidemarkSpacing.space2),
+              _SettingsButton(onPressed: onOpenSettings),
+            ],
           ),
         ),
       ],
@@ -270,13 +259,28 @@ class _HeroSceneState extends State<_HeroScene> with TickerProviderStateMixin {
       current: _slowDrift,
       period: _slowDriftPeriod,
     );
-    _rock = syncAmbientController(
-      context: context,
-      vsync: this,
-      current: _rock,
-      period: _rockPeriod,
-      reverse: true,
-    );
+    // Le voilier n'existe que le soir : pas de contrôleur le reste du jour.
+    _rock = _syncRock();
+  }
+
+  AnimationController? _syncRock() {
+    if (widget.moment == DayMoment.evening) {
+      return syncAmbientController(
+        context: context,
+        vsync: this,
+        current: _rock,
+        period: _rockPeriod,
+        reverse: true,
+      );
+    }
+    _rock?.dispose();
+    return null;
+  }
+
+  @override
+  void didUpdateWidget(_HeroScene oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.moment != widget.moment) _rock = _syncRock();
   }
 
   @override

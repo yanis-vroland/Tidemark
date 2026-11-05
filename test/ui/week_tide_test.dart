@@ -590,6 +590,14 @@ void main() {
         expect(rect.right, lessThanOrEqualTo(393), reason: label);
       }
       expect(find.bySemanticsLabel(tideLabel(nominalMoods)), findsOneWidget);
+      // Texte jamais plafonné ni rétréci : à 200 %, les libellés des
+      // autocollants (13 points) sont rendus à 26, et le chiffre de l'humeur
+      // moyenne (30 points) occupe au moins 60 points de haut.
+      for (final label in ['Humeur moyenne', 'Jours notés', 'Entrées']) {
+        expect(renderedFontSize(tester, find.text(label), 13), 26);
+      }
+      expect(renderedFontSize(tester, find.text('3,6'), 30), 60);
+      expect(tester.getRect(find.text('3,6')).height, greaterThanOrEqualTo(60));
     }, tall: false);
 
     tideTest('CA27 : à 200 %, sans bilan (2 entrées), la marée ne déborde '
