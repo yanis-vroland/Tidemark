@@ -32,6 +32,7 @@ import '../support/fake_settings_repository.dart';
 import '../support/model_texts.dart'
     show downloadButton, isAnnounced, offerTitle;
 import '../support/ui_harness.dart';
+import '../support/wipe_harness.dart' show useTallScreen;
 
 const analysingText = 'Analyse en cours sur ton téléphone…';
 const queuedText = "En attente d'analyse sur ton téléphone.";
@@ -365,7 +366,10 @@ void main() {
       final order = ['fatigue', 'calme', 'travail', 'nature'];
       final sorted = [...order]
         ..sort((a, b) {
-          final byRow = at(a).dy.round().compareTo(at(b).dy.round());
+          // Même rangée à 8 points près : les autocollants pivotent
+          // légèrement (spec 008, CA12).
+          final dy = at(a).dy - at(b).dy;
+          final byRow = dy.abs() < 8 ? 0 : dy.sign.toInt();
           return byRow != 0 ? byRow : at(a).dx.compareTo(at(b).dx);
         });
       expect(sorted, order);
@@ -377,6 +381,9 @@ void main() {
         'cours… » à la place des puces ; les autres cartes sans étiquette ne '
         'montrent ni puce ni mention', (tester) async {
       usePhoneScreen(tester);
+      // L'accueil construit sa liste à la demande (CustomScrollView) : un écran
+      // haut construit toutes les cartes, pour comparer leurs positions.
+      useTallScreen(tester);
       final env = UiEnv();
       await env.tagged(
         DateTime(2026, 10, 14, 21, 40),
@@ -414,6 +421,9 @@ void main() {
     testWidgets('CA20 : la mention suit la file : elle disparaît à la fin de '
         'l\'analyse et passe à l\'entrée suivante', (tester) async {
       usePhoneScreen(tester);
+      // L'accueil construit sa liste à la demande (CustomScrollView) : un écran
+      // haut construit toutes les cartes, pour comparer leurs positions.
+      useTallScreen(tester);
       final env = UiEnv();
       final first = env.pending(DateTime(2026, 10, 14, 18), 'Première');
       final second = env.pending(DateTime(2026, 10, 14, 12), 'Seconde');
@@ -547,9 +557,10 @@ void main() {
       for (var i = 1; i < order.length; i++) {
         final previous = tester.getTopLeft(order[i - 1]);
         final next = tester.getTopLeft(order[i]);
-        final inOrder =
-            next.dy > previous.dy ||
-            (next.dy.round() == previous.dy.round() && next.dx > previous.dx);
+        // Même rangée à 8 points près : les autocollants pivotent
+        // légèrement (spec 008, CA12).
+        final sameRow = (next.dy - previous.dy).abs() < 8;
+        final inOrder = sameRow ? next.dx > previous.dx : next.dy > previous.dy;
         expect(inOrder, isTrue, reason: 'élément $i après l\'élément ${i - 1}');
       }
       expect(find.text(analysingText), findsNothing);
@@ -1140,6 +1151,9 @@ void main() {
       await show(tester, env.list(textScale: 2.0));
 
       expect(tester.takeException(), isNull);
+      // À 200 %, sans plafond, l'en-tête pousse la première carte sous la ligne
+      // de flottaison : on y défile.
+      await tester.scrollUntilVisible(find.text(longTagLabels.last), 200);
       expectChipsWrapped(tester, longTagLabels);
       expectNoTruncatedText(tester, find.byType(Scaffold), 'liste à 200 %');
       // La liste ne construit que les cartes proches de l'écran : à 200 %, la
@@ -1190,15 +1204,30 @@ void main() {
   });
 
   group('thème sombre : CA30', () {
+    // `ink` clair vaut `on-mood`, la couleur du texte sur les fonds d'humeur
+    // dans les deux thèmes (spec 008, CA12, CA13) : il n'est plus une couleur
+    // « claire seulement ».
     final lightOnly = [
       light.surface,
       light.surfaceRaised,
-      light.ink,
       light.inkMuted,
       light.tideSoft,
     ];
 
-    void expectDark(WidgetTester tester, Set<Color> expected, String where) {
+    /// Une carte de la liste garde les jetons clairs sur son fond `mood-n-soft`,
+    /// clair dans les deux thèmes (spec 008, CA12).
+    final softCard = {light.inkMuted, light.tideSoft};
+
+    /// `on-hero` vaut blanc dans les deux thèmes, comme `surface-raised` clair :
+    /// texte de l'en-tête de l'accueil (spec 009, CA7).
+    final heroText = {TidemarkColors.dark.onHero};
+
+    void expectDark(
+      WidgetTester tester,
+      Set<Color> expected,
+      String where, {
+      Set<Color> allowed = const {},
+    }) {
       final painted = paintedColors(tester, find.byType(Scaffold));
       for (final color in expected) {
         expect(
@@ -1207,7 +1236,7 @@ void main() {
           reason: '$where : couleur sombre absente',
         );
       }
-      for (final color in lightOnly) {
+      for (final color in lightOnly.where((c) => !allowed.contains(c))) {
         expect(
           painted,
           isNot(contains(color)),
@@ -1231,12 +1260,16 @@ void main() {
 
       await show(tester, env.app());
 
-      expectDark(tester, {
-        dark.tideSoft,
-        dark.inkMuted,
-        dark.surfaceRaised,
-      }, 'liste');
-      expect(chipColor(tester, 'fatigue'), dark.tideSoft);
+      // Fond d'écran et cartes de l'accueil sombres ; la carte d'entrée, sur
+      // son fond `mood-n-soft` clair, garde des puces `tide-soft` claires
+      // (spec 008, CA12).
+      expectDark(
+        tester,
+        {dark.surface, dark.surfaceRaised},
+        'liste',
+        allowed: {...softCard, ...heroText},
+      );
+      expect(chipColor(tester, 'fatigue'), light.tideSoft);
     });
 
     testWidgets('CA30 : le détail étiqueté utilise les couleurs sombres, puces '

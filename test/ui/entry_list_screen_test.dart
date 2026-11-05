@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/ui/screens/entry_list_screen.dart';
+import 'package:tidemark/ui/widgets/mood_bubble.dart';
 
 import '../support/fake_settings_repository.dart';
 
 import '../support/fake_model_downloader.dart';
 import '../support/ui_harness.dart';
+import '../support/wipe_harness.dart' show useTallScreen;
 
 Widget listScreen(DbEnv env) => testApp(
   EntryListScreen(
@@ -21,13 +23,14 @@ double top(WidgetTester tester, Finder finder) =>
 
 void main() {
   group('liste vide', () {
-    dbTestWidgets('CA1 : sans entrée, l\'état vide et le bouton « Nouvelle '
-        'entrée » s\'affichent', (tester, env) async {
+    dbTestWidgets('CA1 : sans entrée, l\'état vide s\'affiche ; le bouton '
+        '« Nouvelle entrée » n\'est plus en bas de la liste (spec 009, CA19 : il '
+        'est dans la barre de HomeShell)', (tester, env) async {
       await tester.pumpWidget(listScreen(env));
       await settle(tester);
 
       expect(find.text('Ta première entrée apparaîtra ici'), findsOneWidget);
-      expect(find.text('Nouvelle entrée'), findsOneWidget);
+      expect(find.text('Nouvelle entrée'), findsNothing);
     });
 
     dbTestWidgets('CA1 : l\'état vide reprend le titre et le texte de la '
@@ -51,7 +54,7 @@ void main() {
       await settle(tester);
 
       expect(find.text('Ta première entrée apparaîtra ici'), findsNothing);
-      expect(find.text('Nouvelle entrée'), findsOneWidget);
+      expect(find.text('Nouvelle entrée'), findsNothing);
     });
   });
 
@@ -61,6 +64,9 @@ void main() {
       tester,
       env,
     ) async {
+      // L'accueil construit sa liste à la demande (CustomScrollView) : un écran
+      // haut construit toutes les cartes, pour comparer leurs positions.
+      useTallScreen(tester);
       await env.seedJournal(tester);
       await tester.pumpWidget(listScreen(env));
       await settle(tester);
@@ -79,6 +85,9 @@ void main() {
 
     dbTestWidgets('CA3 : les intertitres sont « Aujourd\'hui », « Hier » et '
         'le jour de la semaine avec la date', (tester, env) async {
+      // L'accueil construit sa liste à la demande (CustomScrollView) : un écran
+      // haut construit toutes les cartes, pour comparer leurs positions.
+      useTallScreen(tester);
       await env.seedJournal(tester);
       await tester.pumpWidget(listScreen(env));
       await settle(tester);
@@ -97,15 +106,23 @@ void main() {
       expect(find.text('Lundi 13 octobre 2025'), findsOneWidget);
     });
 
-    dbTestWidgets('CA4 : la carte montre la pastille avec son chiffre, '
+    dbTestWidgets('CA4 : la carte montre la bulle de l\'humeur (sans chiffre), '
         'l\'heure, le libellé et le début du texte', (tester, env) async {
       await env.add(tester, DateTime(2026, 10, 14, 21, 40), 4, longText);
       await tester.pumpWidget(listScreen(env));
       await settle(tester);
 
-      expect(find.text('4'), findsOneWidget);
+      // Spec 008, CA12 : la bulle de marée remplace la pastille chiffrée.
+      expect(find.text('4'), findsNothing);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is MoodBubble && w.mood == 4 && w.size == 48,
+        ),
+        findsOneWidget,
+      );
       expect(find.text('21:40'), findsOneWidget);
-      expect(find.text('Bien'), findsOneWidget);
+      // Spec 009, CA11 : « Bien » est aussi le libellé de la bulle du check-in.
+      expect(find.text('Bien'), findsNWidgets(2));
       expect(find.textContaining('Longue journée au travail'), findsOneWidget);
     });
 
@@ -123,15 +140,22 @@ void main() {
       expect(shown.truncated, isTrue, reason: 'le texte est plus long');
     });
 
-    dbTestWidgets('CA5 : sans texte, la carte montre la pastille, l\'heure et '
+    dbTestWidgets('CA5 : sans texte, la carte montre la bulle, l\'heure et '
         'le libellé, sans ligne vide', (tester, env) async {
       await env.add(tester, DateTime(2026, 10, 14, 8, 15), 3);
       await tester.pumpWidget(listScreen(env));
       await settle(tester);
 
-      expect(find.text('3'), findsOneWidget);
+      expect(find.text('3'), findsNothing);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is MoodBubble && w.mood == 3 && w.size == 48,
+        ),
+        findsOneWidget,
+      );
       expect(find.text('08:15'), findsOneWidget);
-      expect(find.text('Neutre'), findsOneWidget);
+      // Spec 009, CA11 : « Neutre » est aussi le libellé de la bulle du check-in.
+      expect(find.text('Neutre'), findsNWidgets(2));
       expect(emptyText, findsNothing);
     });
 
@@ -146,6 +170,9 @@ void main() {
 
     dbTestWidgets('CA6 : plusieurs entrées le même jour ont chacune leur carte '
         'sous l\'intertitre de ce jour', (tester, env) async {
+      // L'accueil construit sa liste à la demande (CustomScrollView) : un écran
+      // haut construit toutes les cartes, pour comparer leurs positions.
+      useTallScreen(tester);
       await env.add(tester, DateTime(2026, 10, 14, 7, 30), 2, 'Réveil lourd.');
       await env.add(tester, DateTime(2026, 10, 14, 13, 0), 3);
       await env.add(tester, DateTime(2026, 10, 14, 20, 45), 5, 'Belle fin.');
@@ -182,7 +209,8 @@ void main() {
 
       expect(find.text('Ta première entrée apparaîtra ici'), findsNothing);
       expect(find.text("Aujourd'hui"), findsOneWidget);
-      expect(find.text('Bien'), findsOneWidget);
+      // Spec 009, CA11 : la carte et le libellé de la bulle du check-in.
+      expect(find.text('Bien'), findsNWidgets(2));
     });
   });
 }

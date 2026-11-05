@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Journal</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f6b}a:hover{color:#0f3f48}
+@keyframes tm-swell{to{transform:translateX(-24px)}}
+@keyframes tm-bob{50%{transform:translateY(-3px)}}
+@keyframes tm-drift{to{transform:translateX(-131px)}}
+@keyframes tm-rock{50%{transform:translateY(-3px) rotate(-4deg)}}
+.tm-swell{animation:tm-swell 3.2s linear infinite}
+.tm-bob{animation:tm-bob 3.4s ease-in-out infinite}
+.tm-drift{animation:tm-drift 9s linear infinite}
+.tm-drift-slow{animation:tm-drift 15s linear infinite}
+.tm-rock{animation:tm-rock 4s ease-in-out infinite;transform-origin:50% 100%}
+@media (prefers-reduced-motion:reduce){.tm-swell,.tm-bob,.tm-drift,.tm-drift-slow,.tm-rock{animation:none}}
+</style>
+</helmet>
+<div style="width: 393px; height: 852px; position: relative; overflow: hidden; display: flex; flex-direction: column; background: {{t.surface}}; color: {{t.ink}}; font-family: Figtree, system-ui, sans-serif;">
+
+  <header style="position: relative; flex-shrink: 0; height: 272px; box-sizing: border-box; padding: 58px 20px 0; background: {{t.hero}}; color: #ffffff; overflow: hidden;">
+    <svg width="393" height="272" viewBox="0 0 393 272" aria-hidden="true" style="position: absolute; inset: 0; display: block;">
+      <circle cx="318" cy="118" r="26" fill="#fdf0cf"></circle>
+      <circle cx="330" cy="110" r="24" fill="{{t.hero}}"></circle>
+      <circle cx="252" cy="70" r="1.6" fill="#ffffff" fill-opacity="0.8"></circle>
+      <circle cx="276" cy="140" r="1.2" fill="#ffffff" fill-opacity="0.6"></circle>
+      <circle cx="356" cy="160" r="1.4" fill="#ffffff" fill-opacity="0.7"></circle>
+      <circle cx="226" cy="118" r="1" fill="#ffffff" fill-opacity="0.6"></circle>
+      <path d="M200 92 q5 -5 10 0 q5 -5 10 0" fill="none" stroke="#ffffff" stroke-opacity="0.75" stroke-width="2" stroke-linecap="round"></path>
+      <g class="tm-drift-slow"><path d="M-131 196 Q-98 184 -65.5 196 T0 196 T65.5 196 T131 196 T196.5 196 T262 196 T327.5 196 T393 196 T458.5 196 T524 196 V272 H-131 Z" fill="{{t.wave1}}"></path></g>
+      <g class="tm-rock">
+        <path d="M262 190 h40 l-6 10 h-28 Z" fill="#fdf0cf"></path>
+        <path d="M281 188 V160 L300 186 Z" fill="#ffffff"></path>
+        <path d="M279 188 V166 L266 186 Z" fill="#f78b52"></path>
+      </g>
+      <g class="tm-drift"><path d="M-131 214 Q-98 202 -65.5 214 T0 214 T65.5 214 T131 214 T196.5 214 T262 214 T327.5 214 T393 214 T458.5 214 T524 214 V272 H-131 Z" fill="{{t.wave2}}"></path></g>
+      <path d="M0 248 C80 236 150 260 220 248 S330 238 393 246 V272 H0 Z" fill="{{t.surface}}"></path>
+    </svg>
+    <div style="position: relative; display: flex; justify-content: space-between; align-items: flex-start;">
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <span style="font-size: 14px; line-height: 20px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: {{t.heroMuted}};">Ton journal</span>
+        <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800; font-size: 44px; line-height: 48px; letter-spacing: -1px;">Bonsoir</h1>
+        <span style="display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; align-self: flex-start; padding: 5px 12px 5px 8px; border-radius: 999px; background: #ffffff26; font-size: 14px; line-height: 20px; font-weight: 600;">
+          <svg width="18" height="18" viewBox="0 0 100 90" aria-hidden="true"><path d="M14 30 Q17 14 28 12 Q34 6 42 9 Q50 4 58 9 Q66 6 72 12 Q83 14 86 30 L50 84 Z" fill="#fdf0cf"></path></svg>
+          5 coquillages cette semaine
+        </span>
+      </div>
+      <a href="#" aria-label="Réglages" style="width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: #ffffff26; color: #ffffff;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8M16 5v4M10 15v4"></path></svg>
+      </a>
+    </div>
+  </header>
+
+  <section aria-labelledby="checkin" style="position: relative; margin: -36px 16px 0; padding: 18px 12px 14px; border-radius: 28px; background: {{t.raised}}; box-shadow: {{t.shadow}}; display: flex; flex-direction: column; gap: 12px;">
+    <h2 id="checkin" style="margin: 0 6px; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 700; font-size: 21px; line-height: 26px;">Comment va ta marée ce soir ?</h2>
+    <div style="display: flex; justify-content: space-between;">
+      <sc-for list="{{moods}}" as="m" hint-placeholder-count="5">
+        <a href="Saisie.dc.html" aria-label="{{m.aria}}" style="width: 66px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; color: {{t.muted}};">
+          <dc-import name="MoodGlyph" level="{{m.n}}" size="{{glyph}}" delay="{{m.delay}}" dark="{{dark}}" hint-size="54px,54px"></dc-import>
+          <span style="font-size: 12px; line-height: 16px; font-weight: 600; text-align: center;">{{m.label}}</span>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+
+  <a href="Semaine.dc.html" aria-label="Ta plage cette semaine : lundi bien, mardi neutre, mercredi bas, jeudi bien, vendredi très bien, samedi bien, dimanche pas encore. Voir ma semaine." style="position: relative; margin: 14px 16px 0; height: 150px; border-radius: 24px; overflow: hidden; background: {{t.sand}}; color: {{t.ink}}; text-decoration: none; display: block;">
+    <svg width="361" height="150" viewBox="0 0 361 150" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; inset: 0; display: block;">
+      <path d="M0 0 H361 V38 C300 52 240 26 180 40 S60 54 0 36 Z" fill="{{t.sea}}"></path>
+      <path d="M0 36 C60 54 120 32 180 40 S300 52 361 38" fill="none" stroke="#ffffff" stroke-opacity="0.8" stroke-width="2" stroke-dasharray="1 7" stroke-linecap="round"></path>
+    </svg>
+    <div style="position: absolute; left: 16px; right: 16px; top: 10px; display: flex; justify-content: space-between; align-items: baseline;">
+      <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 17px; line-height: 22px; font-weight: 700; color: {{t.seaInk}};">Ta plage cette semaine</span>
+      <span style="font-size: 14px; line-height: 20px; font-weight: 700; color: {{t.seaInk}};">Voir</span>
+    </div>
+    <div style="position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; justify-content: space-between; align-items: flex-end;">
+      <sc-for list="{{week}}" as="d" hint-placeholder-count="7">
+        <div style="width: 44px; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+          <div style="{{d.lift}}">
+            <sc-if value="{{d.has}}" hint-placeholder-val="{{true}}">
+              <dc-import name="MoodGlyph" level="{{d.mood}}" size="{{small}}" delay="{{d.delay}}" dark="{{dark}}" hint-size="36px,36px"></dc-import>
+            </sc-if>
+            <sc-if value="{{d.none}}" hint-placeholder-val="{{false}}">
+              <div style="width: 32px; height: 32px; box-sizing: border-box; border-radius: 50%; border: 2px dashed {{t.sandInk}};"></div>
+            </sc-if>
+          </div>
+          <span style="font-size: 12px; line-height: 16px; font-weight: 700; color: {{t.sandInk}};">{{d.day}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </a>
+
+  <h2 style="margin: 18px 22px 8px; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 19px; line-height: 24px; font-weight: 700;">Aujourd'hui</h2>
+  <div style="display: flex; flex-direction: column; gap: 10px; padding: 0 16px;">
+    <a href="Detail.dc.html" aria-label="Bien, humeur 4 sur 5, 21:40, longue journée au travail, mais la balade du soir au bord de l'eau m'a fait du bien." style="display: flex; gap: 14px; align-items: flex-start; padding: 16px; border-radius: 24px; text-decoration: none; color: #14262b; background: {{t.tint4}};">
+      <dc-import name="MoodGlyph" level="{{four}}" size="{{entryGlyph}}" dark="{{dark}}" hint-size="48px,48px"></dc-import>
+      <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0; flex-grow: 1;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 18px; line-height: 22px; font-weight: 700;">Bien</span>
+          <span style="font-size: 13px; line-height: 18px; font-weight: 600; color: #4b5e64;">21:40</span>
+        </div>
+        <p style="margin: 0; font-size: 15px; line-height: 21px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">Longue journée au travail, mais la balade du soir au bord de l'eau m'a fait du bien.</p>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; padding-top: 2px;">
+          <span style="padding: 3px 10px; border-radius: 999px; background: #ffffff; box-shadow: 0 2px 0 rgba(20, 38, 43, 0.12); transform: rotate(-2deg); font-size: 13px; line-height: 18px; font-weight: 600;">calme</span>
+          <span style="padding: 3px 10px; border-radius: 999px; background: #ffffff; box-shadow: 0 2px 0 rgba(20, 38, 43, 0.12); transform: rotate(1.5deg); font-size: 13px; line-height: 18px; font-weight: 600;">nature</span>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div style="position: absolute; left: 0; bottom: 0;">
+    <dc-import name="TabBar" active="journal" dark="{{dark}}" hint-size="393px,96px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dark = !!this.props.dark;
+    const t = dark
+      ? { surface: '#0c1719', raised: '#15252a', ink: '#e6efed', muted: '#b4c5c5', hero: '#0f3a41', heroMuted: '#c9dfdf', wave1: '#13454c', wave2: '#185058', shadow: '0 10px 30px rgba(0, 0, 0, 0.35)', sand: '#3a3222', sandInk: '#e8d9b5', sea: '#1d5f6b', seaInk: '#e6efed', tint4: '#fdf0cf' }
+      : { surface: '#f7f3ec', raised: '#ffffff', ink: '#14262b', muted: '#4b5e64', hero: '#1d5f6b', heroMuted: '#d5ebea', wave1: '#2a7480', wave2: '#3b8b93', shadow: '0 12px 32px rgba(20, 38, 43, 0.12)', sand: '#f6e4bd', sandInk: '#6b5320', sea: '#3b8b93', seaInk: '#ffffff', tint4: '#fdf0cf' };
+    const labels = ['Très bas', 'Bas', 'Neutre', 'Bien', 'Très bien'];
+    const moods = [1, 2, 3, 4, 5].map((n) => ({ n, label: labels[n - 1], delay: n * 0.35, aria: 'Noter ' + labels[n - 1] + ', humeur ' + n + ' sur 5' }));
+    const days = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+    const levels = [4, 3, 2, 4, 5, 4, 0];
+    const week = days.map((day, i) => ({
+      day,
+      mood: levels[i] || 3,
+      has: levels[i] > 0,
+      none: levels[i] === 0,
+      delay: i * 0.3,
+      lift: 'height: 70px; display: flex; align-items: flex-end; padding-bottom: ' + (levels[i] ? (levels[i] - 1) * 8 : 0) + 'px; box-sizing: border-box;'
+    }));
+    return { t, dark, moods, week, glyph: 54, small: 36, entryGlyph: 48, four: 4 };
+  }
+}
+</script>
+</body>
+</html>

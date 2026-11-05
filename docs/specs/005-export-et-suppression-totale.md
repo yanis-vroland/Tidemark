@@ -34,6 +34,8 @@ Lot H du [plan](../plan.md). Règles du [cahier des charges](../cahier-des-charg
 
 ### Format du fichier d'export (version 1)
 
+La version 2 ajoute les sujets de chaque entrée (`topics`, après `tags`) : [spec 010](010-ce-qui-a-compte-et-coquillage.md), CA11. Le reste de cette section reste valable.
+
 Fichier JSON en UTF-8 sans BOM, indenté de 2 espaces, terminé par un saut de ligne. Les caractères non ASCII sont écrits tels quels ; seuls `"`, `\` et les caractères de contrôle (U+0000 à U+001F) sont échappés, `/` ne l'est pas : c'est le comportement de `JsonEncoder.withIndent('  ')` de Dart. Champs, dans cet ordre :
 
 | Champ | Type | Contenu |

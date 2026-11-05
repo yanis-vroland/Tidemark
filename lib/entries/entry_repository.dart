@@ -1,5 +1,6 @@
 import '../analysis/mood_analyzer.dart';
 import 'entry.dart';
+import 'topic.dart';
 
 /// Accès aux entrées, derrière une interface : les écrans ne connaissent pas la base.
 abstract interface class EntryRepository {
@@ -16,11 +17,13 @@ abstract interface class EntryRepository {
   /// d'espaces est enregistré comme absent (null) ; au-delà de [maxTextLength]
   /// caractères visibles, il est refusé par une [ArgumentError]. [status] est décidé
   /// par l'appelant (garde-fou, spec 002) : `pending` ou `skipped` ; une entrée sans
-  /// texte est toujours `skipped` (RM24).
+  /// texte est toujours `skipped` (RM24). [topics] sont enregistrés avec l'entrée,
+  /// dans l'ordre de la liste quel que soit l'ordre donné (spec 010, CA4).
   Future<Entry> addEntry({
     required int mood,
     String? text,
     AnalysisStatus status = AnalysisStatus.pending,
+    List<Topic> topics = const [],
   });
 
   /// Les [count] entrées les plus récentes, de la plus récente à la plus ancienne
@@ -38,7 +41,7 @@ abstract interface class EntryRepository {
   /// Sans effet si l'entrée n'existe plus (CA16).
   Future<void> saveAnalysis(int entryId, AnalysisResult result);
 
-  /// Toutes les entrées et leurs étiquettes, de la plus ancienne à la plus récente
+  /// Toutes les entrées, leurs étiquettes et leurs sujets, de la plus ancienne à la plus récente
   /// (instant de saisie, puis identifiant), pour l'export (spec 005).
   Future<List<Entry>> allEntriesWithTags();
 

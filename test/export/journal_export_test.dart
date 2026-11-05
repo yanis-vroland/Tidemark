@@ -116,7 +116,7 @@ void main() {
       await export().run();
 
       final json = jsonDecode(sheet.shared.single.content) as Map;
-      expect(json['formatVersion'], 1);
+      expect(json['formatVersion'], 2);
       expect(json['app'], 'Tidemark');
       expect((json['settings'] as Map)['lowMoodSensitivity'], 'high');
       expect(

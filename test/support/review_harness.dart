@@ -474,9 +474,12 @@ Future<void> showList(
   await settle(tester);
 }
 
-const reviewCardTitle = 'Bilan de la semaine';
+/// Titre de la plage de la liste (spec 009, CA14), qui remplace la carte « Bilan de
+/// la semaine » (spec 006, CA1).
+const reviewCardTitle = 'Ta plage cette semaine';
 
-/// Touche la carte « Bilan de la semaine » de la liste.
+/// Touche la plage de la liste : le bilan s'ouvre par-dessus (`EntryListScreen` seul,
+/// sans `onOpenWeek`).
 Future<void> openReview(WidgetTester tester) async {
   await tester.tap(find.text(reviewCardTitle));
   await settle(tester);

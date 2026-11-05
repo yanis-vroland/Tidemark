@@ -458,11 +458,27 @@ class $SettingsTable extends Settings
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _welcomeShownMeta = const VerificationMeta(
+    'welcomeShown',
+  );
+  @override
+  late final GeneratedColumn<bool> welcomeShown = GeneratedColumn<bool>(
+    'welcome_shown',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("welcome_shown" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
     lowMoodSensitivity,
     modelOfferShown,
+    welcomeShown,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -499,6 +515,15 @@ class $SettingsTable extends Settings
         ),
       );
     }
+    if (data.containsKey('welcome_shown')) {
+      context.handle(
+        _welcomeShownMeta,
+        welcomeShown.isAcceptableOrUnknown(
+          data['welcome_shown']!,
+          _welcomeShownMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -520,6 +545,10 @@ class $SettingsTable extends Settings
         DriftSqlType.bool,
         data['${effectivePrefix}model_offer_shown'],
       )!,
+      welcomeShown: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}welcome_shown'],
+      )!,
     );
   }
 
@@ -537,10 +566,14 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
 
   /// Proposition du modèle déjà affichée (spec 003, RM31).
   final bool modelOfferShown;
+
+  /// Écran de bienvenue déjà passé (spec 009, CA2).
+  final bool welcomeShown;
   const SettingsRow({
     required this.id,
     required this.lowMoodSensitivity,
     required this.modelOfferShown,
+    required this.welcomeShown,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -548,6 +581,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     map['id'] = Variable<int>(id);
     map['low_mood_sensitivity'] = Variable<String>(lowMoodSensitivity);
     map['model_offer_shown'] = Variable<bool>(modelOfferShown);
+    map['welcome_shown'] = Variable<bool>(welcomeShown);
     return map;
   }
 
@@ -556,6 +590,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       id: Value(id),
       lowMoodSensitivity: Value(lowMoodSensitivity),
       modelOfferShown: Value(modelOfferShown),
+      welcomeShown: Value(welcomeShown),
     );
   }
 
@@ -570,6 +605,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
         json['lowMoodSensitivity'],
       ),
       modelOfferShown: serializer.fromJson<bool>(json['modelOfferShown']),
+      welcomeShown: serializer.fromJson<bool>(json['welcomeShown']),
     );
   }
   @override
@@ -579,6 +615,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       'id': serializer.toJson<int>(id),
       'lowMoodSensitivity': serializer.toJson<String>(lowMoodSensitivity),
       'modelOfferShown': serializer.toJson<bool>(modelOfferShown),
+      'welcomeShown': serializer.toJson<bool>(welcomeShown),
     };
   }
 
@@ -586,10 +623,12 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     int? id,
     String? lowMoodSensitivity,
     bool? modelOfferShown,
+    bool? welcomeShown,
   }) => SettingsRow(
     id: id ?? this.id,
     lowMoodSensitivity: lowMoodSensitivity ?? this.lowMoodSensitivity,
     modelOfferShown: modelOfferShown ?? this.modelOfferShown,
+    welcomeShown: welcomeShown ?? this.welcomeShown,
   );
   SettingsRow copyWithCompanion(SettingsCompanion data) {
     return SettingsRow(
@@ -600,6 +639,9 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       modelOfferShown: data.modelOfferShown.present
           ? data.modelOfferShown.value
           : this.modelOfferShown,
+      welcomeShown: data.welcomeShown.present
+          ? data.welcomeShown.value
+          : this.welcomeShown,
     );
   }
 
@@ -608,46 +650,54 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     return (StringBuffer('SettingsRow(')
           ..write('id: $id, ')
           ..write('lowMoodSensitivity: $lowMoodSensitivity, ')
-          ..write('modelOfferShown: $modelOfferShown')
+          ..write('modelOfferShown: $modelOfferShown, ')
+          ..write('welcomeShown: $welcomeShown')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, lowMoodSensitivity, modelOfferShown);
+  int get hashCode =>
+      Object.hash(id, lowMoodSensitivity, modelOfferShown, welcomeShown);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is SettingsRow &&
           other.id == this.id &&
           other.lowMoodSensitivity == this.lowMoodSensitivity &&
-          other.modelOfferShown == this.modelOfferShown);
+          other.modelOfferShown == this.modelOfferShown &&
+          other.welcomeShown == this.welcomeShown);
 }
 
 class SettingsCompanion extends UpdateCompanion<SettingsRow> {
   final Value<int> id;
   final Value<String> lowMoodSensitivity;
   final Value<bool> modelOfferShown;
+  final Value<bool> welcomeShown;
   const SettingsCompanion({
     this.id = const Value.absent(),
     this.lowMoodSensitivity = const Value.absent(),
     this.modelOfferShown = const Value.absent(),
+    this.welcomeShown = const Value.absent(),
   });
   SettingsCompanion.insert({
     this.id = const Value.absent(),
     required String lowMoodSensitivity,
     this.modelOfferShown = const Value.absent(),
+    this.welcomeShown = const Value.absent(),
   }) : lowMoodSensitivity = Value(lowMoodSensitivity);
   static Insertable<SettingsRow> custom({
     Expression<int>? id,
     Expression<String>? lowMoodSensitivity,
     Expression<bool>? modelOfferShown,
+    Expression<bool>? welcomeShown,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (lowMoodSensitivity != null)
         'low_mood_sensitivity': lowMoodSensitivity,
       if (modelOfferShown != null) 'model_offer_shown': modelOfferShown,
+      if (welcomeShown != null) 'welcome_shown': welcomeShown,
     });
   }
 
@@ -655,11 +705,13 @@ class SettingsCompanion extends UpdateCompanion<SettingsRow> {
     Value<int>? id,
     Value<String>? lowMoodSensitivity,
     Value<bool>? modelOfferShown,
+    Value<bool>? welcomeShown,
   }) {
     return SettingsCompanion(
       id: id ?? this.id,
       lowMoodSensitivity: lowMoodSensitivity ?? this.lowMoodSensitivity,
       modelOfferShown: modelOfferShown ?? this.modelOfferShown,
+      welcomeShown: welcomeShown ?? this.welcomeShown,
     );
   }
 
@@ -675,6 +727,9 @@ class SettingsCompanion extends UpdateCompanion<SettingsRow> {
     if (modelOfferShown.present) {
       map['model_offer_shown'] = Variable<bool>(modelOfferShown.value);
     }
+    if (welcomeShown.present) {
+      map['welcome_shown'] = Variable<bool>(welcomeShown.value);
+    }
     return map;
   }
 
@@ -683,7 +738,8 @@ class SettingsCompanion extends UpdateCompanion<SettingsRow> {
     return (StringBuffer('SettingsCompanion(')
           ..write('id: $id, ')
           ..write('lowMoodSensitivity: $lowMoodSensitivity, ')
-          ..write('modelOfferShown: $modelOfferShown')
+          ..write('modelOfferShown: $modelOfferShown, ')
+          ..write('welcomeShown: $welcomeShown')
           ..write(')'))
         .toString();
   }
@@ -1042,17 +1098,334 @@ class TagsCompanion extends UpdateCompanion<TagRow> {
   }
 }
 
+class $EntryTopicsTable extends EntryTopics
+    with TableInfo<$EntryTopicsTable, EntryTopicRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EntryTopicsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _entryIdMeta = const VerificationMeta(
+    'entryId',
+  );
+  @override
+  late final GeneratedColumn<int> entryId = GeneratedColumn<int>(
+    'entry_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES entries (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _topicMeta = const VerificationMeta('topic');
+  @override
+  late final GeneratedColumn<String> topic = GeneratedColumn<String>(
+    'topic',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, entryId, topic, position];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'entry_topics';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EntryTopicRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('entry_id')) {
+      context.handle(
+        _entryIdMeta,
+        entryId.isAcceptableOrUnknown(data['entry_id']!, _entryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entryIdMeta);
+    }
+    if (data.containsKey('topic')) {
+      context.handle(
+        _topicMeta,
+        topic.isAcceptableOrUnknown(data['topic']!, _topicMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_topicMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {entryId, topic},
+  ];
+  @override
+  EntryTopicRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EntryTopicRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      entryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}entry_id'],
+      )!,
+      topic: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}topic'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+    );
+  }
+
+  @override
+  $EntryTopicsTable createAlias(String alias) {
+    return $EntryTopicsTable(attachedDatabase, alias);
+  }
+}
+
+class EntryTopicRow extends DataClass implements Insertable<EntryTopicRow> {
+  final int id;
+  final int entryId;
+
+  /// Nom anglais du sujet ([Topic.name]). Texte libre, et non `textEnum` : une
+  /// valeur inconnue (écrite par une version plus récente de l'app, puis retour
+  /// arrière) est ignorée à la lecture au lieu de rendre le journal illisible.
+  final String topic;
+
+  /// Ordre d'affichage : celui de la liste des sujets.
+  final int position;
+  const EntryTopicRow({
+    required this.id,
+    required this.entryId,
+    required this.topic,
+    required this.position,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['entry_id'] = Variable<int>(entryId);
+    map['topic'] = Variable<String>(topic);
+    map['position'] = Variable<int>(position);
+    return map;
+  }
+
+  EntryTopicsCompanion toCompanion(bool nullToAbsent) {
+    return EntryTopicsCompanion(
+      id: Value(id),
+      entryId: Value(entryId),
+      topic: Value(topic),
+      position: Value(position),
+    );
+  }
+
+  factory EntryTopicRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EntryTopicRow(
+      id: serializer.fromJson<int>(json['id']),
+      entryId: serializer.fromJson<int>(json['entryId']),
+      topic: serializer.fromJson<String>(json['topic']),
+      position: serializer.fromJson<int>(json['position']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'entryId': serializer.toJson<int>(entryId),
+      'topic': serializer.toJson<String>(topic),
+      'position': serializer.toJson<int>(position),
+    };
+  }
+
+  EntryTopicRow copyWith({
+    int? id,
+    int? entryId,
+    String? topic,
+    int? position,
+  }) => EntryTopicRow(
+    id: id ?? this.id,
+    entryId: entryId ?? this.entryId,
+    topic: topic ?? this.topic,
+    position: position ?? this.position,
+  );
+  EntryTopicRow copyWithCompanion(EntryTopicsCompanion data) {
+    return EntryTopicRow(
+      id: data.id.present ? data.id.value : this.id,
+      entryId: data.entryId.present ? data.entryId.value : this.entryId,
+      topic: data.topic.present ? data.topic.value : this.topic,
+      position: data.position.present ? data.position.value : this.position,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EntryTopicRow(')
+          ..write('id: $id, ')
+          ..write('entryId: $entryId, ')
+          ..write('topic: $topic, ')
+          ..write('position: $position')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, entryId, topic, position);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EntryTopicRow &&
+          other.id == this.id &&
+          other.entryId == this.entryId &&
+          other.topic == this.topic &&
+          other.position == this.position);
+}
+
+class EntryTopicsCompanion extends UpdateCompanion<EntryTopicRow> {
+  final Value<int> id;
+  final Value<int> entryId;
+  final Value<String> topic;
+  final Value<int> position;
+  const EntryTopicsCompanion({
+    this.id = const Value.absent(),
+    this.entryId = const Value.absent(),
+    this.topic = const Value.absent(),
+    this.position = const Value.absent(),
+  });
+  EntryTopicsCompanion.insert({
+    this.id = const Value.absent(),
+    required int entryId,
+    required String topic,
+    required int position,
+  }) : entryId = Value(entryId),
+       topic = Value(topic),
+       position = Value(position);
+  static Insertable<EntryTopicRow> custom({
+    Expression<int>? id,
+    Expression<int>? entryId,
+    Expression<String>? topic,
+    Expression<int>? position,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (entryId != null) 'entry_id': entryId,
+      if (topic != null) 'topic': topic,
+      if (position != null) 'position': position,
+    });
+  }
+
+  EntryTopicsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? entryId,
+    Value<String>? topic,
+    Value<int>? position,
+  }) {
+    return EntryTopicsCompanion(
+      id: id ?? this.id,
+      entryId: entryId ?? this.entryId,
+      topic: topic ?? this.topic,
+      position: position ?? this.position,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (entryId.present) {
+      map['entry_id'] = Variable<int>(entryId.value);
+    }
+    if (topic.present) {
+      map['topic'] = Variable<String>(topic.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EntryTopicsCompanion(')
+          ..write('id: $id, ')
+          ..write('entryId: $entryId, ')
+          ..write('topic: $topic, ')
+          ..write('position: $position')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $EntriesTable entries = $EntriesTable(this);
   late final $SettingsTable settings = $SettingsTable(this);
   late final $TagsTable tags = $TagsTable(this);
+  late final $EntryTopicsTable entryTopics = $EntryTopicsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [entries, settings, tags];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    entries,
+    settings,
+    tags,
+    entryTopics,
+  ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
     WritePropagation(
@@ -1061,6 +1434,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('tags', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'entries',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('entry_topics', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -1100,6 +1480,24 @@ final class $$EntriesTableReferences
     ).filter((f) => f.entryId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_tagsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$EntryTopicsTable, List<EntryTopicRow>>
+  _entryTopicsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.entryTopics,
+    aliasName: 'entries__id__entry_topics__entry_id',
+  );
+
+  $$EntryTopicsTableProcessedTableManager get entryTopicsRefs {
+    final manager = $$EntryTopicsTableTableManager(
+      $_db,
+      $_db.entryTopics,
+    ).filter((f) => f.entryId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_entryTopicsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -1162,6 +1560,31 @@ class $$EntriesTableFilterComposer
           }) => $$TagsTableFilterComposer(
             $db: $db,
             $table: $db.tags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> entryTopicsRefs(
+    Expression<bool> Function($$EntryTopicsTableFilterComposer f) f,
+  ) {
+    final $$EntryTopicsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.entryTopics,
+      getReferencedColumn: (t) => t.entryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntryTopicsTableFilterComposer(
+            $db: $db,
+            $table: $db.entryTopics,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -1268,6 +1691,31 @@ class $$EntriesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> entryTopicsRefs<T extends Object>(
+    Expression<T> Function($$EntryTopicsTableAnnotationComposer a) f,
+  ) {
+    final $$EntryTopicsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.entryTopics,
+      getReferencedColumn: (t) => t.entryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntryTopicsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.entryTopics,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$EntriesTableTableManager
@@ -1283,7 +1731,7 @@ class $$EntriesTableTableManager
           $$EntriesTableUpdateCompanionBuilder,
           (EntryRow, $$EntriesTableReferences),
           EntryRow,
-          PrefetchHooks Function({bool tagsRefs})
+          PrefetchHooks Function({bool tagsRefs, bool entryTopicsRefs})
         > {
   $$EntriesTableTableManager(_$AppDatabase db, $EntriesTable table)
     : super(
@@ -1336,10 +1784,13 @@ class $$EntriesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({tagsRefs = false}) {
+          prefetchHooksCallback: ({tagsRefs = false, entryTopicsRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [if (tagsRefs) db.tags],
+              explicitlyWatchedTables: [
+                if (tagsRefs) db.tags,
+                if (entryTopicsRefs) db.entryTopics,
+              ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
@@ -1351,6 +1802,24 @@ class $$EntriesTableTableManager
                       ),
                       managerFromTypedResult: (p0) =>
                           $$EntriesTableReferences(db, table, p0).tagsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.entryId == item.id),
+                      typedResults: items,
+                    ),
+                  if (entryTopicsRefs)
+                    await $_getPrefetchedData<
+                      EntryRow,
+                      $EntriesTable,
+                      EntryTopicRow
+                    >(
+                      currentTable: table,
+                      referencedTable: $$EntriesTableReferences
+                          ._entryTopicsRefsTable(db),
+                      managerFromTypedResult: (p0) => $$EntriesTableReferences(
+                        db,
+                        table,
+                        p0,
+                      ).entryTopicsRefs,
                       referencedItemsForCurrentItem: (item, referencedItems) =>
                           referencedItems.where((e) => e.entryId == item.id),
                       typedResults: items,
@@ -1375,17 +1844,19 @@ typedef $$EntriesTableProcessedTableManager =
       $$EntriesTableUpdateCompanionBuilder,
       (EntryRow, $$EntriesTableReferences),
       EntryRow,
-      PrefetchHooks Function({bool tagsRefs})
+      PrefetchHooks Function({bool tagsRefs, bool entryTopicsRefs})
     >;
 typedef $$SettingsTableCreateCompanionBuilder = SettingsCompanion Function({
   Value<int> id,
   required String lowMoodSensitivity,
   Value<bool> modelOfferShown,
+  Value<bool> welcomeShown,
 });
 typedef $$SettingsTableUpdateCompanionBuilder = SettingsCompanion Function({
   Value<int> id,
   Value<String> lowMoodSensitivity,
   Value<bool> modelOfferShown,
+  Value<bool> welcomeShown,
 });
 
 class $$SettingsTableFilterComposer
@@ -1409,6 +1880,11 @@ class $$SettingsTableFilterComposer
 
   ColumnFilters<bool> get modelOfferShown => $composableBuilder(
     column: $table.modelOfferShown,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get welcomeShown => $composableBuilder(
+    column: $table.welcomeShown,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -1436,6 +1912,11 @@ class $$SettingsTableOrderingComposer
     column: $table.modelOfferShown,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get welcomeShown => $composableBuilder(
+    column: $table.welcomeShown,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SettingsTableAnnotationComposer
@@ -1457,6 +1938,11 @@ class $$SettingsTableAnnotationComposer
 
   GeneratedColumn<bool> get modelOfferShown => $composableBuilder(
     column: $table.modelOfferShown,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get welcomeShown => $composableBuilder(
+    column: $table.welcomeShown,
     builder: (column) => column,
   );
 }
@@ -1495,20 +1981,24 @@ class $$SettingsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> lowMoodSensitivity = const Value.absent(),
                 Value<bool> modelOfferShown = const Value.absent(),
+                Value<bool> welcomeShown = const Value.absent(),
               }) => SettingsCompanion(
                 id: id,
                 lowMoodSensitivity: lowMoodSensitivity,
                 modelOfferShown: modelOfferShown,
+                welcomeShown: welcomeShown,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 required String lowMoodSensitivity,
                 Value<bool> modelOfferShown = const Value.absent(),
+                Value<bool> welcomeShown = const Value.absent(),
               }) => SettingsCompanion.insert(
                 id: id,
                 lowMoodSensitivity: lowMoodSensitivity,
                 modelOfferShown: modelOfferShown,
+                welcomeShown: welcomeShown,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -1848,6 +2338,296 @@ typedef $$TagsTableProcessedTableManager =
       TagRow,
       PrefetchHooks Function({bool entryId})
     >;
+typedef $$EntryTopicsTableCreateCompanionBuilder =
+    EntryTopicsCompanion Function({
+      Value<int> id,
+      required int entryId,
+      required String topic,
+      required int position,
+    });
+typedef $$EntryTopicsTableUpdateCompanionBuilder =
+    EntryTopicsCompanion Function({
+      Value<int> id,
+      Value<int> entryId,
+      Value<String> topic,
+      Value<int> position,
+    });
+
+final class $$EntryTopicsTableReferences
+    extends BaseReferences<_$AppDatabase, $EntryTopicsTable, EntryTopicRow> {
+  $$EntryTopicsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $EntriesTable _entryIdTable(_$AppDatabase db) =>
+      db.entries.createAlias('entry_topics__entry_id__entries__id');
+
+  $$EntriesTableProcessedTableManager get entryId {
+    final $_column = $_itemColumn<int>('entry_id')!;
+
+    final manager = $$EntriesTableTableManager(
+      $_db,
+      $_db.entries,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_entryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$EntryTopicsTableFilterComposer
+    extends Composer<_$AppDatabase, $EntryTopicsTable> {
+  $$EntryTopicsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get topic => $composableBuilder(
+    column: $table.topic,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$EntriesTableFilterComposer get entryId {
+    final $$EntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.entryId,
+      referencedTable: $db.entries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.entries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EntryTopicsTableOrderingComposer
+    extends Composer<_$AppDatabase, $EntryTopicsTable> {
+  $$EntryTopicsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get topic => $composableBuilder(
+    column: $table.topic,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$EntriesTableOrderingComposer get entryId {
+    final $$EntriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.entryId,
+      referencedTable: $db.entries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.entries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EntryTopicsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EntryTopicsTable> {
+  $$EntryTopicsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get topic =>
+      $composableBuilder(column: $table.topic, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  $$EntriesTableAnnotationComposer get entryId {
+    final $$EntriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.entryId,
+      referencedTable: $db.entries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.entries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EntryTopicsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $EntryTopicsTable,
+          EntryTopicRow,
+          $$EntryTopicsTableFilterComposer,
+          $$EntryTopicsTableOrderingComposer,
+          $$EntryTopicsTableAnnotationComposer,
+          $$EntryTopicsTableCreateCompanionBuilder,
+          $$EntryTopicsTableUpdateCompanionBuilder,
+          (EntryTopicRow, $$EntryTopicsTableReferences),
+          EntryTopicRow,
+          PrefetchHooks Function({bool entryId})
+        > {
+  $$EntryTopicsTableTableManager(_$AppDatabase db, $EntryTopicsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EntryTopicsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EntryTopicsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EntryTopicsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> entryId = const Value.absent(),
+                Value<String> topic = const Value.absent(),
+                Value<int> position = const Value.absent(),
+              }) => EntryTopicsCompanion(
+                id: id,
+                entryId: entryId,
+                topic: topic,
+                position: position,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int entryId,
+                required String topic,
+                required int position,
+              }) => EntryTopicsCompanion.insert(
+                id: id,
+                entryId: entryId,
+                topic: topic,
+                position: position,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$EntryTopicsTable, EntryTopicRow>(table),
+                  $$EntryTopicsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({entryId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (entryId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.entryId,
+                        referencedTable: $$EntryTopicsTableReferences
+                            ._entryIdTable(db),
+                        referencedColumn: $$EntryTopicsTableReferences
+                            ._entryIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$EntryTopicsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $EntryTopicsTable,
+      EntryTopicRow,
+      $$EntryTopicsTableFilterComposer,
+      $$EntryTopicsTableOrderingComposer,
+      $$EntryTopicsTableAnnotationComposer,
+      $$EntryTopicsTableCreateCompanionBuilder,
+      $$EntryTopicsTableUpdateCompanionBuilder,
+      (EntryTopicRow, $$EntryTopicsTableReferences),
+      EntryTopicRow,
+      PrefetchHooks Function({bool entryId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1857,4 +2637,6 @@ class $AppDatabaseManager {
   $$SettingsTableTableManager get settings =>
       $$SettingsTableTableManager(_db, _db.settings);
   $$TagsTableTableManager get tags => $$TagsTableTableManager(_db, _db.tags);
+  $$EntryTopicsTableTableManager get entryTopics =>
+      $$EntryTopicsTableTableManager(_db, _db.entryTopics);
 }

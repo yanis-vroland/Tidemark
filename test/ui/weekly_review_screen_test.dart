@@ -1,4 +1,4 @@
-// Écran du bilan de la semaine et carte d'accès de la liste (spec 006, CA1 à CA6,
+// Écran du bilan de la semaine et accès depuis la liste (spec 006, CA3 à CA6,
 // CA8 à CA22, CA26 à CA34). Les textes font foi dans la spec et dans la maquette
 // docs/maquettes/006-bilan-de-la-semaine/. Dépôt, téléchargeur et rédacteur
 // factices : aucun modèle, aucune base, aucun réseau. Horloge : dimanche 18 octobre
@@ -183,97 +183,12 @@ ComputedWeek calculated(ReviewEnv env) {
 }
 
 void main() {
-  group('liste : carte d\'accès au bilan (CA1 à CA3)', () {
-    envTest('CA1 : la carte « Bilan de la semaine » apparaît sous le titre, '
-        'avant le premier jour, avec les dates de la semaine en cours', (
-      tester,
-      env,
-    ) async {
-      await env.nominalWeek();
-      await showList(tester, env);
-
-      expect(find.text(reviewCardTitle), findsOneWidget);
-      expect(find.text('Du lundi 12 au dimanche 18 octobre'), findsOneWidget);
-      final title = tester.getTopLeft(find.text('Ton journal')).dy;
-      final card = tester.getTopLeft(find.text(reviewCardTitle)).dy;
-      final firstDay = tester.getTopLeft(find.text("Aujourd'hui")).dy;
-      expect(card, greaterThan(title));
-      expect(card, lessThan(firstDay));
-    });
-
-    envTest('CA1 : la carte s\'annonce comme un bouton « Bilan de la '
-        'semaine, du lundi 12 au dimanche 18 octobre »', (tester, env) async {
-      await env.nominalWeek();
-      await showList(tester, env);
-
-      final label = find.bySemanticsLabel(
-        RegExp(r'^Bilan de la semaine, du lundi 12 au dimanche 18 octobre$'),
-      );
-      expect(label, findsOneWidget);
-      expect(tester.getSemantics(label).flagsCollection.isButton, isTrue);
-    });
-
-    envTest('CA1 : quand le mois change, les deux mois sont écrits', (
-      tester,
-      env,
-    ) async {
-      await env.addAt(DateTime(2026, 10, 1, 9), 3);
-      await showList(tester, env);
-
-      expect(
-        find.text('Du lundi 28 septembre au dimanche 4 octobre'),
-        findsOneWidget,
-      );
-      expect(
-        find.bySemanticsLabel(
-          RegExp(
-            r'^Bilan de la semaine, du lundi 28 septembre au dimanche 4 octobre$',
-          ),
-        ),
-        findsOneWidget,
-      );
-    }, build: () => ReviewEnv(now: DateTime(2026, 10, 1, 10)));
-
-    envTest('CA1 : quand l\'année change, l\'année suit chaque borne', (
-      tester,
-      env,
-    ) async {
-      await env.addAt(DateTime(2026, 1, 1, 9), 3);
-      await showList(tester, env);
-
-      expect(
-        find.text('Du lundi 29 décembre 2025 au dimanche 4 janvier 2026'),
-        findsOneWidget,
-      );
-      expect(
-        find.bySemanticsLabel(
-          RegExp(
-            r'^Bilan de la semaine, du lundi 29 décembre 2025 au dimanche 4 janvier 2026$',
-          ),
-        ),
-        findsOneWidget,
-      );
-    }, build: () => ReviewEnv(now: DateTime(2026, 1, 2, 10)));
-
-    envTest('CA38 : le dimanche 1er novembre, la carte écrit « 1er » et '
-        's\'annonce « Bilan de la semaine, du lundi 26 octobre au dimanche '
-        '1er novembre »', (tester, env) async {
-      await env.addAt(DateTime(2026, 10, 28, 9), 3);
-      await showList(tester, env);
-
-      expect(
-        find.text('Du lundi 26 octobre au dimanche 1er novembre'),
-        findsOneWidget,
-      );
-      final label = find.bySemanticsLabel(
-        RegExp(
-          r'^Bilan de la semaine, du lundi 26 octobre au dimanche 1er novembre$',
-        ),
-      );
-      expect(label, findsOneWidget);
-      expect(tester.getSemantics(label).flagsCollection.isButton, isTrue);
-    }, build: () => ReviewEnv(now: DateTime(2026, 10, 28, 10)));
-
+  // Spec 009 : la carte « Bilan de la semaine » de la liste (spec 006, CA1 à CA3)
+  // est remplacée par la plage ; ses critères sont repris dans
+  // test/ui/beach_card_test.dart (CA14 à CA17) et test/ui/home_shell_test.dart
+  // (CA16, CA23). Ces tests gardent l'ouverture du bilan par-dessus la liste seule
+  // (`EntryListScreen` sans `onOpenWeek`), avec son retour « Journal ».
+  group('liste seule : ouverture du bilan par-dessus (spec 006, CA3, CA4)', () {
     envTest('CA38 : l\'écran du bilan de cette semaine écrit « 26 octobre – '
         '1er novembre »', (tester, env) async {
       await env.addAt(DateTime(2026, 10, 28, 9), 3);
@@ -282,50 +197,7 @@ void main() {
       expect(find.text('26 octobre $dash 1er novembre'), findsOneWidget);
     }, build: () => ReviewEnv(now: DateTime(2026, 10, 28, 10)));
 
-    envTest('CA2 : liste vide : pas de carte ; dès la première entrée, '
-        'elle apparaît', (tester, env) async {
-      await showList(tester, env);
-
-      expect(find.text('Ton journal'), findsOneWidget);
-      expect(find.text(reviewCardTitle), findsNothing);
-
-      await env.add(1, 3);
-      await settle(tester);
-
-      expect(find.text(reviewCardTitle), findsOneWidget);
-    });
-
-    envTest('CA2 : liste en cours de lecture : pas de carte ; une fois la '
-        'lecture faite, elle apparaît', (tester, env) async {
-      await env.nominalWeek();
-      env.repo.neverEmit = true;
-      await showList(tester, env);
-
-      expect(find.text(reviewCardTitle), findsNothing);
-
-      await tester.pumpWidget(const SizedBox());
-      env.repo.neverEmit = false;
-      await showList(tester, env);
-
-      expect(find.text(reviewCardTitle), findsOneWidget);
-    });
-
-    envTest('CA2 : liste en erreur : pas de carte ; une fois la lecture '
-        'rétablie, elle apparaît', (tester, env) async {
-      await env.nominalWeek();
-      env.repo.watchError = StateError('lecture impossible');
-      await showList(tester, env);
-
-      expect(find.text(reviewCardTitle), findsNothing);
-
-      await tester.pumpWidget(const SizedBox());
-      env.repo.watchError = null;
-      await showList(tester, env);
-
-      expect(find.text(reviewCardTitle), findsOneWidget);
-    });
-
-    envTest('CA3 : toucher la carte ouvre l\'écran du bilan sur la semaine '
+    envTest('CA3 : toucher la plage ouvre l\'écran du bilan sur la semaine '
         'en cours', (tester, env) async {
       await env.nominalWeek();
       await showList(tester, env);
@@ -338,7 +210,7 @@ void main() {
       expect(find.text('Semaine en cours'), findsOneWidget);
     });
 
-    envTest('CA3 : la carte ouvre le bilan même avec moins de 3 entrées dans '
+    envTest('CA3 : la plage ouvre le bilan même avec moins de 3 entrées dans '
         'la semaine', (tester, env) async {
       await env.add(1, 3);
       await showList(tester, env);
@@ -351,7 +223,7 @@ void main() {
       expect(env.writeCalls, 0);
     });
 
-    envTest('CA3 : une seule entrée, d\'une semaine plus ancienne : la carte '
+    envTest('CA3 : une seule entrée, d\'une semaine plus ancienne : la plage '
         'est là, la semaine en cours n\'a aucune entrée', (tester, env) async {
       await env.add(2, 3, weeksBack: 3);
       await showList(tester, env);
@@ -1659,32 +1531,6 @@ void main() {
         'erreur 200 %',
       );
     }, tall: false);
-
-    envTest('CA32 : la carte de la liste à 200 % ne tronque ni ne déborde', (
-      tester,
-      env,
-    ) async {
-      await env.nominalWeek();
-      await showList(tester, env, textScale: 2.0);
-
-      expect(find.text(reviewCardTitle), findsOneWidget);
-      expect(tester.takeException(), isNull);
-      final rect = tester.getRect(find.text(reviewCardTitle));
-      expect(rect.left, greaterThanOrEqualTo(0));
-      expect(rect.right, lessThanOrEqualTo(393));
-      for (final text in [
-        reviewCardTitle,
-        'Du lundi 12 au dimanche 18 octobre',
-      ]) {
-        final paragraph = tester.renderObject<RenderParagraph>(find.text(text));
-        expect(paragraph.didExceedMaxLines, isFalse, reason: text);
-        expect(
-          tester.getRect(find.text(text)).right,
-          lessThanOrEqualTo(393),
-          reason: text,
-        );
-      }
-    }, tall: false);
   });
 
   group('thème sombre (CA33)', () {
@@ -1704,7 +1550,6 @@ void main() {
       final lightOnly = light.toTokenMap().values.toSet().difference({
         ...dark.toTokenMap().values,
         light.onTide,
-        light.onMood1,
         light.onMood,
       });
       expect(colors.intersection(lightOnly), isEmpty);
@@ -1724,7 +1569,8 @@ void main() {
       expect(barWidth(tester, dark.mood3), closeTo(full * 2 / 3, 1.5));
       expect(barWidth(tester, dark.mood2), closeTo(full / 3, 1.5));
       expect(barWidth(tester, dark.mood5), closeTo(full / 3, 1.5));
-      expect(barWidths(tester, light.mood4), isEmpty);
+      // `mood-n` est identique dans les deux thèmes (spec 008, « Couleurs ») :
+      // l'absence des valeurs de l'autre thème n'a plus de sens.
       expect(sameRowTexts(tester, 'Bien'), contains('3'));
     });
 
@@ -1776,21 +1622,7 @@ void main() {
       await showReview(tester, env);
 
       expect(barWidth(tester, light.mood4), greaterThan(30));
-      expect(barWidths(tester, dark.mood4), isEmpty);
-    });
-
-    envTest('CA33 : la carte de la liste utilise les couleurs du thème '
-        'sombre', (tester, env) async {
-      useDarkTheme(tester);
-      await env.nominalWeek();
-      await showList(tester, env);
-
-      Finder behindCard(Color color) => find.ancestor(
-        of: find.text(reviewCardTitle),
-        matching: find.byWidgetPredicate((w) => paints(w, color)),
-      );
-      expect(behindCard(dark.surfaceRaised), findsWidgets);
-      expect(behindCard(light.surfaceRaised), findsNothing);
+      // `mood-n` est identique dans les deux thèmes (spec 008, « Couleurs »).
     });
   });
 }

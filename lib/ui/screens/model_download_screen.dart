@@ -8,6 +8,8 @@ import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
 import '../widgets/error_banner.dart';
 import '../widgets/model_progress_bar.dart';
+import '../widgets/mood_bubble.dart';
+import '../widgets/sticker.dart';
 
 /// Écran du modèle (spec 003) : proposition, progression, vérification, échec, prêt.
 /// L'état vient du téléchargeur : un échec récent s'affiche dès l'ouverture (CA19).
@@ -188,6 +190,8 @@ class _Offer extends StatelessWidget {
     );
     return _Layout(
       body: [
+        const _OfferIllustration(),
+        const SizedBox(height: TidemarkSpacing.space6),
         const _Title('Des étiquettes pour ton journal'),
         const SizedBox(height: TidemarkSpacing.space3),
         const Text(
@@ -219,14 +223,71 @@ class _Offer extends StatelessWidget {
         ),
       ],
       actions: [
-        FilledButton.icon(
-          onPressed: onDownload,
-          icon: const Icon(Icons.download, size: TidemarkSize.iconButton),
-          label: Text('Télécharger le modèle ($size)'),
+        PressShadow(
+          child: FilledButton.icon(
+            onPressed: onDownload,
+            icon: const Icon(Icons.download, size: TidemarkSize.iconButton),
+            label: Text('Télécharger le modèle ($size)'),
+          ),
         ),
         const SizedBox(height: TidemarkSpacing.space2),
         TextButton(onPressed: onLater, child: const Text('Plus tard')),
       ],
+    );
+  }
+}
+
+/// Illustration décorative de la proposition (spec 008, CA15) : une bulle
+/// « Neutre » entourée d'étiquettes fictives, sur une mer `sea`. Rien n'y est
+/// annoncé par le lecteur d'écran.
+class _OfferIllustration extends StatelessWidget {
+  const _OfferIllustration();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    Widget tag(String text, int mood, Alignment at) => Align(
+      alignment: at,
+      child: Sticker(
+        text: text,
+        background: colors.moodSoftColor(mood),
+        foreground: colors.onMood,
+      ),
+    );
+    return ExcludeSemantics(
+      child: MediaQuery.withNoTextScaling(
+        child: SizedBox(
+          height: 200,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: colors.sky,
+              borderRadius: BorderRadius.circular(TidemarkRadius.radiusXl),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(TidemarkRadius.radiusXl),
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: 56,
+                    child: ColoredBox(color: colors.heroWave2),
+                  ),
+                  const Align(
+                    alignment: Alignment(0, -0.1),
+                    child: MoodBubble(mood: 3, size: TidemarkSize.bubbleLg),
+                  ),
+                  tag('fatigue', 2, const Alignment(-0.85, -0.6)),
+                  tag('joie', 5, const Alignment(0.8, -0.7)),
+                  tag('travail', 4, const Alignment(-0.8, 0.35)),
+                  tag('calme', 3, const Alignment(0.82, 0.3)),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -261,7 +322,7 @@ class _Transfer extends StatelessWidget {
         ExcludeSemantics(
           child: Text(
             '$percent %',
-            style: TidemarkTypography.moodNumeral.copyWith(color: colors.tide),
+            style: TidemarkTypography.display.copyWith(color: colors.tide),
           ),
         ),
         const SizedBox(height: TidemarkSpacing.space2),

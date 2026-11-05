@@ -24,30 +24,30 @@ abstract final class TidemarkTypography {
     letterSpacing: letterSpacing,
   );
 
-  static final display = _style(
-    displayFamily,
-    34,
-    38,
-    600,
-    letterSpacing: -0.5,
-  );
-  static final moodNumeral = _style(displayFamily, 40, 44, 700);
-  static final title = _style(displayFamily, 22, 28, 600);
+  static final display = _style(displayFamily, 40, 44, 800, letterSpacing: -1);
+  static final title = _style(displayFamily, 22, 28, 700);
+
+  /// Chiffre d'un autocollant du bilan (spec 008).
+  static final stat = _style(displayFamily, 30, 34, 800);
   static final headline = _style(bodyFamily, 17, 24, 600);
   static final body = _style(bodyFamily, 16, 24, 400);
-  static final button = _style(bodyFamily, 16, 20, 600);
-  static final label = _style(bodyFamily, 14, 20, 500, letterSpacing: 0.1);
+  static final button = _style(bodyFamily, 17, 20, 700);
+  static final label = _style(bodyFamily, 14, 20, 600, letterSpacing: 0.1);
+
+  /// Texte d'un autocollant (spec 008).
+  static final sticker = _style(bodyFamily, 15, 20, 700);
   static final caption = _style(bodyFamily, 13, 18, 400);
 
   /// Styles indexés par le nom du jeton, pour les tests de fidélité.
   static final Map<String, TextStyle> tokens = {
     'display': display,
-    'mood-numeral': moodNumeral,
     'title': title,
+    'stat': stat,
     'headline': headline,
     'body': body,
     'button': button,
     'label': label,
+    'sticker': sticker,
     'caption': caption,
   };
 }

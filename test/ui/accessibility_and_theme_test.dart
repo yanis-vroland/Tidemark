@@ -12,6 +12,7 @@ import '../support/fake_settings_repository.dart';
 import '../support/fake_entry_repository.dart';
 import '../support/fake_model_downloader.dart';
 import '../support/ui_harness.dart';
+import '../support/wipe_harness.dart' show useTallScreen;
 
 const maxScale = 2.0;
 
@@ -50,7 +51,9 @@ void main() {
       );
       await settle(tester);
 
-      expect(find.text('Nouvelle entrée'), findsOneWidget);
+      // Spec 009, CA19 : « Nouvelle entrée » est dans la barre de HomeShell, testée
+      // à 200 % dans test/ui/home_shell_test.dart (CA27).
+      expect(find.text('Ton journal'), findsOneWidget);
       expectNoOverflow(tester, 'liste');
     });
 
@@ -128,6 +131,9 @@ void main() {
         ),
       );
       await tester.pump();
+      // À 200 %, le sélecteur est sous la ligne de flottaison (spec 008).
+      await tester.ensureVisible(find.bySemanticsLabel(moodSemantics(4)));
+      await tester.pump();
       await tester.tap(find.bySemanticsLabel(moodSemantics(4)));
       await tester.pump();
 
@@ -193,18 +199,27 @@ void main() {
     dbTestWidgets('CA28 : la liste utilise les couleurs sombres de la '
         'charte', (tester, env) async {
       useDarkSystem(tester);
+      // L'accueil construit sa liste à la demande : sur un écran haut, la carte
+      // « Neutre » est construite.
+      useTallScreen(tester);
       await env.seedJournal(tester);
       await tester.pumpWidget(env.app());
       await settle(tester);
 
       expect(find.text('Ton journal'), findsOneWidget);
       expectDarkCharter(tester, 'liste', 'Ton journal');
+      // Spec 008, CA12 : la carte a le fond mood-n-soft de son humeur (3 : « Neutre »),
+      // identique dans les deux thèmes, à la place de surface-raised.
       final card = tester.widget<Material>(
         find
-            .ancestor(of: find.text('Neutre'), matching: find.byType(Material))
+            .ancestor(
+              // Spec 009 : le libellé du check-in précède celui de la carte.
+              of: find.text('Neutre').last,
+              matching: find.byType(Material),
+            )
             .first,
       );
-      expect(card.color, TidemarkColors.dark.surfaceRaised, reason: 'carte');
+      expect(card.color, TidemarkColors.dark.moodSoftColor(3), reason: 'carte');
     });
 
     dbTestWidgets('CA28 : la saisie utilise les couleurs sombres de la '
@@ -229,7 +244,11 @@ void main() {
       await env.seedJournal(tester);
       await tester.pumpWidget(env.app());
       await settle(tester);
-      await tester.tap(find.text('Neutre'));
+      // L'accueil de la spec 009 (en-tête, check-in, plage) pousse ceci sous la
+      // ligne de flottaison : on fait défiler, comme le ferait la personne.
+      await tester.ensureVisible(find.text('Neutre').last);
+      await tester.pump();
+      await tester.tap(find.text('Neutre').last);
       await settle(tester);
 
       expect(find.text('Supprimer cette entrée'), findsOneWidget);

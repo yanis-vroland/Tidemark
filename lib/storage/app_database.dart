@@ -9,6 +9,7 @@ import '../analysis/mood_analyzer.dart';
 import '../distress/distress_detector.dart';
 import '../entries/entry.dart';
 import '../entries/entry_repository.dart';
+import '../entries/topic.dart';
 import '../settings/settings_repository.dart';
 
 part 'app_database.g.dart';
@@ -44,6 +45,9 @@ class Settings extends Table {
   BoolColumn get modelOfferShown =>
       boolean().withDefault(const Constant(false))();
 
+  /// Écran de bienvenue déjà passé (spec 009, CA2).
+  BoolColumn get welcomeShown => boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
@@ -66,6 +70,27 @@ class Tags extends Table {
   ];
 }
 
+/// Sujets des entrées (spec 010) : supprimés avec leur entrée (CA10).
+@DataClassName('EntryTopicRow')
+class EntryTopics extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get entryId =>
+      integer().references(Entries, #id, onDelete: KeyAction.cascade)();
+
+  /// Nom anglais du sujet ([Topic.name]). Texte libre, et non `textEnum` : une
+  /// valeur inconnue (écrite par une version plus récente de l'app, puis retour
+  /// arrière) est ignorée à la lecture au lieu de rendre le journal illisible.
+  TextColumn get topic => text()();
+
+  /// Ordre d'affichage : celui de la liste des sujets.
+  IntColumn get position => integer()();
+
+  @override
+  List<Set<Column<Object>>> get uniqueKeys => [
+    {entryId, topic},
+  ];
+}
+
 /// Erreur levée quand le moteur SQLite n'a pas le chiffrement.
 class CipherUnavailableError extends StateError {
   CipherUnavailableError()
@@ -80,7 +105,7 @@ void ensureCipherAvailable(int Function(String sql) rowCount) {
 }
 
 /// Base locale des entrées, chiffrée par SQLite3MultipleCiphers (ADR-002).
-@DriftDatabase(tables: [Entries, Settings, Tags])
+@DriftDatabase(tables: [Entries, Settings, Tags, EntryTopics])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._(super.executor);
 
@@ -132,7 +157,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -147,8 +172,15 @@ class AppDatabase extends _$AppDatabase {
       }
       // Version 4 : étiquettes (spec 004).
       if (from < 4) await m.createTable(tags);
+      // Version 5 : bienvenue vue (spec 009) et sujets (spec 010). La colonne est
+      // créée d'emblée avec la table des réglages avant la version 2.
+      if (from >= 2 && from < 5) {
+        await m.addColumn(settings, settings.welcomeShown);
+      }
+      if (from < 5) await m.createTable(entryTopics);
     },
-    // Sans cela, SQLite ignore la suppression en cascade des étiquettes (CA17).
+    // Sans cela, SQLite ignore la suppression en cascade des étiquettes (CA17) et
+    // des sujets (spec 010, CA10).
     beforeOpen: (_) async {
       await customStatement('PRAGMA foreign_keys = ON');
     },
@@ -170,7 +202,11 @@ class DriftEntryRepository implements EntryRepository {
   final AppDatabase db;
   final DateTime Function() clock;
 
-  static Entry _toEntry(EntryRow row, {List<Tag> tags = const []}) => Entry(
+  static Entry _toEntry(
+    EntryRow row, {
+    List<Tag> tags = const [],
+    List<Topic> topics = const [],
+  }) => Entry(
     id: row.id,
     mood: row.mood,
     text: row.body,
@@ -178,7 +214,54 @@ class DriftEntryRepository implements EntryRepository {
     utcOffset: Duration(minutes: row.utcOffsetMinutes),
     analysisStatus: row.analysisStatus,
     tags: tags,
+    topics: topics,
   );
+
+  /// Sujets des entrées retenues par [where] (toutes sans filtre), par entrée,
+  /// dans l'ordre de la liste (spec 010). Jointure sur `entries` plutôt qu'une
+  /// liste d'identifiants : la requête reste bornée quelle que soit la taille du
+  /// journal. Un sujet inconnu de cette version est ignoré.
+  Future<Map<int, List<Topic>>> _topicsOf({Expression<bool>? where}) async {
+    final query = db.select(db.entryTopics).join([
+      innerJoin(db.entries, db.entries.id.equalsExp(db.entryTopics.entryId)),
+    ])..orderBy([OrderingTerm.asc(db.entryTopics.position)]);
+    if (where != null) query.where(where);
+    final known = Topic.values.asNameMap();
+    final topics = <int, List<Topic>>{};
+    for (final row in await query.get()) {
+      final stored = row.readTable(db.entryTopics);
+      final topic = known[stored.topic];
+      if (topic == null) continue;
+      topics.putIfAbsent(stored.entryId, () => []).add(topic);
+    }
+    return {
+      for (final MapEntry(:key, :value) in topics.entries)
+        key: topicsInListOrder(value),
+    };
+  }
+
+  /// [entries] complétées de leurs sujets, lus avec le filtre [where] : celui de
+  /// la requête des entrées.
+  Future<List<Entry>> _withTopics(
+    List<Entry> entries, {
+    Expression<bool>? where,
+  }) async {
+    if (entries.isEmpty) return entries;
+    final topics = await _topicsOf(where: where);
+    return [
+      for (final e in entries)
+        Entry(
+          id: e.id,
+          mood: e.mood,
+          text: e.text,
+          createdAt: e.createdAt,
+          utcOffset: e.utcOffset,
+          analysisStatus: e.analysisStatus,
+          tags: e.tags,
+          topics: topics[e.id] ?? const [],
+        ),
+    ];
+  }
 
   @override
   Stream<List<Entry>> watchEntries() {
@@ -190,7 +273,9 @@ class DriftEntryRepository implements EntryRepository {
           OrderingTerm.desc(db.entries.id),
           OrderingTerm.asc(db.tags.position),
         ]);
-    return query.watch().map(_withTags);
+    // Les sujets s'écrivent dans la même transaction que leur entrée : la
+    // relance sur `entries` suffit à les relire (spec 010).
+    return query.watch().asyncMap((rows) => _withTopics(_withTags(rows)));
   }
 
   @override
@@ -205,7 +290,12 @@ class DriftEntryRepository implements EntryRepository {
     // une autre entrée : seule une entrée changée est réémise.
     return query
         .watch()
-        .map((rows) => _withTags(rows).firstOrNull)
+        .asyncMap(
+          (rows) async => (await _withTopics(
+            _withTags(rows),
+            where: db.entries.id.equals(id),
+          )).firstOrNull,
+        )
         .distinct(sameEntry);
   }
 
@@ -232,6 +322,7 @@ class DriftEntryRepository implements EntryRepository {
     required int mood,
     String? text,
     AnalysisStatus status = AnalysisStatus.pending,
+    List<Topic> topics = const [],
   }) async {
     if (mood < 1 || mood > 5) {
       throw ArgumentError.value(mood, 'mood', 'de 1 à 5');
@@ -258,17 +349,33 @@ class DriftEntryRepository implements EntryRepository {
     );
     // Sans texte, rien à analyser (RM24), quel que soit le statut demandé.
     final analysisStatus = body == null ? AnalysisStatus.skipped : status;
-    final id = await db
-        .into(db.entries)
-        .insert(
-          EntriesCompanion.insert(
-            mood: mood,
-            body: Value(body),
-            createdAt: createdAt,
-            utcOffsetMinutes: now.timeZoneOffset.inMinutes,
-            analysisStatus: analysisStatus,
-          ),
-        );
+    final ordered = topicsInListOrder(topics);
+    // L'entrée et ses sujets ensemble : une erreur n'enregistre rien (spec 010).
+    final id = await db.transaction(() async {
+      final id = await db
+          .into(db.entries)
+          .insert(
+            EntriesCompanion.insert(
+              mood: mood,
+              body: Value(body),
+              createdAt: createdAt,
+              utcOffsetMinutes: now.timeZoneOffset.inMinutes,
+              analysisStatus: analysisStatus,
+            ),
+          );
+      for (final (position, topic) in ordered.indexed) {
+        await db
+            .into(db.entryTopics)
+            .insert(
+              EntryTopicsCompanion.insert(
+                entryId: id,
+                topic: topic.name,
+                position: position,
+              ),
+            );
+      }
+      return id;
+    });
     return Entry(
       id: id,
       mood: mood,
@@ -276,6 +383,7 @@ class DriftEntryRepository implements EntryRepository {
       createdAt: createdAt,
       utcOffset: now.timeZoneOffset,
       analysisStatus: analysisStatus,
+      topics: ordered,
     );
   }
 
@@ -289,7 +397,7 @@ class DriftEntryRepository implements EntryRepository {
           OrderingTerm.asc(db.entries.id),
           OrderingTerm.asc(db.tags.position),
         ]);
-    return _withTags(await query.get());
+    return _withTopics(_withTags(await query.get()));
   }
 
   @override
@@ -305,7 +413,19 @@ class DriftEntryRepository implements EntryRepository {
         (e) => OrderingTerm.desc(e.id),
       ])
       ..limit(count);
-    return (await query.get()).map(_toEntry).toList();
+    // Mêmes entrées, en sous-requête : les sujets sont lus sans liste
+    // d'identifiants.
+    final latestIds = db.selectOnly(db.entries)
+      ..addColumns([db.entries.id])
+      ..orderBy([
+        OrderingTerm.desc(db.entries.createdAt),
+        OrderingTerm.desc(db.entries.id),
+      ])
+      ..limit(count);
+    return _withTopics(
+      (await query.get()).map(_toEntry).toList(),
+      where: db.entries.id.isInQuery(latestIds),
+    );
   }
 
   @override
@@ -405,6 +525,24 @@ class DriftSettingsRepository implements SettingsRepository {
         ),
         onConflict: DoUpdate(
           (_) => const SettingsCompanion(modelOfferShown: Value(true)),
+        ),
+      );
+
+  @override
+  Future<bool> readWelcomeShown() async =>
+      (await _row.getSingleOrNull())?.welcomeShown ?? false;
+
+  @override
+  Future<void> setWelcomeShown() => db
+      .into(db.settings)
+      .insert(
+        SettingsCompanion.insert(
+          id: const Value(1),
+          lowMoodSensitivity: LowMoodSensitivity.normal.name,
+          welcomeShown: const Value(true),
+        ),
+        onConflict: DoUpdate(
+          (_) => const SettingsCompanion(welcomeShown: Value(true)),
         ),
       );
 

@@ -42,7 +42,11 @@ void main() {
         'maquette, rien d\'autre', (tester) async {
       await open(tester, const ModelAbsent());
 
-      expectTexts(tester, offerTexts);
+      // Spec 008, CA15 : les textes de la spec 003, plus les quatre autocollants
+      // d'étiquettes fictives de l'illustration décorative.
+      final texts = allTextsOfScreen(tester, ModelDownloadScreen);
+      expect(texts, containsAll(offerTexts));
+      expect(texts, hasLength(offerTexts.length + 4));
     });
 
     testWidgets('CA4 : la taille « 1,1 Go » est dans le texte et dans le '
@@ -665,7 +669,8 @@ void main() {
         expect(colors, contains(TidemarkColors.dark.ink));
         expect(colors, contains(TidemarkColors.dark.tide));
         expect(colors, isNot(contains(TidemarkColors.light.surface)));
-        expect(colors, isNot(contains(TidemarkColors.light.ink)));
+        // `ink` clair vaut `on-mood`, texte des autocollants de l'illustration
+        // dans les deux thèmes (spec 008, CA15) : il n'est plus interdit ici.
         expect(colors, isNot(contains(TidemarkColors.light.tide)));
         expect(colors, isNot(contains(TidemarkColors.light.danger)));
       });

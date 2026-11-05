@@ -8,7 +8,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/entries/entry.dart';
 import 'package:tidemark/main.dart';
 import 'package:tidemark/ui/screens/entry_form_screen.dart';
+import 'package:tidemark/ui/widgets/mood_bubble.dart';
 
+import '../support/celebration_harness.dart';
 import '../support/fake_entry_repository.dart';
 import '../support/fake_model_downloader.dart';
 import '../support/ui_harness.dart';
@@ -117,10 +119,8 @@ void main() {
       expect(find.text('Bien'), findsNothing);
     });
 
-    dbTestWidgets('CA8 : les cinq pastilles portent leur chiffre', (
-      tester,
-      env,
-    ) async {
+    dbTestWidgets('CA8, CA11 (spec 008) : les cinq bulles ne portent plus de '
+        'chiffre', (tester, env) async {
       await tester.pumpWidget(
         testApp(
           EntryFormScreen(
@@ -133,7 +133,11 @@ void main() {
       await settle(tester);
 
       for (var mood = 1; mood <= 5; mood++) {
-        expect(find.text('$mood'), findsOneWidget);
+        expect(find.text('$mood'), findsNothing);
+        expect(
+          find.byWidgetPredicate((w) => w is MoodBubble && w.mood == mood),
+          findsOneWidget,
+        );
       }
     });
 
@@ -338,10 +342,8 @@ void main() {
 
   group('parcours depuis la liste', () {
     dbTestWidgets('CA9 : une humeur sans texte est enregistrée, la liste '
-        'réapparaît avec l\'entrée en tête sous « Aujourd\'hui »', (
-      tester,
-      env,
-    ) async {
+        'réapparaît après la célébration (spec 010, CA16) avec l\'entrée en '
+        'tête sous « Aujourd\'hui »', (tester, env) async {
       await tester.pumpWidget(env.app());
       await settle(tester);
       await openForm(tester);
@@ -350,10 +352,13 @@ void main() {
       await pickMood(tester, 4);
       await tester.tap(find.text('Enregistrer'));
       await settle(tester);
+      await continueFromCelebration(tester);
 
       await expectBackOnList(tester);
       expect(find.text("Aujourd'hui"), findsOneWidget);
-      expect(find.text('Bien'), findsOneWidget);
+      // « Bien » : la carte de l'entrée, plus le libellé de la bulle du
+      // check-in (spec 009, CA11).
+      expect(find.text('Bien'), findsNWidgets(2));
       expect(find.text('21:40'), findsOneWidget);
       final saved = await env.entries(tester);
       expect(saved, hasLength(1));
@@ -373,6 +378,7 @@ void main() {
       await pickMood(tester, 5);
       await tester.tap(find.text('Enregistrer'));
       await settle(tester);
+      await continueFromCelebration(tester);
 
       expect(find.text("Aujourd'hui"), findsOneWidget);
       expect(
@@ -392,6 +398,7 @@ void main() {
       env.now = DateTime(2026, 10, 15, 0, 2);
       await tester.tap(find.text('Enregistrer'));
       await settle(tester);
+      await continueFromCelebration(tester);
 
       final saved = await env.entries(tester);
       expect(saved.single.createdAt, DateTime(2026, 10, 15, 0, 2).toUtc());
@@ -400,7 +407,10 @@ void main() {
     });
 
     dbTestWidgets('CA10 : une humeur et un texte sont enregistrés, la carte '
-        'montre le début du texte', (tester, env) async {
+        'montre le début du texte après la célébration (spec 010, CA16)', (
+      tester,
+      env,
+    ) async {
       await tester.pumpWidget(env.app());
       await settle(tester);
       await openForm(tester);
@@ -409,6 +419,7 @@ void main() {
       await enter(tester, "Balade au bord de l'eau, le vent était tombé.");
       await tester.tap(find.text('Enregistrer'));
       await settle(tester);
+      await continueFromCelebration(tester);
 
       await expectBackOnList(tester);
       expect(find.textContaining('Balade au bord de l'), findsOneWidget);
@@ -430,6 +441,7 @@ void main() {
       await enter(tester, '  \n \n   ');
       await tester.tap(find.text('Enregistrer'));
       await settle(tester);
+      await continueFromCelebration(tester);
 
       await expectBackOnList(tester);
       final saved = await env.entries(tester);
@@ -480,6 +492,9 @@ void main() {
       await openForm(tester);
       await pickMood(tester, 3);
       await enter(tester, 'Quelques mots déjà écrits.');
+      // La saisie défile pour montrer le champ de texte, sous « Ce qui a compté »
+      // (spec 010) : « Annuler » est remonté hors de l'écran.
+      await tester.ensureVisible(find.text('Annuler'));
 
       await tester.tap(find.text('Annuler'));
       await settle(tester);
@@ -496,6 +511,9 @@ void main() {
       await openForm(tester);
       await pickMood(tester, 3);
       await enter(tester, 'Quelques mots déjà écrits.');
+      // La saisie défile pour montrer le champ de texte, sous « Ce qui a compté »
+      // (spec 010) : « Annuler » est remonté hors de l'écran.
+      await tester.ensureVisible(find.text('Annuler'));
       await tester.tap(find.text('Annuler'));
       await settle(tester);
 
@@ -517,6 +535,9 @@ void main() {
       await openForm(tester);
       await pickMood(tester, 3);
       await enter(tester, 'Quelques mots déjà écrits.');
+      // La saisie défile pour montrer le champ de texte, sous « Ce qui a compté »
+      // (spec 010) : « Annuler » est remonté hors de l'écran.
+      await tester.ensureVisible(find.text('Annuler'));
       await tester.tap(find.text('Annuler'));
       await settle(tester);
 

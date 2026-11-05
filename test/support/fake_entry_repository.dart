@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:tidemark/analysis/mood_analyzer.dart';
 import 'package:tidemark/entries/entry.dart';
 import 'package:tidemark/entries/entry_repository.dart';
+import 'package:tidemark/entries/topic.dart';
 
 /// Dépôt factice en mémoire, sans base. [beforeAdd] permet de simuler un enregistrement
 /// lent (attendre un `Completer`) ou en échec (lever une exception).
@@ -36,7 +37,10 @@ class FakeEntryRepository implements EntryRepository {
   bool neverEmit = false;
 
   /// Appels à [addEntry], dans l'ordre, y compris ceux qui ont échoué.
-  final List<({int mood, String? text, AnalysisStatus status})> addCalls = [];
+  final List<
+    ({int mood, String? text, AnalysisStatus status, List<Topic> topics})
+  >
+  addCalls = [];
 
   final List<Entry> _entries = [];
   final _changes = StreamController<List<Entry>>.broadcast();
@@ -66,8 +70,9 @@ class FakeEntryRepository implements EntryRepository {
     required int mood,
     String? text,
     AnalysisStatus status = AnalysisStatus.pending,
+    List<Topic> topics = const [],
   }) async {
-    addCalls.add((mood: mood, text: text, status: status));
+    addCalls.add((mood: mood, text: text, status: status, topics: topics));
     await beforeAdd?.call();
     // Même contrat que EntryRepository.addEntry : texte gardé tel quel, absent s'il
     // est vide ou fait seulement d'espaces.
@@ -82,6 +87,7 @@ class FakeEntryRepository implements EntryRepository {
       // du fuseau de la machine qui lance les tests.
       utcOffset: now.timeZoneOffset,
       analysisStatus: blank ? AnalysisStatus.skipped : status,
+      topics: _inListOrder(topics),
     );
     _entries.insert(0, entry);
     _sort();
@@ -103,6 +109,7 @@ class FakeEntryRepository implements EntryRepository {
     String? text,
     required DateTime createdAt,
     AnalysisStatus? status,
+    List<Topic> topics = const [],
   }) {
     final entry = Entry(
       id: _nextId(),
@@ -113,12 +120,19 @@ class FakeEntryRepository implements EntryRepository {
       analysisStatus:
           status ??
           (text == null ? AnalysisStatus.skipped : AnalysisStatus.pending),
+      topics: _inListOrder(topics),
     );
     _entries.add(entry);
     _sort();
     _changes.add(entries);
     return entry;
   }
+
+  /// Les sujets sont rangés dans l'ordre de la liste (spec 010, CA4).
+  static List<Topic> _inListOrder(List<Topic> topics) => [
+    for (final topic in Topic.values)
+      if (topics.contains(topic)) topic,
+  ];
 
   int _nextId() => _entries.fold(0, (m, e) => e.id > m ? e.id : m) + 1;
 
@@ -163,6 +177,7 @@ class FakeEntryRepository implements EntryRepository {
           createdAt: e.createdAt,
           utcOffset: e.utcOffset,
           analysisStatus: AnalysisStatus.skipped,
+          topics: e.topics,
         );
       }
     }
@@ -195,6 +210,7 @@ class FakeEntryRepository implements EntryRepository {
           ? AnalysisStatus.tagged
           : AnalysisStatus.untagged,
       tags: result is Tagged ? result.tags : const [],
+      topics: e.topics,
     );
     _changes.add(entries);
   }

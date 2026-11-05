@@ -12,6 +12,7 @@ import 'package:tidemark/entries/entry.dart';
 import 'package:tidemark/storage/app_database.dart';
 
 import '../support/analysis_harness.dart';
+import '../support/schema_v5_checks.dart';
 
 const validKey =
     '00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff';
@@ -97,9 +98,12 @@ void main() {
 
     tearDown(() async => await db.close());
 
-    test('le schéma est en version 4', () {
-      expect(db.schemaVersion, 4);
-    });
+    test(
+      'le schéma est en version 5 (spec 010, CA9 ; version 4 jusque-là)',
+      () {
+        expect(db.schemaVersion, 5);
+      },
+    );
 
     test('une entrée neuve n\'a aucune étiquette', () async {
       final saved = await repo.addEntry(mood: 3, text: 'Texte.');
@@ -463,7 +467,7 @@ void main() {
         final db = await AppDatabase.openEncrypted(file, validKey);
         addTearDown(db.close);
 
-        expect(db.schemaVersion, 4);
+        expect(db.schemaVersion, 5);
         final entries = await DriftEntryRepository(db).watchEntries().first;
         expect(
           entries.map((e) => e.text),
@@ -483,6 +487,7 @@ void main() {
         );
         expect(await settings.readModelOfferShown(), isTrue);
         expect(await countTags(db), 0);
+        await expectSchema5Additions(db);
       });
 
       test('après la migration, une entrée ancienne peut être étiquetée, et '
@@ -536,11 +541,12 @@ void main() {
         final entry = (await repo.watchEntries().first).single;
         await repo.saveAnalysis(entry.id, Tagged([emotion('joie')]));
 
-        expect(db.schemaVersion, 4);
+        expect(db.schemaVersion, 5);
         expect((await single(repo, entry.id)).tags, [emotion('joie')]);
         final settings = DriftSettingsRepository(db);
         expect(await settings.readLowMoodSensitivity(), LowMoodSensitivity.low);
         expect(await settings.readModelOfferShown(), isFalse);
+        await expectSchema5Additions(db);
       });
 
       test(
@@ -566,11 +572,12 @@ void main() {
 
           final db = await AppDatabase.openEncrypted(file, validKey);
           addTearDown(db.close);
+          await expectSchema5Additions(db);
           final repo = DriftEntryRepository(db);
           final entry = (await repo.watchEntries().first).single;
           await repo.saveAnalysis(entry.id, Tagged([theme('maison')]));
 
-          expect(db.schemaVersion, 4);
+          expect(db.schemaVersion, 5);
           expect((await single(repo, entry.id)).tags, [theme('maison')]);
         },
       );

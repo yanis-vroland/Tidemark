@@ -228,7 +228,7 @@ class _DegreeTile extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: selected ? colors.tideSoft : colors.surfaceRaised,
-          borderRadius: BorderRadius.circular(TidemarkRadius.radiusMd),
+          borderRadius: BorderRadius.circular(TidemarkRadius.radiusLg),
           border: selected
               ? Border.all(color: colors.tide, width: TidemarkSize.ringWidth)
               : Border.all(color: colors.line),
@@ -244,7 +244,7 @@ class _DegreeTile extends StatelessWidget {
               vertical: TidemarkSpacing.space2,
             ),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TidemarkRadius.radiusMd),
+              borderRadius: BorderRadius.circular(TidemarkRadius.radiusLg),
             ),
             title: Text(
               name,

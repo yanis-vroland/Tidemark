@@ -27,8 +27,10 @@ import 'storage/app_storage.dart';
 import 'storage/database_key.dart';
 import 'ui/analysis_scope.dart';
 import 'ui/app_host.dart';
+import 'ui/motion/ambient_motion.dart';
 import 'ui/phone_dialer.dart';
-import 'ui/screens/entry_list_screen.dart';
+import 'ui/screens/home_shell.dart';
+import 'ui/screens/welcome_screen.dart';
 import 'ui/screens/wipe_confirmation_screen.dart';
 import 'ui/theme/tidemark_colors.dart';
 import 'ui/theme/tidemark_theme.dart';
@@ -46,14 +48,17 @@ Future<void> main() async {
   // d'analyse de l'app précédente.
   runApp(
     AppHost(
+      // Animations d'ambiance activées ici seulement (spec 008, CA10).
       initial: await startApp(
         storage: storage,
         lifecycle: appLifecycleStates(),
+        ambientMotion: true,
       ),
       restart: ({required wiped}) => startApp(
         storage: storage,
         lifecycle: appLifecycleStates(),
         wiped: wiped,
+        ambientMotion: true,
       ),
     ),
   );
@@ -120,6 +125,8 @@ Future<Widget> startApp({
   ShareSheet shareSheet = const SharePlusShareSheet(),
   bool wiped = false,
   Stream<AppLifecycleState>? lifecycle,
+  // Animations d'ambiance (spec 008) : seul `main` les active.
+  bool ambientMotion = false,
 }) async {
   if (open == null && storage == null) {
     storage = await AppStorage.system();
@@ -171,6 +178,15 @@ Future<Widget> startApp({
           )..start());
     var queueStopped = false;
     var gateHeld = false;
+    // Bienvenue au premier lancement seulement : réglage à faux et journal vide.
+    // Une lecture en erreur ne bloque jamais l'accès au journal (spec 009, CA3,
+    // CA6).
+    var showWelcome = false;
+    try {
+      showWelcome =
+          !await journal.settings.readWelcomeShown() &&
+          (await journal.entries.latestEntries(1)).isEmpty;
+    } catch (_) {}
     final writer = journal.reviewWriter;
     final narrator = writer == null
         ? null
@@ -182,6 +198,8 @@ Future<Widget> startApp({
       downloader: journal.downloader,
       analysisQueue: queue,
       wiped: wiped,
+      showWelcome: showWelcome,
+      ambientMotion: ambientMotion,
       data: store == null
           ? null
           : DataActions(
@@ -316,7 +334,16 @@ class TidemarkApp extends StatelessWidget {
     this.clock,
     this.data,
     this.wiped = false,
+    this.showWelcome = false,
+    this.ambientMotion = false,
   });
+
+  /// Premier lancement : l'écran de bienvenue s'affiche avant l'accueil (spec 009,
+  /// CA1) ; calculé par [startApp].
+  final bool showWelcome;
+
+  /// Animations d'ambiance autorisées (spec 008, CA10) ; seul `main` les active.
+  final bool ambientMotion;
 
   /// Export et suppression totale, dans les Réglages (spec 005) ; `null` : section
   /// « Mes données » absente.
@@ -347,20 +374,60 @@ class TidemarkApp extends StatelessWidget {
       title: 'Tidemark',
       theme: buildTidemarkTheme(Brightness.light),
       darkTheme: buildTidemarkTheme(Brightness.dark),
-      home: EntryListScreen(
-        repository: repository,
+      builder: (context, child) =>
+          AmbientMotion(enabled: ambientMotion, child: child!),
+      home: _WelcomeGate(
+        showWelcome: showWelcome,
         settings: settings,
-        downloader: downloader,
-        dialer: dialer,
-        clock: clock ?? DateTime.now,
-        data: data,
-        wiped: wiped,
-        narrator: reviewNarrator,
+        home: () => HomeShell(
+          repository: repository,
+          settings: settings,
+          downloader: downloader,
+          dialer: dialer,
+          clock: clock ?? DateTime.now,
+          data: data,
+          wiped: wiped,
+          narrator: reviewNarrator,
+        ),
       ),
     );
     final queue = analysisQueue;
     return queue == null ? app : AnalysisScope(queue: queue, child: app);
   }
+}
+
+/// Bienvenue puis accueil (spec 009, CA1, CA2, CA5) : « C'est parti » enregistre
+/// le réglage et affiche l'accueil, même si l'enregistrement échoue.
+class _WelcomeGate extends StatefulWidget {
+  const _WelcomeGate({
+    required this.showWelcome,
+    required this.settings,
+    required this.home,
+  });
+
+  final bool showWelcome;
+  final SettingsRepository settings;
+  final Widget Function() home;
+
+  @override
+  State<_WelcomeGate> createState() => _WelcomeGateState();
+}
+
+class _WelcomeGateState extends State<_WelcomeGate> {
+  late bool _welcome = widget.showWelcome;
+
+  Future<void> _start() async {
+    try {
+      await widget.settings.setWelcomeShown();
+    } catch (_) {
+      // Sans message : la bienvenue reviendra au lancement suivant (CA5).
+    }
+    if (mounted) setState(() => _welcome = false);
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      _welcome ? WelcomeScreen(onStart: _start) : widget.home();
 }
 
 /// Écran affiché si le journal ne peut pas être ouvert (clé absente, base illisible).

@@ -20,16 +20,39 @@ void main() {
         );
       });
 
-      test('le chiffre est en on-mood-1 sur l\'humeur 1 seulement', () {
-        expect(colors.onMoodColor(1), colors.onMood1);
-        for (var mood = 2; mood <= 5; mood++) {
-          expect(colors.onMoodColor(mood), colors.onMood);
-        }
-      });
+      test(
+        'chaque humeur a son fond doux et son fond de saisie (CA11, CA12)',
+        () {
+          expect(
+            [for (var mood = 1; mood <= 5; mood++) colors.moodSoftColor(mood)],
+            [
+              colors.mood1Soft,
+              colors.mood2Soft,
+              colors.mood3Soft,
+              colors.mood4Soft,
+              colors.mood5Soft,
+            ],
+          );
+          expect(
+            [for (var mood = 1; mood <= 5; mood++) colors.moodNightColor(mood)],
+            [
+              colors.mood1Night,
+              colors.mood2Night,
+              colors.mood3Night,
+              colors.mood4Night,
+              colors.mood5Night,
+            ],
+          );
+        },
+      );
 
       test('une humeur hors de 1 à 5 est refusée', () {
         expect(() => colors.moodColor(0), throwsRangeError);
         expect(() => colors.moodColor(6), throwsRangeError);
+        expect(() => colors.moodSoftColor(0), throwsRangeError);
+        expect(() => colors.moodSoftColor(6), throwsRangeError);
+        expect(() => colors.moodNightColor(0), throwsRangeError);
+        expect(() => colors.moodNightColor(6), throwsRangeError);
       });
     }
   });

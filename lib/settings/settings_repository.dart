@@ -21,4 +21,11 @@ abstract interface class SettingsRepository {
 
   /// Marque la proposition du modèle comme affichée.
   Future<void> setModelOfferShown();
+
+  /// Vrai si l'écran de bienvenue a été passé (« C'est parti », spec 009, CA2) ;
+  /// faux par défaut.
+  Future<bool> readWelcomeShown();
+
+  /// Marque la bienvenue comme vue.
+  Future<void> setWelcomeShown();
 }

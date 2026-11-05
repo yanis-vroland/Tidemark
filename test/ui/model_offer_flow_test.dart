@@ -11,6 +11,7 @@ import 'package:tidemark/model/model_state.dart';
 import 'package:tidemark/ui/screens/model_download_screen.dart';
 
 import '../support/distress_harness.dart' show backToJournal, helpTitle;
+import '../support/celebration_harness.dart';
 import '../support/fake_entry_repository.dart';
 import '../support/fake_model_downloader.dart';
 import '../support/fake_model_transport.dart';
@@ -47,7 +48,10 @@ class OfferEnv {
     downloader: downloader,
   );
 
-  /// Saisit une entrée par l'interface : humeur, texte éventuel, « Enregistrer ».
+  /// Saisit une entrée par l'interface : humeur, texte éventuel, « Enregistrer »,
+  /// puis « Continuer » sur la célébration s'il y en a une (spec 010, CA16 : la
+  /// proposition du modèle s'ouvre après la célébration, plus juste après
+  /// l'enregistrement). Une détresse n'a pas de célébration (CA14).
   Future<void> save(WidgetTester tester, int mood, [String? text]) async {
     await openForm(tester);
     await pickMood(tester, mood);
@@ -57,6 +61,7 @@ class OfferEnv {
     }
     await tester.tap(find.text('Enregistrer'));
     await settle(tester);
+    if (celebrationShown()) await continueFromCelebration(tester);
   }
 
   /// Deux humeurs « Très bas » récentes : une troisième ouvre l'écran d'aide.
