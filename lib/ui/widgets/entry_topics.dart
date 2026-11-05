@@ -42,18 +42,25 @@ class TopicToggles extends StatelessWidget {
       children: [
         const _TopicsTitle(),
         const SizedBox(height: TidemarkSpacing.space3),
-        Wrap(
-          spacing: TidemarkSpacing.space2,
-          runSpacing: TidemarkSpacing.space2,
-          children: [
-            for (final topic in Topic.values)
-              _TopicToggle(
-                topic: topic,
-                on: selected.contains(topic),
-                onTap: onToggled == null ? null : () => onToggled!(topic),
-                colors: colors,
-              ),
-          ],
+        // Le groupe des bascules porte le titre de la section (CA3) : le
+        // lecteur d'écran l'annonce en y entrant.
+        Semantics(
+          container: true,
+          explicitChildNodes: true,
+          label: topicsTitle,
+          child: Wrap(
+            spacing: TidemarkSpacing.space2,
+            runSpacing: TidemarkSpacing.space2,
+            children: [
+              for (final topic in Topic.values)
+                _TopicToggle(
+                  topic: topic,
+                  on: selected.contains(topic),
+                  onTap: onToggled == null ? null : () => onToggled!(topic),
+                  colors: colors,
+                ),
+            ],
+          ),
         ),
       ],
     );

@@ -76,7 +76,11 @@ class EntryTopics extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get entryId =>
       integer().references(Entries, #id, onDelete: KeyAction.cascade)();
-  TextColumn get topic => textEnum<Topic>()();
+
+  /// Nom anglais du sujet ([Topic.name]). Texte libre, et non `textEnum` : une
+  /// valeur inconnue (écrite par une version plus récente de l'app, puis retour
+  /// arrière) est ignorée à la lecture au lieu de rendre le journal illisible.
+  TextColumn get topic => text()();
 
   /// Ordre d'affichage : celui de la liste des sujets.
   IntColumn get position => integer()();
@@ -213,16 +217,22 @@ class DriftEntryRepository implements EntryRepository {
     topics: topics,
   );
 
-  /// Sujets des entrées [ids], par entrée, dans l'ordre de la liste (spec 010).
-  Future<Map<int, List<Topic>>> _topicsOf(Iterable<int> ids) async {
-    final rows =
-        await (db.select(db.entryTopics)
-              ..where((t) => t.entryId.isIn(ids))
-              ..orderBy([(t) => OrderingTerm.asc(t.position)]))
-            .get();
+  /// Sujets des entrées retenues par [where] (toutes sans filtre), par entrée,
+  /// dans l'ordre de la liste (spec 010). Jointure sur `entries` plutôt qu'une
+  /// liste d'identifiants : la requête reste bornée quelle que soit la taille du
+  /// journal. Un sujet inconnu de cette version est ignoré.
+  Future<Map<int, List<Topic>>> _topicsOf({Expression<bool>? where}) async {
+    final query = db.select(db.entryTopics).join([
+      innerJoin(db.entries, db.entries.id.equalsExp(db.entryTopics.entryId)),
+    ])..orderBy([OrderingTerm.asc(db.entryTopics.position)]);
+    if (where != null) query.where(where);
+    final known = Topic.values.asNameMap();
     final topics = <int, List<Topic>>{};
-    for (final row in rows) {
-      topics.putIfAbsent(row.entryId, () => []).add(row.topic);
+    for (final row in await query.get()) {
+      final stored = row.readTable(db.entryTopics);
+      final topic = known[stored.topic];
+      if (topic == null) continue;
+      topics.putIfAbsent(stored.entryId, () => []).add(topic);
     }
     return {
       for (final MapEntry(:key, :value) in topics.entries)
@@ -230,10 +240,14 @@ class DriftEntryRepository implements EntryRepository {
     };
   }
 
-  /// [entries] complétées de leurs sujets.
-  Future<List<Entry>> _withTopics(List<Entry> entries) async {
+  /// [entries] complétées de leurs sujets, lus avec le filtre [where] : celui de
+  /// la requête des entrées.
+  Future<List<Entry>> _withTopics(
+    List<Entry> entries, {
+    Expression<bool>? where,
+  }) async {
     if (entries.isEmpty) return entries;
-    final topics = await _topicsOf(entries.map((e) => e.id));
+    final topics = await _topicsOf(where: where);
     return [
       for (final e in entries)
         Entry(
@@ -277,7 +291,10 @@ class DriftEntryRepository implements EntryRepository {
     return query
         .watch()
         .asyncMap(
-          (rows) async => (await _withTopics(_withTags(rows))).firstOrNull,
+          (rows) async => (await _withTopics(
+            _withTags(rows),
+            where: db.entries.id.equals(id),
+          )).firstOrNull,
         )
         .distinct(sameEntry);
   }
@@ -352,7 +369,7 @@ class DriftEntryRepository implements EntryRepository {
             .insert(
               EntryTopicsCompanion.insert(
                 entryId: id,
-                topic: topic,
+                topic: topic.name,
                 position: position,
               ),
             );
@@ -396,7 +413,19 @@ class DriftEntryRepository implements EntryRepository {
         (e) => OrderingTerm.desc(e.id),
       ])
       ..limit(count);
-    return _withTopics((await query.get()).map(_toEntry).toList());
+    // Mêmes entrées, en sous-requête : les sujets sont lus sans liste
+    // d'identifiants.
+    final latestIds = db.selectOnly(db.entries)
+      ..addColumns([db.entries.id])
+      ..orderBy([
+        OrderingTerm.desc(db.entries.createdAt),
+        OrderingTerm.desc(db.entries.id),
+      ])
+      ..limit(count);
+    return _withTopics(
+      (await query.get()).map(_toEntry).toList(),
+      where: db.entries.id.isInQuery(latestIds),
+    );
   }
 
   @override

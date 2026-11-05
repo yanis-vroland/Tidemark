@@ -74,12 +74,12 @@ void main() {
       final outcome = await save(
         4,
         text: 'Belle journée.',
-        topics: [Topic.nature, Topic.amis],
+        topics: [Topic.nature, Topic.friends],
       );
 
-      expect(repo.addCalls.single.topics, [Topic.nature, Topic.amis]);
-      expect(outcome.entry.topics, [Topic.amis, Topic.nature]);
-      expect(repo.entries.single.topics, [Topic.amis, Topic.nature]);
+      expect(repo.addCalls.single.topics, [Topic.nature, Topic.friends]);
+      expect(outcome.entry.topics, [Topic.friends, Topic.nature]);
+      expect(repo.entries.single.topics, [Topic.friends, Topic.nature]);
       expect(outcome.showHelp, isFalse);
     });
 
@@ -92,11 +92,11 @@ void main() {
 
     test('CA4 : des sujets sans texte : entrée enregistrée « non analysée » '
         '(RM24), avec ses sujets', () async {
-      final outcome = await save(3, topics: [Topic.sommeil]);
+      final outcome = await save(3, topics: [Topic.sleep]);
 
       expect(outcome.entry.text, isNull);
       expect(outcome.entry.analysisStatus, AnalysisStatus.skipped);
-      expect(outcome.entry.topics, [Topic.sommeil]);
+      expect(outcome.entry.topics, [Topic.sleep]);
     });
 
     test(
@@ -117,7 +117,7 @@ void main() {
         await save(
           4,
           text: 'Belle journée.',
-          topics: [Topic.sommeil, Topic.travail, Topic.nature],
+          topics: [Topic.sleep, Topic.work, Topic.nature],
         );
 
         expect(detector.texts, ['Belle journée.']);
@@ -126,7 +126,7 @@ void main() {
 
     test('CA6 : l\'entrée candidate de la série d\'humeurs basses n\'a aucun '
         'sujet', () async {
-      await save(1, text: 'Triste.', topics: [Topic.travail, Topic.famille]);
+      await save(1, text: 'Triste.', topics: [Topic.work, Topic.family]);
 
       expect(detector.series, hasLength(1));
       final candidate = detector.series.single.first;
@@ -153,7 +153,7 @@ void main() {
       final withTopics = await save(
         3,
         text: 'J’ai envie de mourir.',
-        topics: [Topic.amis],
+        topics: [Topic.friends],
       );
       final without = await save(3, text: 'J’ai envie de mourir.');
 
@@ -178,12 +178,12 @@ void main() {
       final outcome = await save(
         2,
         text: 'envie de mourir',
-        topics: [Topic.travail, Topic.sommeil],
+        topics: [Topic.work, Topic.sleep],
       );
 
       expect(outcome.showHelp, isTrue);
       expect(outcome.entry.analysisStatus, AnalysisStatus.skipped);
-      expect(repo.entries.single.topics, [Topic.sommeil, Topic.travail]);
+      expect(repo.entries.single.topics, [Topic.sleep, Topic.work]);
     });
 
     test('si l\'enregistrement échoue, l\'erreur remonte et rien n\'est '
@@ -191,7 +191,7 @@ void main() {
       repo.beforeAdd = () async => throw StateError('stockage plein');
 
       await expectLater(
-        save(3, text: 'Texte.', topics: [Topic.amis]),
+        save(3, text: 'Texte.', topics: [Topic.friends]),
         throwsStateError,
       );
 

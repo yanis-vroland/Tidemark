@@ -1,6 +1,7 @@
 // Stockage de la spec 010 : schéma en version 5, table `entry_topics`, réglage
 // `welcome_shown` (spec 009), sujets rendus par chaque lecture du dépôt, cascade à la
 // suppression, migration de la version 4 à la version 5 sans perte (CA4, CA9, CA10).
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +10,7 @@ import 'package:tidemark/analysis/mood_analyzer.dart';
 import 'package:tidemark/distress/distress_detector.dart';
 import 'package:tidemark/entries/entry.dart';
 import 'package:tidemark/entries/topic.dart';
+import 'package:tidemark/export/journal_exporter.dart';
 import 'package:tidemark/storage/app_database.dart';
 import 'package:tidemark/wipe/journal_wiper.dart';
 
@@ -153,15 +155,11 @@ void main() {
       final saved = await repo.addEntry(
         mood: 4,
         text: 'Bonne journée.',
-        topics: [Topic.nature, Topic.sommeil, Topic.famille],
+        topics: [Topic.nature, Topic.sleep, Topic.family],
       );
 
-      expect(saved.topics, [Topic.sommeil, Topic.famille, Topic.nature]);
-      expect(await storedTopics(db, saved.id), [
-        'sommeil',
-        'famille',
-        'nature',
-      ]);
+      expect(saved.topics, [Topic.sleep, Topic.family, Topic.nature]);
+      expect(await storedTopics(db, saved.id), ['sleep', 'family', 'nature']);
     });
 
     test(
@@ -189,10 +187,10 @@ void main() {
       final saved = await repo.addEntry(
         mood: 4,
         text: 'Balade.',
-        topics: [Topic.sport, Topic.amis],
+        topics: [Topic.sport, Topic.friends],
       );
       await repo.addEntry(mood: 3);
-      final expected = [Topic.amis, Topic.sport];
+      final expected = [Topic.friends, Topic.sport];
 
       expect((await single(repo, saved.id)).topics, expected);
       expect((await repo.watchEntry(saved.id).first)!.topics, expected);
@@ -211,12 +209,12 @@ void main() {
     });
 
     test('CA4 : les sujets d\'une entrée ne vont pas sur une autre', () async {
-      final a = await repo.addEntry(mood: 4, topics: [Topic.travail]);
-      final b = await repo.addEntry(mood: 2, topics: [Topic.famille]);
+      final a = await repo.addEntry(mood: 4, topics: [Topic.work]);
+      final b = await repo.addEntry(mood: 2, topics: [Topic.family]);
       final c = await repo.addEntry(mood: 3);
 
-      expect((await single(repo, a.id)).topics, [Topic.travail]);
-      expect((await single(repo, b.id)).topics, [Topic.famille]);
+      expect((await single(repo, a.id)).topics, [Topic.work]);
+      expect((await single(repo, b.id)).topics, [Topic.family]);
       expect((await single(repo, c.id)).topics, isEmpty);
     });
 
@@ -240,11 +238,11 @@ void main() {
         mood: 1,
         text: 'Texte.',
         status: AnalysisStatus.skipped,
-        topics: [Topic.travail],
+        topics: [Topic.work],
       );
 
       expect(saved.analysisStatus, AnalysisStatus.skipped);
-      expect((await single(repo, saved.id)).topics, [Topic.travail]);
+      expect((await single(repo, saved.id)).topics, [Topic.work]);
     });
 
     test('CA4 : l\'analyse d\'une entrée garde ses sujets et ses étiquettes '
@@ -252,7 +250,7 @@ void main() {
       final saved = await repo.addEntry(
         mood: 4,
         text: 'Texte.',
-        topics: [Topic.travail],
+        topics: [Topic.work],
       );
 
       await repo.saveAnalysis(
@@ -264,7 +262,7 @@ void main() {
       );
 
       final read = await single(repo, saved.id);
-      expect(read.topics, [Topic.travail]);
+      expect(read.topics, [Topic.work]);
       expect(read.tags.map((t) => t.label), ['fatigue', 'travail']);
     });
 
@@ -272,12 +270,12 @@ void main() {
       final saved = await repo.addEntry(
         mood: 4,
         text: 'Texte.',
-        topics: [Topic.amis],
+        topics: [Topic.friends],
       );
 
       await repo.markSkipped([saved.id]);
 
-      expect((await single(repo, saved.id)).topics, [Topic.amis]);
+      expect((await single(repo, saved.id)).topics, [Topic.friends]);
     });
 
     test(
@@ -297,7 +295,7 @@ void main() {
         'autres', () async {
       final doomed = await repo.addEntry(
         mood: 4,
-        topics: [Topic.amis, Topic.sport],
+        topics: [Topic.friends, Topic.sport],
       );
       final kept = await repo.addEntry(mood: 3, topics: [Topic.nature]);
 
@@ -313,6 +311,51 @@ void main() {
       final row = await db.customSelect('PRAGMA foreign_keys').getSingle();
 
       expect(row.read<int>('foreign_keys'), 1);
+    });
+
+    test('A10 : un sujet inconnu en base (version plus récente puis retour '
+        'arrière) est ignoré, sans empêcher la lecture du journal ni '
+        'l\'export', () async {
+      final mixed = await repo.addEntry(
+        mood: 4,
+        text: 'Avec un sujet connu.',
+        topics: [Topic.friends],
+      );
+      final onlyUnknown = await repo.addEntry(mood: 3);
+      await db.customStatement(
+        'INSERT INTO entry_topics (entry_id, topic, position) VALUES '
+        "(${mixed.id}, 'future_topic', 1), "
+        "(${onlyUnknown.id}, 'future_topic', 0)",
+      );
+
+      final watched = await repo.watchEntries().first;
+      expect(watched.firstWhere((e) => e.id == mixed.id).topics, [
+        Topic.friends,
+      ]);
+      expect(watched.firstWhere((e) => e.id == onlyUnknown.id).topics, isEmpty);
+      expect((await repo.watchEntry(mixed.id).first)!.topics, [Topic.friends]);
+      expect((await repo.watchEntry(onlyUnknown.id).first)!.topics, isEmpty);
+      expect((await repo.latestEntries(2)).map((e) => e.topics), [
+        isEmpty,
+        [Topic.friends],
+      ]);
+
+      final all = await repo.allEntriesWithTags();
+      expect(all.map((e) => e.topics), [
+        [Topic.friends],
+        isEmpty,
+      ]);
+      final json = const JournalExporter().buildExport(
+        entries: all,
+        sensitivity: LowMoodSensitivity.normal,
+        exportedAt: DateTime.utc(2026, 10, 14, 20),
+      );
+      final exported = ((jsonDecode(json) as Map)['entries'] as List)
+          .cast<Map<String, dynamic>>();
+      expect(exported.map((e) => e['topics']), [
+        ['amis'],
+        isEmpty,
+      ]);
     });
   });
 
@@ -389,11 +432,11 @@ void main() {
         final fresh = await repo.addEntry(
           mood: 5,
           text: 'Après la migration.',
-          topics: [Topic.sport, Topic.sommeil],
+          topics: [Topic.sport, Topic.sleep],
         );
 
         expect((await single(repo, fresh.id)).topics, [
-          Topic.sommeil,
+          Topic.sleep,
           Topic.sport,
         ]);
         final foreignKeys = await db
@@ -435,7 +478,7 @@ void main() {
           final saved = await repo.addEntry(
             mood: 4,
             text: 'Je reste.',
-            topics: [Topic.famille],
+            topics: [Topic.family],
           );
           await db.close();
 
@@ -444,7 +487,7 @@ void main() {
 
           expect(db.schemaVersion, 5);
           expect((await single(DriftEntryRepository(db), saved.id)).topics, [
-            Topic.famille,
+            Topic.family,
           ]);
         },
       );
@@ -457,7 +500,7 @@ void main() {
       final repo = DriftEntryRepository(db);
       final saved = await repo.addEntry(
         mood: 4,
-        topics: [Topic.travail, Topic.nature],
+        topics: [Topic.work, Topic.nature],
       );
       expect(await count(db, 'entry_topics', entryId: saved.id), 2);
 
@@ -477,7 +520,7 @@ void main() {
       final db = await AppDatabase.openEncrypted(file, validKey);
       final repo = DriftEntryRepository(db);
       await repo.addEntry(mood: 4, text: 'Secret.', topics: Topic.values);
-      await repo.addEntry(mood: 2, topics: [Topic.famille]);
+      await repo.addEntry(mood: 2, topics: [Topic.family]);
       expect(await count(db, 'entry_topics'), 7);
       env.keyStore.stored = validKey;
       final wiper = JournalWiper(

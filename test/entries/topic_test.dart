@@ -8,18 +8,19 @@ import '../support/fake_entry_repository.dart';
 
 void main() {
   group('la liste des sujets', () {
-    test('CA1 : six sujets, dans l\'ordre de la liste de la spec', () {
+    test('CA1 : six sujets, dans l\'ordre de la liste de la spec ; leur nom '
+        'de code (et de stockage) est en anglais', () {
       expect(Topic.values.map((t) => t.name), [
-        'sommeil',
-        'travail',
-        'amis',
-        'famille',
+        'sleep',
+        'work',
+        'friends',
+        'family',
         'sport',
         'nature',
       ]);
     });
 
-    test('CA1 : le libellé affiché est le nom du sujet', () {
+    test('CA1 : le libellé affiché est le nom français du sujet', () {
       expect(Topic.values.map((t) => t.label), [
         'sommeil',
         'travail',
@@ -56,8 +57,8 @@ void main() {
     });
 
     test('CA4 : une entrée garde les sujets qu\'on lui donne', () {
-      expect(entryWith(topics: [Topic.amis, Topic.sport]).topics, [
-        Topic.amis,
+      expect(entryWith(topics: [Topic.friends, Topic.sport]).topics, [
+        Topic.friends,
         Topic.sport,
       ]);
     });
@@ -69,10 +70,10 @@ void main() {
 
       final saved = await repo.addEntry(
         mood: 4,
-        topics: [Topic.nature, Topic.sommeil, Topic.amis],
+        topics: [Topic.nature, Topic.sleep, Topic.friends],
       );
 
-      expect(saved.topics, [Topic.sommeil, Topic.amis, Topic.nature]);
+      expect(saved.topics, [Topic.sleep, Topic.friends, Topic.nature]);
       expect(repo.entries.single.topics, saved.topics);
     });
 
@@ -82,10 +83,10 @@ void main() {
       final seeded = repo.seed(
         mood: 3,
         createdAt: DateTime(2026, 10, 14, 8),
-        topics: [Topic.famille],
+        topics: [Topic.family],
       );
 
-      expect(seeded.topics, [Topic.famille]);
+      expect(seeded.topics, [Topic.family]);
     });
   });
 }

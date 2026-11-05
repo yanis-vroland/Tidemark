@@ -404,14 +404,14 @@ void main() {
         tester,
         mood: 3,
         text: 'envie de mourir',
-        topics: [Topic.travail, Topic.sommeil],
+        topics: [Topic.work, Topic.sleep],
       );
 
       expect(find.text(helpTitle), findsOneWidget);
       expectCelebrationGone();
       expect(find.text(topicsTitle), findsNothing);
       expect(find.text('travail'), findsNothing);
-      expect(env.repo.entries.single.topics, [Topic.sommeil, Topic.travail]);
+      expect(env.repo.entries.single.topics, [Topic.sleep, Topic.work]);
     });
 
     homeTest('CA14 : après l\'écran d\'aide, le retour mène à l\'accueil sans '
