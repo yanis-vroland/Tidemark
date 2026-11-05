@@ -42,9 +42,17 @@ class EntryFormScreen extends StatefulWidget {
     required this.downloader,
     this.dialer = const UrlLauncherDialer(),
     this.clock,
-  });
+    this.initialMood,
+  }) : assert(
+         initialMood == null || (initialMood >= 1 && initialMood <= 5),
+         'initialMood doit valoir de 1 à 5',
+       );
 
   final EntryRepository repository;
+
+  /// Humeur déjà choisie à l'ouverture (bulle du check-in, spec 009, CA13) ;
+  /// `null` : aucune humeur choisie (spec 001, CA7).
+  final int? initialMood;
 
   /// Degré de sensibilité aux humeurs basses (spec 002).
   final SettingsRepository settings;
@@ -64,7 +72,7 @@ class EntryFormScreen extends StatefulWidget {
 
 class _EntryFormScreenState extends State<EntryFormScreen> {
   final _text = TextEditingController();
-  int? _mood;
+  late int? _mood = widget.initialMood;
   bool _saving = false;
   bool _failed = false;
 
@@ -94,7 +102,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         repository: widget.repository,
         settings: widget.settings,
         mood: mood,
-        text: _text.text,
+        // Sans texte saisi, l'entrée n'a pas de texte (spec 001, RM13).
+        text: _hasText ? _text.text : null,
         clock: widget.clock ?? DateTime.now,
       );
       if (!mounted) return;

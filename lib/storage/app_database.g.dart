@@ -458,11 +458,27 @@ class $SettingsTable extends Settings
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _welcomeShownMeta = const VerificationMeta(
+    'welcomeShown',
+  );
+  @override
+  late final GeneratedColumn<bool> welcomeShown = GeneratedColumn<bool>(
+    'welcome_shown',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("welcome_shown" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
     lowMoodSensitivity,
     modelOfferShown,
+    welcomeShown,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -499,6 +515,15 @@ class $SettingsTable extends Settings
         ),
       );
     }
+    if (data.containsKey('welcome_shown')) {
+      context.handle(
+        _welcomeShownMeta,
+        welcomeShown.isAcceptableOrUnknown(
+          data['welcome_shown']!,
+          _welcomeShownMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -520,6 +545,10 @@ class $SettingsTable extends Settings
         DriftSqlType.bool,
         data['${effectivePrefix}model_offer_shown'],
       )!,
+      welcomeShown: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}welcome_shown'],
+      )!,
     );
   }
 
@@ -537,10 +566,14 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
 
   /// Proposition du modèle déjà affichée (spec 003, RM31).
   final bool modelOfferShown;
+
+  /// Écran de bienvenue déjà passé (spec 009, CA2).
+  final bool welcomeShown;
   const SettingsRow({
     required this.id,
     required this.lowMoodSensitivity,
     required this.modelOfferShown,
+    required this.welcomeShown,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -548,6 +581,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     map['id'] = Variable<int>(id);
     map['low_mood_sensitivity'] = Variable<String>(lowMoodSensitivity);
     map['model_offer_shown'] = Variable<bool>(modelOfferShown);
+    map['welcome_shown'] = Variable<bool>(welcomeShown);
     return map;
   }
 
@@ -556,6 +590,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       id: Value(id),
       lowMoodSensitivity: Value(lowMoodSensitivity),
       modelOfferShown: Value(modelOfferShown),
+      welcomeShown: Value(welcomeShown),
     );
   }
 
@@ -570,6 +605,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
         json['lowMoodSensitivity'],
       ),
       modelOfferShown: serializer.fromJson<bool>(json['modelOfferShown']),
+      welcomeShown: serializer.fromJson<bool>(json['welcomeShown']),
     );
   }
   @override
@@ -579,6 +615,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       'id': serializer.toJson<int>(id),
       'lowMoodSensitivity': serializer.toJson<String>(lowMoodSensitivity),
       'modelOfferShown': serializer.toJson<bool>(modelOfferShown),
+      'welcomeShown': serializer.toJson<bool>(welcomeShown),
     };
   }
 
@@ -586,10 +623,12 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     int? id,
     String? lowMoodSensitivity,
     bool? modelOfferShown,
+    bool? welcomeShown,
   }) => SettingsRow(
     id: id ?? this.id,
     lowMoodSensitivity: lowMoodSensitivity ?? this.lowMoodSensitivity,
     modelOfferShown: modelOfferShown ?? this.modelOfferShown,
+    welcomeShown: welcomeShown ?? this.welcomeShown,
   );
   SettingsRow copyWithCompanion(SettingsCompanion data) {
     return SettingsRow(
@@ -600,6 +639,9 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       modelOfferShown: data.modelOfferShown.present
           ? data.modelOfferShown.value
           : this.modelOfferShown,
+      welcomeShown: data.welcomeShown.present
+          ? data.welcomeShown.value
+          : this.welcomeShown,
     );
   }
 
@@ -608,46 +650,54 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     return (StringBuffer('SettingsRow(')
           ..write('id: $id, ')
           ..write('lowMoodSensitivity: $lowMoodSensitivity, ')
-          ..write('modelOfferShown: $modelOfferShown')
+          ..write('modelOfferShown: $modelOfferShown, ')
+          ..write('welcomeShown: $welcomeShown')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, lowMoodSensitivity, modelOfferShown);
+  int get hashCode =>
+      Object.hash(id, lowMoodSensitivity, modelOfferShown, welcomeShown);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is SettingsRow &&
           other.id == this.id &&
           other.lowMoodSensitivity == this.lowMoodSensitivity &&
-          other.modelOfferShown == this.modelOfferShown);
+          other.modelOfferShown == this.modelOfferShown &&
+          other.welcomeShown == this.welcomeShown);
 }
 
 class SettingsCompanion extends UpdateCompanion<SettingsRow> {
   final Value<int> id;
   final Value<String> lowMoodSensitivity;
   final Value<bool> modelOfferShown;
+  final Value<bool> welcomeShown;
   const SettingsCompanion({
     this.id = const Value.absent(),
     this.lowMoodSensitivity = const Value.absent(),
     this.modelOfferShown = const Value.absent(),
+    this.welcomeShown = const Value.absent(),
   });
   SettingsCompanion.insert({
     this.id = const Value.absent(),
     required String lowMoodSensitivity,
     this.modelOfferShown = const Value.absent(),
+    this.welcomeShown = const Value.absent(),
   }) : lowMoodSensitivity = Value(lowMoodSensitivity);
   static Insertable<SettingsRow> custom({
     Expression<int>? id,
     Expression<String>? lowMoodSensitivity,
     Expression<bool>? modelOfferShown,
+    Expression<bool>? welcomeShown,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (lowMoodSensitivity != null)
         'low_mood_sensitivity': lowMoodSensitivity,
       if (modelOfferShown != null) 'model_offer_shown': modelOfferShown,
+      if (welcomeShown != null) 'welcome_shown': welcomeShown,
     });
   }
 
@@ -655,11 +705,13 @@ class SettingsCompanion extends UpdateCompanion<SettingsRow> {
     Value<int>? id,
     Value<String>? lowMoodSensitivity,
     Value<bool>? modelOfferShown,
+    Value<bool>? welcomeShown,
   }) {
     return SettingsCompanion(
       id: id ?? this.id,
       lowMoodSensitivity: lowMoodSensitivity ?? this.lowMoodSensitivity,
       modelOfferShown: modelOfferShown ?? this.modelOfferShown,
+      welcomeShown: welcomeShown ?? this.welcomeShown,
     );
   }
 
@@ -675,6 +727,9 @@ class SettingsCompanion extends UpdateCompanion<SettingsRow> {
     if (modelOfferShown.present) {
       map['model_offer_shown'] = Variable<bool>(modelOfferShown.value);
     }
+    if (welcomeShown.present) {
+      map['welcome_shown'] = Variable<bool>(welcomeShown.value);
+    }
     return map;
   }
 
@@ -683,7 +738,8 @@ class SettingsCompanion extends UpdateCompanion<SettingsRow> {
     return (StringBuffer('SettingsCompanion(')
           ..write('id: $id, ')
           ..write('lowMoodSensitivity: $lowMoodSensitivity, ')
-          ..write('modelOfferShown: $modelOfferShown')
+          ..write('modelOfferShown: $modelOfferShown, ')
+          ..write('welcomeShown: $welcomeShown')
           ..write(')'))
         .toString();
   }
@@ -1381,11 +1437,13 @@ typedef $$SettingsTableCreateCompanionBuilder = SettingsCompanion Function({
   Value<int> id,
   required String lowMoodSensitivity,
   Value<bool> modelOfferShown,
+  Value<bool> welcomeShown,
 });
 typedef $$SettingsTableUpdateCompanionBuilder = SettingsCompanion Function({
   Value<int> id,
   Value<String> lowMoodSensitivity,
   Value<bool> modelOfferShown,
+  Value<bool> welcomeShown,
 });
 
 class $$SettingsTableFilterComposer
@@ -1409,6 +1467,11 @@ class $$SettingsTableFilterComposer
 
   ColumnFilters<bool> get modelOfferShown => $composableBuilder(
     column: $table.modelOfferShown,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get welcomeShown => $composableBuilder(
+    column: $table.welcomeShown,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -1436,6 +1499,11 @@ class $$SettingsTableOrderingComposer
     column: $table.modelOfferShown,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get welcomeShown => $composableBuilder(
+    column: $table.welcomeShown,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SettingsTableAnnotationComposer
@@ -1457,6 +1525,11 @@ class $$SettingsTableAnnotationComposer
 
   GeneratedColumn<bool> get modelOfferShown => $composableBuilder(
     column: $table.modelOfferShown,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get welcomeShown => $composableBuilder(
+    column: $table.welcomeShown,
     builder: (column) => column,
   );
 }
@@ -1495,20 +1568,24 @@ class $$SettingsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> lowMoodSensitivity = const Value.absent(),
                 Value<bool> modelOfferShown = const Value.absent(),
+                Value<bool> welcomeShown = const Value.absent(),
               }) => SettingsCompanion(
                 id: id,
                 lowMoodSensitivity: lowMoodSensitivity,
                 modelOfferShown: modelOfferShown,
+                welcomeShown: welcomeShown,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 required String lowMoodSensitivity,
                 Value<bool> modelOfferShown = const Value.absent(),
+                Value<bool> welcomeShown = const Value.absent(),
               }) => SettingsCompanion.insert(
                 id: id,
                 lowMoodSensitivity: lowMoodSensitivity,
                 modelOfferShown: modelOfferShown,
+                welcomeShown: welcomeShown,
               ),
           withReferenceMapper: (p0) => p0
               .map(

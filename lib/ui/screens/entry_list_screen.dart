@@ -3,18 +3,23 @@ import 'package:flutter/material.dart';
 import '../../entries/day_grouping.dart';
 import '../../entries/entry.dart';
 import '../../entries/entry_repository.dart';
+import '../../entries/week_summary.dart';
 import '../../model/model_downloader.dart';
 import '../../review/local_week.dart';
 import '../../review/review_narrator.dart';
 import '../../review/review_writer.dart';
 import '../../settings/settings_repository.dart';
+import '../day_moment.dart';
 import '../phone_dialer.dart';
 import '../theme/tidemark_colors.dart';
 import '../theme/tidemark_theme.dart';
 import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
 import '../analysis_scope.dart';
+import '../widgets/beach_card.dart';
+import '../widgets/check_in_card.dart';
 import '../widgets/entry_tags_section.dart' show analysingText;
+import '../widgets/home_header.dart';
 import '../widgets/loading_note.dart';
 import '../widgets/mood_bubble.dart';
 import '../widgets/my_data_section.dart';
@@ -25,7 +30,9 @@ import 'entry_form_screen.dart';
 import 'settings_screen.dart';
 import 'weekly_review_screen.dart';
 
-/// Liste des entrées, écran d'accueil (spec 001).
+/// Accueil du journal (specs 001 et 009) : en-tête, check-in, plage de la semaine
+/// et entrées regroupées par jour. Dans l'app, il est l'onglet « Journal » de
+/// `HomeShell`, dont la barre porte « Nouvelle entrée ».
 class EntryListScreen extends StatefulWidget {
   const EntryListScreen({
     super.key,
@@ -37,6 +44,7 @@ class EntryListScreen extends StatefulWidget {
     this.data,
     this.wiped = false,
     this.narrator,
+    this.onOpenWeek,
   });
 
   /// Export et suppression totale, passés aux Réglages (spec 005).
@@ -57,12 +65,17 @@ class EntryListScreen extends StatefulWidget {
   /// Composeur, pour l'écran d'aide (spec 002).
   final PhoneDialer dialer;
 
-  /// Date et heure locales, pour les intertitres « Aujourd'hui » et « Hier ».
+  /// Date et heure locales : intertitres « Aujourd'hui » et « Hier », salutation,
+  /// semaine en cours.
   final DateTime Function() clock;
 
   /// Mise en mots du bilan de la semaine (spec 006), partagée par toute l'app ;
   /// `null` : bilan sans rédacteur (modèle absent).
   final ReviewNarrator? narrator;
+
+  /// Ouvre l'onglet « Semaine » quand la plage est touchée (spec 009, CA16) ;
+  /// `null` : le bilan s'ouvre par-dessus la liste.
+  final VoidCallback? onOpenWeek;
 
   @override
   State<EntryListScreen> createState() => _EntryListScreenState();
@@ -83,8 +96,9 @@ class _EntryListScreenState extends State<EntryListScreen> {
         downloader: widget.downloader,
       );
 
-  /// Au retour au premier plan, « Aujourd'hui » et « Hier » sont recalculés : l'app
-  /// a pu rester ouverte après minuit.
+  /// Au retour au premier plan, « Aujourd'hui » et « Hier », la salutation et la
+  /// semaine en cours sont recalculés : l'app a pu rester ouverte après minuit
+  /// (spec 009, CA10).
   late final AppLifecycleListener _lifecycle;
 
   @override
@@ -99,7 +113,7 @@ class _EntryListScreenState extends State<EntryListScreen> {
     super.dispose();
   }
 
-  void _openForm(BuildContext context) => Navigator.of(context).push(
+  void _openForm({int? mood}) => Navigator.of(context).push(
     MaterialPageRoute<void>(
       builder: (_) => EntryFormScreen(
         repository: widget.repository,
@@ -107,6 +121,7 @@ class _EntryListScreenState extends State<EntryListScreen> {
         downloader: widget.downloader,
         dialer: widget.dialer,
         clock: widget.clock,
+        initialMood: mood,
       ),
     ),
   );
@@ -121,159 +136,167 @@ class _EntryListScreenState extends State<EntryListScreen> {
     ),
   );
 
-  void _openReview() => Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (_) => WeeklyReviewScreen(
-        repository: widget.repository,
-        narrator: _narrator,
-        clock: widget.clock,
+  void _openWeek() {
+    final onOpenWeek = widget.onOpenWeek;
+    if (onOpenWeek != null) {
+      onOpenWeek();
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => WeeklyReviewScreen(
+          repository: widget.repository,
+          narrator: _narrator,
+          clock: widget.clock,
+        ),
       ),
-    ),
-  );
+    );
+  }
+
+  /// Entrées regroupées par jour, sous la plage (spec 001, CA2, CA3, CA6).
+  List<Widget> _entryTiles(List<DayGroup> groups) => [
+    for (final group in groups) ...[
+      Padding(
+        padding: const EdgeInsets.fromLTRB(
+          TidemarkSpacing.space4,
+          TidemarkSpacing.space3,
+          TidemarkSpacing.space4,
+          TidemarkSpacing.space2,
+        ),
+        child: Semantics(
+          header: true,
+          child: Text(
+            group.label,
+            style: TidemarkTypography.label.copyWith(
+              fontWeight: FontWeight.w600,
+              color: context.colors.inkMuted,
+            ),
+          ),
+        ),
+      ),
+      for (final entry in group.entries)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            TidemarkSpacing.space4,
+            0,
+            TidemarkSpacing.space4,
+            TidemarkSpacing.space2,
+          ),
+          child: _EntryCard(
+            entry: entry,
+            repository: widget.repository,
+            downloader: widget.downloader,
+            clock: widget.clock,
+          ),
+        ),
+    ],
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: StreamBuilder<List<Entry>>(
-          stream: _entries,
-          builder: (context, snapshot) {
-            final entries = snapshot.data;
-            if (entries != null && entries.isNotEmpty) _wiped = false;
-            return Column(
+      body: StreamBuilder<List<Entry>>(
+        stream: _entries,
+        builder: (context, snapshot) {
+          final entries = snapshot.data;
+          if (entries != null && entries.isNotEmpty) _wiped = false;
+          final now = widget.clock();
+          final moment = dayMomentOf(now);
+          final week = LocalWeek.containing(now);
+          final loaded = !snapshot.hasError && entries != null;
+          final hasEntries = loaded && entries.isNotEmpty;
+          // Tout l'accueil est construit d'un bloc : en-tête, check-in, plage et
+          // entrées (un journal d'humeur reste court à l'échelle d'un écran
+          // par jour).
+          return SingleChildScrollView(
+            padding: EdgeInsets.only(
+              bottom:
+                  TidemarkSpacing.space6 + MediaQuery.paddingOf(context).bottom,
+            ),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: snapshot.hasError
-                      ? _ReadError(onOpenSettings: _openSettings)
-                      : entries == null
-                      ? _Loading(onOpenSettings: _openSettings)
-                      : entries.isEmpty
-                      ? _EmptyState(
-                          onOpenSettings: _openSettings,
-                          wiped: _wiped,
-                        )
-                      : _EntryList(
-                          onOpenSettings: _openSettings,
-                          onOpenReview: _openReview,
-                          groups: groupByDay(entries, widget.clock()),
-                          repository: widget.repository,
-                          downloader: widget.downloader,
-                          clock: widget.clock,
-                        ),
+                HomeHeader(
+                  moment: moment,
+                  onOpenSettings: _openSettings,
+                  count: hasEntries
+                      ? shellCountLabel(entriesInWeek(entries, week))
+                      : null,
+                  overlap: loaded ? homeHeaderOverlap : 0,
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    TidemarkSpacing.space4,
-                    TidemarkSpacing.space3,
-                    TidemarkSpacing.space4,
-                    TidemarkSpacing.space4,
+                if (snapshot.hasError)
+                  const _ReadError()
+                else if (entries != null) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TidemarkSpacing.space4,
+                    ),
+                    child: CheckInCard(
+                      title: checkInTitleFor(moment),
+                      onPick: (mood) => _openForm(mood: mood),
+                    ),
                   ),
-                  child: FilledButton.icon(
-                    onPressed: () => _openForm(context),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Nouvelle entrée'),
-                  ),
-                ),
+                  if (entries.isEmpty)
+                    _EmptyState(wiped: _wiped)
+                  else ...[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        TidemarkSpacing.space4,
+                        TidemarkSpacing.space3,
+                        TidemarkSpacing.space4,
+                        0,
+                      ),
+                      child: BeachCard(
+                        moods: dayMoodsOfWeek(entries, week),
+                        onTap: _openWeek,
+                      ),
+                    ),
+                    ..._entryTiles(groupByDay(entries, now)),
+                  ],
+                ],
               ],
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 }
 
-/// Titre de la liste et icône « Réglages » (spec 002, CA17), dans tous les états.
-class _Title extends StatelessWidget {
-  const _Title({required this.onOpenSettings});
-
-  final VoidCallback onOpenSettings;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(
-      top: TidemarkSpacing.space8,
-      bottom: TidemarkSpacing.space2,
-    ),
-    child: Row(
-      children: [
-        Expanded(
-          child: Text(
-            'Ton journal',
-            style: Theme.of(context).textTheme.displaySmall,
-          ),
-        ),
-        // Annoncé « Réglages » : l'infobulle seule ne donne pas de libellé.
-        Semantics(
-          container: true,
-          button: true,
-          label: 'Réglages',
-          onTap: onOpenSettings,
-          excludeSemantics: true,
-          child: IconButton(
-            onPressed: onOpenSettings,
-            tooltip: 'Réglages',
-            color: context.colors.tide,
-            constraints: const BoxConstraints.tightFor(
-              width: TidemarkSize.tapMin,
-              height: TidemarkSize.tapMin,
-            ),
-            icon: const Icon(
-              Icons.settings_outlined,
-              size: TidemarkSize.iconMd,
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-/// Chargement : le titre seulement, la lecture de la base est brève.
-class _Loading extends StatelessWidget {
-  const _Loading({required this.onOpenSettings});
-
-  final VoidCallback onOpenSettings;
-
-  @override
-  Widget build(BuildContext context) => ListView(
-    padding: const EdgeInsets.symmetric(horizontal: TidemarkSpacing.space4),
-    children: [_Title(onOpenSettings: onOpenSettings)],
-  );
-}
-
 /// Lecture impossible : ce qui s'est passé, sans rien effacer.
 class _ReadError extends StatelessWidget {
-  const _ReadError({required this.onOpenSettings});
-
-  final VoidCallback onOpenSettings;
+  const _ReadError();
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: TidemarkSpacing.space4),
-      children: [
-        _Title(onOpenSettings: onOpenSettings),
-        const SizedBox(height: TidemarkSpacing.space6),
-        Text(
-          "Ton journal n'a pas pu être lu",
-          style: TidemarkTypography.headline.copyWith(color: colors.danger),
-        ),
-        const SizedBox(height: TidemarkSpacing.space1),
-        const Text(
-          "Tes entrées sont toujours sur le téléphone. Ferme l'app, puis rouvre-la.",
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        TidemarkSpacing.space4,
+        TidemarkSpacing.space6,
+        TidemarkSpacing.space4,
+        0,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Ton journal n'a pas pu être lu",
+            style: TidemarkTypography.headline.copyWith(color: colors.danger),
+          ),
+          const SizedBox(height: TidemarkSpacing.space1),
+          const Text(
+            "Tes entrées sont toujours sur le téléphone. Ferme l'app, puis rouvre-la.",
+          ),
+        ],
+      ),
     );
   }
 }
 
+/// Journal vide, sous le check-in (spec 001, CA1 ; spec 007, CA4 ; spec 009, CA18).
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.onOpenSettings, this.wiped = false});
-
-  final VoidCallback onOpenSettings;
+  const _EmptyState({this.wiped = false});
 
   /// Message de fin d'une suppression totale au-dessus de l'état vide (CA18).
   final bool wiped;
@@ -282,118 +305,60 @@ class _EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final colors = context.colors;
-    return ListView(
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TidemarkSpacing.space4),
-      children: [
-        _Title(onOpenSettings: onOpenSettings),
-        if (wiped) ...[
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (wiped) ...[
+            const SizedBox(height: TidemarkSpacing.space4),
+            // Annoncé dès son apparition (CA33).
+            Semantics(
+              liveRegion: true,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: colors.tideSoft,
+                  borderRadius: BorderRadius.circular(TidemarkRadius.radiusMd),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(TidemarkSpacing.space4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Toutes tes données ont été supprimées',
+                        style: TidemarkTypography.headline.copyWith(
+                          color: colors.ink,
+                        ),
+                      ),
+                      const SizedBox(height: TidemarkSpacing.space1),
+                      Text(
+                        'Ton journal repart de zéro, sur ce téléphone.',
+                        style: TidemarkTypography.body.copyWith(
+                          color: colors.ink,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: TidemarkSpacing.space8),
+          // Logo décoratif, seulement tant que le journal est vide (spec 007, CA4).
+          const Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TidemarkLogo(size: TidemarkSize.logoMd),
+          ),
+          const SizedBox(height: TidemarkSpacing.space4),
+          Text('Ta première entrée apparaîtra ici', style: text.titleLarge),
           const SizedBox(height: TidemarkSpacing.space2),
-          // Annoncé dès son apparition (CA33).
-          Semantics(
-            liveRegion: true,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: colors.tideSoft,
-                borderRadius: BorderRadius.circular(TidemarkRadius.radiusMd),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(TidemarkSpacing.space4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Toutes tes données ont été supprimées',
-                      style: TidemarkTypography.headline.copyWith(
-                        color: colors.ink,
-                      ),
-                    ),
-                    const SizedBox(height: TidemarkSpacing.space1),
-                    Text(
-                      'Ton journal repart de zéro, sur ce téléphone.',
-                      style: TidemarkTypography.body.copyWith(
-                        color: colors.ink,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          Text(
+            'Note ton humeur en quelques secondes. Tout reste sur ton téléphone.',
+            style: text.bodyLarge?.copyWith(color: colors.inkMuted),
           ),
         ],
-        const SizedBox(height: TidemarkSpacing.space8),
-        // Logo décoratif, seulement tant que le journal est vide (spec 007, CA4).
-        const Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: TidemarkLogo(size: TidemarkSize.logoMd),
-        ),
-        const SizedBox(height: TidemarkSpacing.space4),
-        Text('Ta première entrée apparaîtra ici', style: text.titleLarge),
-        const SizedBox(height: TidemarkSpacing.space2),
-        Text(
-          'Note ton humeur en quelques secondes. Tout reste sur ton téléphone.',
-          style: text.bodyLarge?.copyWith(color: colors.inkMuted),
-        ),
-      ],
-    );
-  }
-}
-
-class _EntryList extends StatelessWidget {
-  const _EntryList({
-    required this.onOpenSettings,
-    required this.onOpenReview,
-    required this.groups,
-    required this.repository,
-    required this.downloader,
-    required this.clock,
-  });
-
-  final VoidCallback onOpenSettings;
-
-  /// Ouvre le bilan de la semaine (spec 006).
-  final VoidCallback onOpenReview;
-  final List<DayGroup> groups;
-  final EntryRepository repository;
-  final ModelDownloader downloader;
-  final DateTime Function() clock;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: TidemarkSpacing.space4),
-      children: [
-        _Title(onOpenSettings: onOpenSettings),
-        const SizedBox(height: TidemarkSpacing.space2),
-        _ReviewCard(week: LocalWeek.containing(clock()), onTap: onOpenReview),
-        for (final group in groups) ...[
-          Padding(
-            padding: const EdgeInsets.only(
-              top: TidemarkSpacing.space4,
-              bottom: TidemarkSpacing.space2,
-            ),
-            child: Semantics(
-              header: true,
-              child: Text(
-                group.label,
-                style: TidemarkTypography.label.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: context.colors.inkMuted,
-                ),
-              ),
-            ),
-          ),
-          for (final entry in group.entries)
-            Padding(
-              padding: const EdgeInsets.only(bottom: TidemarkSpacing.space2),
-              child: _EntryCard(
-                entry: entry,
-                repository: repository,
-                downloader: downloader,
-                clock: clock,
-              ),
-            ),
-        ],
-      ],
+      ),
     );
   }
 }
@@ -517,80 +482,6 @@ class _EntryCard extends StatelessWidget {
                 TagChips(tags: entry.tags),
               ],
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Carte « Bilan de la semaine », en tête de la liste (spec 006, CA1).
-class _ReviewCard extends StatelessWidget {
-  const _ReviewCard({required this.week, required this.onTap});
-
-  final LocalWeek week;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final dates = weekCardLabel(week);
-    return Semantics(
-      container: true,
-      button: true,
-      label:
-          'Bilan de la semaine, ${dates[0].toLowerCase()}${dates.substring(1)}',
-      onTap: onTap,
-      excludeSemantics: true,
-      child: Material(
-        color: colors.surfaceRaised,
-        borderRadius: BorderRadius.circular(TidemarkRadius.radiusMd),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(TidemarkSpacing.space4),
-            child: Row(
-              children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: colors.tideSoft,
-                    shape: BoxShape.circle,
-                  ),
-                  child: SizedBox.square(
-                    dimension: TidemarkSize.bubbleMd,
-                    child: Icon(
-                      Icons.bar_chart,
-                      size: TidemarkSize.iconMd,
-                      color: colors.tide,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: TidemarkSpacing.space3),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Bilan de la semaine',
-                        style: TidemarkTypography.headline,
-                      ),
-                      Text(
-                        dates,
-                        style: TidemarkTypography.caption.copyWith(
-                          color: colors.inkMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.chevron_right,
-                  size: TidemarkSize.iconMd,
-                  color: colors.tide,
-                ),
-              ],
-            ),
           ),
         ),
       ),
