@@ -7,6 +7,7 @@ import '../motion/ambient_motion.dart';
 import '../theme/tidemark_colors.dart';
 import '../theme/tidemark_tokens.dart';
 import '../theme/tidemark_typography.dart';
+import 'shell_painter.dart';
 
 /// Hauteur de la carte du check-in posée sur le bas de l'en-tête (maquette :
 /// `margin-top: -36px`).
@@ -131,7 +132,7 @@ class _ShellCount extends StatelessWidget {
             ExcludeSemantics(
               child: CustomPaint(
                 size: const Size.square(TidemarkSize.iconButton),
-                painter: _ShellPainter(color: colors.sand),
+                painter: ShellPainter(color: colors.sand),
               ),
             ),
             const SizedBox(width: 6),
@@ -146,45 +147,6 @@ class _ShellCount extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Coquillage de la puce (maquette).
-class _ShellPainter extends CustomPainter {
-  const _ShellPainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Dessin de la maquette, dans une boîte de 100 × 90.
-    final f = size.width / 100;
-    final dy = (size.height - 90 * f) / 2;
-    Offset p(double x, double y) => Offset(x * f, y * f + dy);
-    final a = p(14, 30);
-    final shell = Path()
-      ..moveTo(a.dx, a.dy)
-      ..quadraticBezierTo(
-        p(17, 14).dx,
-        p(17, 14).dy,
-        p(28, 12).dx,
-        p(28, 12).dy,
-      )
-      ..quadraticBezierTo(p(34, 6).dx, p(34, 6).dy, p(42, 9).dx, p(42, 9).dy)
-      ..quadraticBezierTo(p(50, 4).dx, p(50, 4).dy, p(58, 9).dx, p(58, 9).dy)
-      ..quadraticBezierTo(p(66, 6).dx, p(66, 6).dy, p(72, 12).dx, p(72, 12).dy)
-      ..quadraticBezierTo(
-        p(83, 14).dx,
-        p(83, 14).dy,
-        p(86, 30).dx,
-        p(86, 30).dy,
-      )
-      ..lineTo(p(50, 84).dx, p(50, 84).dy)
-      ..close();
-    canvas.drawPath(shell, Paint()..color = color);
-  }
-
-  @override
-  bool shouldRepaint(_ShellPainter old) => old.color != color;
 }
 
 /// Bouton rond « Réglages » de l'en-tête (CA7).

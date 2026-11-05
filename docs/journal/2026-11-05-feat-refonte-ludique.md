@@ -183,3 +183,46 @@
 ### Prochaine étape
 
 - Fusionner `fix-accueil`, `fix-sujets` et `fix-docs`, relancer la suite complète, intégrer les résultats des mutations, ouvrir la PR en brouillon et publier la réponse à la revue IA.
+
+## 2026-11-06 00:10
+
+### Fait
+
+- Contrôle par mutation des protections des specs 008 à 010, par un agent en copie isolée : 12 mutations sur 12 tuées (réduction des animations, `AmbientMotion` absent, `main` sans mouvement, bulle sur l'écran d'aide, célébration en détresse, célébration complète à 1 ou 2, sujets transmis au détecteur, cascade des sujets, export en version 1, bienvenue avec des entrées, humeur du jour, couleur en dur).
+- `fix-sujets`, fusionnée :
+  - `Topic` en anglais avec libellés français ;
+  - stockage en texte et sujet inconnu ignoré, avec test ;
+  - lecture des sujets par jointure ;
+  - groupe « Ce qui a compté » étiqueté, test CA3 renforcé ;
+  - bulles d'air dans la saisie ;
+  - migrations depuis les versions 1 à 3 vérifiées ;
+  - `ShellPainter` commun. Trois mutations tuées.
+- `fix-accueil`, fusionnée :
+  - plafond de l'échelle de texte et `FittedBox` retirés ; tests CA27 renforcés sur la taille rendue (5 mutations tuées) ;
+  - bandeau de la plage sur `hero-wave-1` et nouvelles paires de contraste testées ;
+  - accueil en `CustomScrollView` paresseux ;
+  - phase de flottement par bulle ;
+  - voilier animé le soir seulement ; autocollants du bilan qui passent en colonne au lieu de rétrécir.
+- `ShellPainter` branché aussi dans l'en-tête de l'accueil (doublon supprimé).
+- Intégration finale : 2 514 tests au vert, format et analyse propres, marque et noms exclus au vert.
+
+### Décisions
+
+- Agent : la célébration lit encore tout le journal (`watchEntries().first`) pour compter la semaine. La borner exigerait une méthode de plus dans `EntryRepository` et ses 8 implémentations ; limite acceptée et signalée dans la PR.
+- Agent : l'en-tête, le check-in et la plage forment un seul élément défilant, car l'ordre de peinture des slivers ferait passer la scène de l'en-tête sur le check-in.
+
+### Corrections et limites
+
+- Tests modifiés par les corrections, avec la raison :
+  - `beach_card_test`, CA28 : le bandeau est en `hero-wave-1` (correctif de contraste) ;
+  - `useTallScreen` ou `scrollUntilVisible` là où la liste paresseuse ne construit pas encore une carte sous la ligne de flottaison (`entry_list_screen_test` CA2, CA3, CA6 ; `entry_detail_screen_test` CA19 ; `accessibility_and_theme_test` CA28 ; `playful_restyle_test` CA18 ; `analysis_display_test` CA20, CA29) ;
+  - renommage mécanique de `Topic` dans les tests de la spec 010.
+- `fix-sujets` et `fix-accueil` ont mis leurs tests renforcés dans le même commit que le code : ils ne compilaient pas sans lui. Les mutations ci-dessus montrent qu'ils échouent sans la correction.
+- Une mutation survit dans `fix-accueil` : remettre le `FittedBox` des autocollants ne change plus rien, puisqu'ils passent en colonne avant de manquer de place.
+- `main` n'est vérifié que par une lecture de son code source (`ambientMotion: true`) : aucun test n'exécute `main()`.
+- À 200 %, un mot long (« Bonsoir » à 80 points, « Neutre » dans une colonne étroite du check-in) peut passer à la ligne au milieu : à regarder au test humain.
+- La maquette `Journal` montrait le titre de la plage sur `sea` ; l'app le pose sur `hero-wave-1` (contraste). Écart assumé, consigné ici.
+
+### Prochaine étape
+
+- Ouvrir la PR en brouillon, attendre la revue IA en CI et publier « Réponse à la revue IA » ; puis test humain de Yanis.

@@ -26,6 +26,7 @@ Données d'exemple fictives : soirée du mercredi 14 octobre 2026, semaine du 12
 - Le check-in de la maquette dit « ce soir » : la spec 009 (CA11) dit « aujourd'hui » le jour.
 - Les animations sont en CSS dans la maquette ; dans l'app, elles suivent la spec 008 (mouvement) et s'arrêtent si le téléphone demande de réduire les animations.
 - L'en-tête du bilan de la maquette est dessiné pour une semaine ; l'app dessine chaque semaine depuis ses entrées (spec 009, CA24), et garde sous les autocollants les sections de la spec 006.
+- Le titre de la plage est posé sur `hero-wave-1` dans l'app, et non sur `sea` comme dans la maquette : `on-hero` sur `sea` clair n'atteint que 3,96:1 (revue de la PR).
 - Les réglages et la confirmation de suppression ne sont pas redessinés : ils prennent seulement les jetons v2 (spec 008, CA16).
 
 ## Limites
