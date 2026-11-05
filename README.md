@@ -8,9 +8,9 @@ Projet de démonstration, fictif, planifié sur 3 semaines (13 octobre → 3 nov
 
 ## Démo
 
-<p align="center"><img src="docs/demo/tidemark.gif" width="320" alt="Démo : bienvenue au premier lancement ; accueil du soir animé avec la lune, un voilier et le check-in « Comment va ta marée ce soir ? » ; choix de la bulle « Bien », des sujets amis et nature et d'une phrase ; coquillage ramassé, cinquième de la semaine ; plage de la semaine ; détail de l'entrée ; onglet Semaine avec la marée des humeurs et les chiffres du bilan."></p>
+<p align="center"><img src="docs/demo/tidemark.gif" width="320" alt="Démo : bienvenue au premier lancement ; accueil du soir animé avec la lune, un voilier et le check-in « Comment va ta marée ce soir ? » ; choix de la bulle « Bien », des sujets travail et nature et de la phrase « Longue journée au travail, mais la balade du soir au bord de l'eau m'a fait du bien. » ; coquillage ramassé, quatrième de la semaine ; accueil où la carte affiche « Analyse en cours sur ton téléphone… » puis les étiquettes solitude, joie, travail et nature ; détail de l'entrée avec la section Étiquettes, émotions et thèmes, « Analysé sur ton téléphone » ; onglet Semaine avec la marée des humeurs, « Mise en mots sur ton téléphone… » puis le texte du bilan écrit par le modèle local."></p>
 
-<p align="center"><em>Une soirée dans Tidemark, sur le simulateur iOS (iPhone 17 Pro), avec l'app réelle et des données fictives. Les touchers et la frappe sont accélérés (×1,5 et ×2) ; le modèle local n'est pas téléchargé dans cette démo, d'où l'absence d'étiquettes. <a href="docs/demo/tidemark.mp4">Vidéo en MP4</a> (31 s).</em></p>
+<p align="center"><em>Une soirée dans Tidemark, sur le simulateur iOS (iPhone 17 Pro), avec l'app réelle, des données fictives et le vrai modèle local (Qwen2.5-1.5B), téléchargé par l'app elle-même avant le tournage (59 s, empreinte vérifiée). L'étiquetage de l'entrée et la mise en mots du bilan sont filmés tels quels : 4,5 s entre « Enregistrer » et les étiquettes, chargement du modèle compris, et 6 s pour le texte du bilan, mesurés sur le simulateur, donc avec le processeur du Mac (Apple M3), pas celui d'un téléphone. Au montage, les touchers sont accélérés ×1,4 à ×1,5, la frappe ×2 et l'attente du bilan ×1,5 ; l'apparition des étiquettes sur l'accueil et la lecture du bilan sont en vitesse réelle. Les trois entrées des jours précédents ont été étiquetées par le même modèle avant le tournage. <a href="docs/demo/tidemark.mp4">Vidéo en MP4</a> (36 s).</em></p>
 
 Captures de l'app réelle sur le simulateur iOS, refonte « la marée de ton humeur » ([specs 008 à 010](docs/specs/)) :
 
@@ -22,7 +22,11 @@ Captures de l'app réelle sur le simulateur iOS, refonte « la marée de ton hum
 | --- | --- | --- |
 | ![Détail : bulle, texte et sujets](docs/captures/ios-detail.png) | ![Onglet Semaine : marée et chiffres](docs/captures/ios-semaine.png) | ![Accueil en thème sombre](docs/captures/ios-accueil-sombre.png) |
 
-L'étiquetage par le modèle local, sur l'ancien design, reste visible dans les [captures Android du 16 octobre](docs/captures/).
+| Accueil, entrée étiquetée | Détail, étiquettes du modèle local |
+| --- | --- |
+| ![Accueil : carte de l'entrée avec les étiquettes solitude, joie, travail et nature](docs/captures/ios-accueil-etiquettes.png) | ![Détail : section Étiquettes, émotions et thèmes, « Analysé sur ton téléphone »](docs/captures/ios-detail-etiquettes.png) |
+
+L'ancien design reste visible dans les [captures Android du 16 octobre](docs/captures/), dont un détail étiqueté sur l'émulateur.
 
 Chaque écran a d'abord été dessiné en maquette (artefact Claude, sur la charte du projet), validé avec sa spec, puis transcrit en Flutter : sources HTML dans [`docs/maquettes/`](docs/maquettes/). Les captures PNG des maquettes, pour les comparer à l'app côte à côte, restent à produire ([issue #20](https://github.com/yanis-vroland/Tidemark/issues/20)).
 
@@ -76,7 +80,7 @@ Spike du moteur d'IA, 20 entrées fictives en français par configuration ([ADR-
 - 80 réponses valides sur 80 avec cette configuration (iPhone avec et sans GPU, simulateur iOS, émulateur Android), et 20/20 en mode avion.
 - Arbitrage assumé : `flutter_edge_ai` sans contrainte retrouvait plus d'étiquettes (rappel 0,60 sur iPhone), mais sans garantie sur sa sortie (2 réponses invalides sur 20 sur simulateur et émulateur). La sortie toujours valide a été préférée.
 - Limites : 20 entrées par série seulement ; le rappel (environ la moitié des étiquettes attendues retrouvées) est mesuré sur des étiquettes choisies pour le spike, c'est un indicateur de comparaison, pas une qualité absolue. L'étiquetage reste une aide, jamais un diagnostic.
-- App réelle sur l'émulateur Android : modèle téléchargé en 4 minutes environ (Wi-Fi du Mac), empreinte identique à celle épinglée ; sur deux entrées essayées le 16 octobre (émulateur à 2 Go de mémoire), l'une a reçu quatre étiquettes (captures ci-dessus), l'autre aucune, ce que l'app affiche sans planter. Les temps d'un émulateur viennent du processeur du Mac et ne valent pas ceux d'un téléphone. La mesure sur 20 entrées avec l'app réelle reste à faire.
+- App réelle sur l'émulateur Android : modèle téléchargé en 4 minutes environ (Wi-Fi du Mac), empreinte identique à celle épinglée ; sur deux entrées essayées le 16 octobre (émulateur à 2 Go de mémoire), l'une a reçu quatre étiquettes ([capture](docs/captures/android-detail.png)), l'autre aucune, ce que l'app affiche sans planter. Les temps d'un émulateur viennent du processeur du Mac et ne valent pas ceux d'un téléphone. La mesure sur 20 entrées avec l'app réelle reste à faire.
 
 ## Limites
 
