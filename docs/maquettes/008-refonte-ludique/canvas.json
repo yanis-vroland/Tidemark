@@ -167,6 +167,110 @@
    "h": 852,
    "title": "Entrée enregistrée · humeur basse · clair",
    "radius": 48
+  },
+  "JournalVide.dc.html": {
+   "x": 0,
+   "y": 4000,
+   "w": 393,
+   "h": 852,
+   "title": "Journal · vide · clair",
+   "radius": 48
+  },
+  "JournalChargement.dc.html": {
+   "x": 473,
+   "y": 4000,
+   "w": 393,
+   "h": 852,
+   "title": "Journal · lecture · clair",
+   "radius": 48
+  },
+  "JournalErreur.dc.html": {
+   "x": 946,
+   "y": 4000,
+   "w": 393,
+   "h": 852,
+   "title": "Journal · erreur · clair",
+   "radius": 48
+  },
+  "SemaineChargement.dc.html": {
+   "x": 1419,
+   "y": 4000,
+   "w": 393,
+   "h": 852,
+   "title": "Semaine · calcul · clair",
+   "radius": 48
+  },
+  "SemaineErreur.dc.html": {
+   "x": 1892,
+   "y": 4000,
+   "w": 393,
+   "h": 852,
+   "title": "Semaine · erreur · clair",
+   "radius": 48
+  },
+  "EnregistreSansRang.dc.html": {
+   "x": 2365,
+   "y": 4000,
+   "w": 393,
+   "h": 852,
+   "title": "Entrée enregistrée · sans rang · clair",
+   "radius": 48
+  },
+  "JournalVideSombre.dc.html": {
+   "x": 0,
+   "y": 5300,
+   "w": 393,
+   "h": 852,
+   "title": "Journal · vide · sombre",
+   "radius": 48
+  },
+  "JournalChargementSombre.dc.html": {
+   "x": 473,
+   "y": 5300,
+   "w": 393,
+   "h": 852,
+   "title": "Journal · lecture · sombre",
+   "radius": 48
+  },
+  "JournalErreurSombre.dc.html": {
+   "x": 946,
+   "y": 5300,
+   "w": 393,
+   "h": 852,
+   "title": "Journal · erreur · sombre",
+   "radius": 48
+  },
+  "SemaineChargementSombre.dc.html": {
+   "x": 1419,
+   "y": 5300,
+   "w": 393,
+   "h": 852,
+   "title": "Semaine · calcul · sombre",
+   "radius": 48
+  },
+  "SemaineErreurSombre.dc.html": {
+   "x": 1892,
+   "y": 5300,
+   "w": 393,
+   "h": 852,
+   "title": "Semaine · erreur · sombre",
+   "radius": 48
+  },
+  "EnregistreSansRangSombre.dc.html": {
+   "x": 2365,
+   "y": 5300,
+   "w": 393,
+   "h": 852,
+   "title": "Entrée enregistrée · sans rang · sombre",
+   "radius": 48
+  },
+  "EnregistreDouxSombre.dc.html": {
+   "x": 2838,
+   "y": 5300,
+   "w": 393,
+   "h": 852,
+   "title": "Entrée enregistrée · humeur basse · sombre",
+   "radius": 48
   }
  },
  "order": [
@@ -188,7 +292,20 @@
   "TabBar.dc.html",
   "Enregistre.dc.html",
   "EnregistreSombre.dc.html",
-  "EnregistreDoux.dc.html"
+  "EnregistreDoux.dc.html",
+  "JournalVide.dc.html",
+  "JournalChargement.dc.html",
+  "JournalErreur.dc.html",
+  "SemaineChargement.dc.html",
+  "SemaineErreur.dc.html",
+  "EnregistreSansRang.dc.html",
+  "JournalVideSombre.dc.html",
+  "JournalChargementSombre.dc.html",
+  "JournalErreurSombre.dc.html",
+  "SemaineChargementSombre.dc.html",
+  "SemaineErreurSombre.dc.html",
+  "EnregistreSansRangSombre.dc.html",
+  "EnregistreDouxSombre.dc.html"
  ],
  "notes": {
   "clair": {
@@ -211,6 +328,13 @@
    "text": "Composants",
    "kind": "title1",
    "maxW": 1200
+  },
+  "etats": {
+   "x": 0,
+   "y": 3700,
+   "text": "États vide, lecture et erreur (issue #50)",
+   "kind": "title1",
+   "maxW": 3231
   }
  },
  "designSystems": [
