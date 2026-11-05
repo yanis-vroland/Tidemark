@@ -72,6 +72,15 @@ void main() {
       expect(week.containsDay(DateTime(2026, 10, 19)), isFalse);
     });
 
+    test('`utcWindow` couvre la semaine élargie d\'un jour de chaque côté : '
+        'du dimanche précédent 00:00 UTC au mardi suivant 00:00 UTC exclu, '
+        'assez pour tout décalage de UTC-12 à UTC+14 (issue #51)', () {
+      final window = weekOf(2026, 10, 14).utcWindow;
+      expect(window.fromUtc, DateTime.utc(2026, 10, 11));
+      expect(window.toUtc, DateTime.utc(2026, 10, 20));
+      expect(window.fromUtc.isUtc && window.toUtc.isUtc, isTrue);
+    });
+
     test('les semaines se comparent dans l\'ordre du temps', () {
       final week = weekOf(2026, 10, 14);
       expect(week.previous.compareTo(week), isNegative);

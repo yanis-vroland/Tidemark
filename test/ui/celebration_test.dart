@@ -61,6 +61,12 @@ class FailingReadsAfterAddRepository extends FakeEntryRepository {
   Future<List<Entry>> allEntriesWithTags() async => failReads
       ? throw StateError('lecture impossible')
       : super.allEntriesWithTags();
+
+  @override
+  Future<List<Entry>> entriesBetween(DateTime fromUtc, DateTime toUtc) async =>
+      failReads
+      ? throw StateError('lecture impossible')
+      : super.entriesBetween(fromUtc, toUtc);
 }
 
 /// Affiche l'accueil de [env] dans l'application de test de la célébration.
@@ -869,5 +875,23 @@ void main() {
       await continueFromCelebration(tester);
       expectListShown(tester);
     }, tall: false);
+  });
+
+  group('lecture bornée à la semaine (issue #51)', () {
+    homeTest('la célébration ne lit que la fenêtre de sa semaine, élargie '
+        'd\'un jour de chaque côté', (tester) async {
+      final repo = weekJournal({1: 4, 2: 3});
+      await start(tester, HomeEnv(repo));
+
+      await saveAndSettle(tester, mood: 5);
+
+      expect(find.text(nthShellLine(3)), findsOneWidget);
+      expect(repo.entriesBetweenCalls, [
+        (
+          fromUtc: DateTime.utc(2026, 10, 11),
+          toUtc: DateTime.utc(2026, 10, 20),
+        ),
+      ]);
+    });
   });
 }
