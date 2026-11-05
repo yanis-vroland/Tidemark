@@ -61,7 +61,12 @@ class HomeHeader extends StatelessWidget {
         // Texte jamais plafonné (spec 009, CA27) : à 200 %, l'en-tête grandit et
         // l'accueil défile.
         Padding(
-          padding: EdgeInsets.fromLTRB(20, top, 20, _waveRoom - overlap),
+          padding: EdgeInsets.fromLTRB(
+            TidemarkSpacing.space5,
+            top,
+            TidemarkSpacing.space5,
+            _waveRoom - overlap,
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -81,7 +86,7 @@ class HomeHeader extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: TidemarkSpacing.space0_5),
                     Text(
                       greetingFor(moment),
                       style: TidemarkTypography.display.copyWith(
@@ -89,7 +94,7 @@ class HomeHeader extends StatelessWidget {
                       ),
                     ),
                     if (count != null) ...[
-                      const SizedBox(height: 6),
+                      const SizedBox(height: TidemarkSpacing.space1_5),
                       _ShellCount(text: count),
                     ],
                   ],
@@ -135,7 +140,7 @@ class _ShellCount extends StatelessWidget {
                 painter: ShellPainter(color: colors.sand),
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: TidemarkSpacing.space1_5),
             Flexible(
               child: Text(
                 text,

@@ -195,6 +195,9 @@ void main() {
       expect(TidemarkSize.navBubble, 64);
       expect(TidemarkSize.tokens, containsPair('bubble-xl', 150));
       expect(TidemarkSize.tokens, containsPair('nav-bubble', 64));
+      // Ajoutés après la revue IA de la PR #49 (valeurs déjà en dur dans le code).
+      expect(TidemarkSize.tokens, containsPair('step-badge', 40));
+      expect(TidemarkSize.tokens, containsPair('nav-create-slot', 108));
       for (final kept in [
         'icon-sm',
         'icon-md',

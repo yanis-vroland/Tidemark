@@ -202,7 +202,10 @@ class _NavBar extends StatelessWidget {
                   onTap: () => onSelect(_Tab.journal),
                 ),
               ),
-              SizedBox(width: 108, child: _CreateButton(onTap: onCreate)),
+              SizedBox(
+                width: TidemarkSize.navCreateSlot,
+                child: _CreateButton(onTap: onCreate),
+              ),
               Expanded(
                 child: _TabButton(
                   label: 'Semaine',

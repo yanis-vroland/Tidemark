@@ -32,10 +32,10 @@ class WelcomeScreen extends StatelessWidget {
       fontVariations: const [FontVariation.weight(800)],
       color: colors.onMood,
     );
-    // Pastille ronde : 40 de côté, ou l'interligne du chiffre s'il est plus
-    // grand (texte agrandi par le système).
+    // Pastille ronde : `stepBadge` de côté, ou l'interligne du chiffre s'il est
+    // plus grand (texte agrandi par le système).
     final badgeSide = math.max(
-      40.0,
+      TidemarkSize.stepBadge,
       MediaQuery.textScalerOf(context).scale(numberStyle.fontSize!) *
           numberStyle.height!,
     );
@@ -62,7 +62,7 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: 20,
+                    spacing: TidemarkSpacing.space5,
                     children: [
                       Semantics(
                         header: true,
@@ -127,7 +127,7 @@ class WelcomeScreen extends StatelessWidget {
                             size: TidemarkSize.iconSm,
                             color: colors.inkMuted,
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: TidemarkSpacing.space1_5),
                           Expanded(
                             child: Text(
                               'Rien ne quitte ton téléphone.',
@@ -248,7 +248,7 @@ class _WelcomeSkyState extends State<_WelcomeSky>
             child: Row(
               children: [
                 const ExcludeSemantics(child: TidemarkLogo(size: 44)),
-                const SizedBox(width: 10),
+                const SizedBox(width: TidemarkSpacing.space2_5),
                 Flexible(
                   child: Text(
                     'Tidemark',
