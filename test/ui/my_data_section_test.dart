@@ -201,7 +201,7 @@ void main() {
       await pumpUntil(tester, () => env.sheet.shared.isNotEmpty);
 
       final json = jsonDecode(env.sheet.shared.single.content) as Map;
-      expect(json['formatVersion'], 1);
+      expect(json['formatVersion'], 2);
       expect((json['settings'] as Map)['lowMoodSensitivity'], 'high');
       expect(json['entries'], hasLength(1));
       await pumpUntil(tester, () => shown(exportLabel));

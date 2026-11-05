@@ -3,6 +3,7 @@
 // annonce des cartes au lecteur d'écran.
 import 'dart:async';
 
+import '../support/celebration_harness.dart';
 import '../support/fake_settings_repository.dart';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -54,6 +55,8 @@ void main() {
       gate.complete();
       await tester.pumpAndSettle();
       expect(find.text('Comment ça va ?'), findsNothing);
+      // Spec 010, CA16 : la célébration passe avant le retour à l'accueil.
+      await continueFromCelebration(tester);
       expect(find.text('Ton journal'), findsOneWidget);
       expect(repo.entries, hasLength(1));
     },

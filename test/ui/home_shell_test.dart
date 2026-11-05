@@ -13,6 +13,7 @@ import 'package:tidemark/ui/screens/weekly_review_screen.dart';
 import 'package:tidemark/ui/theme/tidemark_colors.dart';
 
 import '../support/distress_harness.dart' show helpTitle;
+import '../support/celebration_harness.dart';
 import '../support/fake_entry_repository.dart';
 import '../support/fake_model_downloader.dart';
 import '../support/fake_settings_repository.dart';
@@ -194,6 +195,8 @@ void main() {
       await pickMood(tester, 3);
       await tester.tap(find.text('Enregistrer'));
       await settle(tester);
+      // Spec 010, CA16 : la célébration passe avant le retour à l'accueil.
+      await continueFromCelebration(tester);
 
       expect(repo.addCalls.single.mood, 3);
       expectBarShown(tester);

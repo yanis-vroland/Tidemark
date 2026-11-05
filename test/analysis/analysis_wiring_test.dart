@@ -9,6 +9,7 @@ import 'package:tidemark/entries/entry.dart';
 import 'package:tidemark/main.dart';
 import 'package:tidemark/model/model_state.dart';
 
+import '../support/celebration_harness.dart';
 import '../support/analysis_harness.dart';
 import '../support/fake_entry_repository.dart';
 import '../support/fake_model_downloader.dart';
@@ -276,6 +277,8 @@ void main() {
         await tester.pump();
         await tester.tap(find.text('Enregistrer'));
         await settle(tester);
+        // Spec 010, CA16 : la célébration passe avant le retour à l'accueil.
+        await continueFromCelebration(tester);
 
         expect(find.text('Ton journal'), findsOneWidget);
         expect(find.textContaining('Journée calme.'), findsOneWidget);

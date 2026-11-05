@@ -17,6 +17,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/main.dart';
 import 'package:tidemark/storage/app_database.dart';
 
+import '../support/celebration_harness.dart';
 import '../support/fake_share_sheet.dart';
 import '../support/ui_harness.dart';
 import '../support/wipe_harness.dart';
@@ -157,6 +158,8 @@ void main() {
           isEmpty,
           reason: 'à l\'enregistrement d\'une entrée',
         );
+        // Spec 010, CA16 : la célébration passe avant le retour à l'accueil.
+        await continueFromCelebration(tester);
 
         await tester.tap(find.bySemanticsLabel('Réglages').first);
         await settle(tester);

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/distress/distress_detector.dart';
 import 'package:tidemark/entries/entry.dart';
 
+import '../support/celebration_harness.dart';
 import '../support/distress_harness.dart';
 import '../support/ui_harness.dart';
 
@@ -86,7 +87,9 @@ void main() {
     );
 
     testWidgets('CA4 : un texte sans expression enregistre « en attente » et '
-        'ramène à la liste', (tester) async {
+        'ramène à la liste après la célébration (spec 010, CA16)', (
+      tester,
+    ) async {
       usePhoneScreen(tester);
       final env = GuardEnv();
       await tester.pumpWidget(env.app());
@@ -94,6 +97,7 @@ void main() {
 
       await env.enterEntry(tester, fixedNow, 4, 'Balade au bord de l’eau.');
 
+      await continueFromCelebration(tester);
       expectListShown(tester);
       expect(find.textContaining('Balade au bord de l'), findsOneWidget);
       expect(env.repo.entries.single.analysisStatus, AnalysisStatus.pending);
@@ -108,6 +112,7 @@ void main() {
 
       await env.enterEntry(tester, fixedNow, 4, 'suicidexyz');
 
+      await continueFromCelebration(tester);
       expectListShown(tester);
     });
 
@@ -156,6 +161,7 @@ void main() {
 
       await env.enterEntry(tester, fixedNow, 1);
 
+      await continueFromCelebration(tester);
       expectListShown(tester);
     });
 
@@ -224,6 +230,7 @@ void main() {
 
       await env.enterEntry(tester, fixedNow, 4, 'Belle journée.');
 
+      await continueFromCelebration(tester);
       expectListShown(tester);
       expect(env.repo.entries, hasLength(1));
       expect(find.text("L'entrée n'a pas été enregistrée"), findsNothing);
@@ -240,6 +247,7 @@ void main() {
       await settle(tester);
 
       await env.enterEntry(tester, DateTime(2026, 10, 14, 8), 1, 'Triste un.');
+      await continueFromCelebration(tester);
       expectListShown(tester);
       await env.enterEntry(
         tester,
@@ -247,6 +255,7 @@ void main() {
         1,
         'Triste deux.',
       );
+      await continueFromCelebration(tester);
       expectListShown(tester);
       await env.enterEntry(
         tester,
@@ -278,6 +287,7 @@ void main() {
       await tester.pumpWidget(env.app());
       await settle(tester);
       await env.enterEntry(tester, DateTime(2026, 10, 12, 20), 1, 'Triste.');
+      await continueFromCelebration(tester);
       expectListShown(tester);
       if (switchToHigh) {
         await tester.tap(find.bySemanticsLabel('Réglages').first);
@@ -310,6 +320,7 @@ void main() {
       await firstLowThenSettings(tester, env, switchToHigh: false);
       await env.enterEntry(tester, DateTime(2026, 10, 14, 20), 1, 'Encore.');
 
+      await continueFromCelebration(tester);
       expectListShown(tester);
     });
 

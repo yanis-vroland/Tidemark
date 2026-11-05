@@ -102,3 +102,30 @@
 ### Prochaine étape
 
 - Fin des tests de la spec 010 (subagent), puis implémentation des specs 009 et 010 en parallèle, par deux agents dans des copies de travail isolées (demande de Yanis : « hésite pas à multi-threader »).
+
+## 2026-11-05 22:10
+
+### Fait
+
+- Tests de la spec 010 écrits par le subagent `test-writer`, rouges pour la bonne raison : le dépôt ne compile pas sans `Topic`. Le subagent les a vérifiés sur une copie avec des signatures vides : 48 échecs sur 61 (sujets, export, base) et 87 sur 99 (interface), tous pour fonctionnalité absente. Sur un prototype jetable, 95 tests sur 99 passent, ce qui valide les sélecteurs et les captures.
+- Nouveaux fichiers : `test/entries/topic_test.dart`, `test/storage/schema_v5_test.dart`, `test/export/export_v2_test.dart`, `test/distress/topics_guard_test.dart`, `test/ui/{topics_form,topics_detail,celebration}_test.dart`, `test/support/celebration_harness.dart` ; `fake_entry_repository` gère les sujets.
+- Tests existants adaptés aux critères remplacés (signalés) :
+  - la liste réapparaît après « Continuer » de la célébration (spec 001, CA9 et CA10 ; `entry_form_screen_test`, `distress_flow_test`, `check_in_test`, `home_shell_test`, `robustness_test`, `analysis_wiring_test`, `share_sheet_only_on_tap_test`) ;
+  - la proposition du modèle vient après la célébration (`model_offer_flow_test`, assistant `save`) ;
+  - export en version 2 (`journal_exporter_test`, `journal_export_test`, `my_data_section_test`) ;
+  - schéma en version 5 (`analysis_storage_test`) ;
+  - `ensureVisible` avant « Annuler », qui passe sous la section « Ce qui a compté » (`entry_form_screen_test`, CA30).
+- Artefact « Design System » Tidemark mis à jour en v2 : `tokens.json` et brand book repris de `charte.md`.
+
+### Décisions
+
+- Agent : les sujets choisis restent après une erreur d'enregistrement et partent avec « Réessayer » ; l'exporteur range les sujets dans l'ordre de la liste, quel que soit l'ordre reçu.
+
+### Corrections et limites
+
+- Les aperçus des composants de l'artefact « Design System » (MoodSelector, EntryCard…) sont encore en v1 ; le dépôt fait foi.
+- Le subagent a lancé `dart format` sur `lib/` une fois ; aucun fichier de `lib/` n'a changé.
+
+### Prochaine étape
+
+- Fusionner l'implémentation de la spec 009 (agent en copie isolée), puis implémenter la spec 010.

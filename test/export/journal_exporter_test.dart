@@ -1,5 +1,5 @@
-// Format du fichier d'export, version 1 (spec 005, « Format du fichier d'export » ;
-// CA4 à CA8). Code Dart pur : ni Flutter ni base, aucun fichier.
+// Format du fichier d'export, version 2 (spec 005, « Format du fichier d'export »,
+// CA4 à CA8 ; version 2 : spec 010, CA11). Code Dart pur : ni Flutter ni base, aucun fichier.
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -37,7 +37,7 @@ Entry entry({
 /// l'exemple de la spec.
 const expectedFullExport = r'''
 {
-  "formatVersion": 1,
+  "formatVersion": 2,
   "app": "Tidemark",
   "exportedAt": "2026-10-14T19:52:07+00:00",
   "settings": {
@@ -67,7 +67,8 @@ const expectedFullExport = r'''
           "kind": "theme",
           "label": "sommeil"
         }
-      ]
+      ],
+      "topics": []
     },
     {
       "createdAt": "2026-10-14T01:15:00-05:00",
@@ -75,7 +76,8 @@ const expectedFullExport = r'''
       "moodLabel": "Très bien",
       "text": "Dit \"bravo\" à C:\\dossier/sous-dossier, 😀 fin\u0001\u001f\tTab",
       "analysisStatus": "untagged",
-      "tags": []
+      "tags": [],
+      "topics": []
     },
     {
       "createdAt": "2026-10-14T08:15:00+02:00",
@@ -83,7 +85,8 @@ const expectedFullExport = r'''
       "moodLabel": "Neutre",
       "text": null,
       "analysisStatus": "skipped",
-      "tags": []
+      "tags": [],
+      "topics": []
     },
     {
       "createdAt": "2026-10-15T00:30:00+05:30",
@@ -91,7 +94,8 @@ const expectedFullExport = r'''
       "moodLabel": "Très bas",
       "text": "Très bas.",
       "analysisStatus": "pending",
-      "tags": []
+      "tags": [],
+      "topics": []
     }
   ]
 }
@@ -158,7 +162,7 @@ List<Map<String, dynamic>> exportedEntries(String json) =>
 
 void main() {
   group('CA4 : le fichier, octet pour octet', () {
-    test('CA4 : entrées fictives et degré « Haute », JSON de la version 1', () {
+    test('CA4 : entrées fictives et degré « Haute », JSON de la version 2', () {
       final json = build(fullEntries(), sensitivity: LowMoodSensitivity.high);
 
       expect(json, expectedFullExport);
@@ -169,7 +173,7 @@ void main() {
 
       expect(json, r'''
 {
-  "formatVersion": 1,
+  "formatVersion": 2,
   "app": "Tidemark",
   "exportedAt": "2026-10-14T19:52:07+00:00",
   "settings": {
@@ -213,13 +217,14 @@ void main() {
         'text',
         'analysisStatus',
         'tags',
+        'topics',
       ]);
       expect(first.containsKey('id'), isFalse);
     });
 
-    test('CA4 : la version du format est 1', () {
-      expect(exportFormatVersion, 1);
-      expect(parse(build(const []))['formatVersion'], 1);
+    test('CA4, CA11 : la version du format est 2', () {
+      expect(exportFormatVersion, 2);
+      expect(parse(build(const []))['formatVersion'], 2);
     });
 
     test('CA4 : le fichier se termine par un saut de ligne, sans BOM', () {

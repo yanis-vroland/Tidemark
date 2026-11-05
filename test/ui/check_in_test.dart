@@ -7,6 +7,7 @@ import 'package:tidemark/entries/entry.dart';
 import 'package:tidemark/ui/screens/entry_form_screen.dart';
 import 'package:tidemark/ui/widgets/mood_bubble.dart';
 
+import '../support/celebration_harness.dart';
 import '../support/fake_entry_repository.dart';
 import '../support/home_harness.dart';
 import '../support/playful_harness.dart';
@@ -185,6 +186,8 @@ void main() {
 
       await tester.tap(find.text('Enregistrer'));
       await settle(tester);
+      // Spec 010, CA16 : la célébration passe avant le retour à l'accueil.
+      await continueFromCelebration(tester);
 
       expect(repo.addCalls, hasLength(1));
       expect(repo.addCalls.single.mood, 5);
