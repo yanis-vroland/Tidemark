@@ -1,0 +1,226 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-11-05T18:33:58Z"
+ },
+ "title": "Tidemark : refonte ludique",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Bienvenue.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 393,
+   "h": 852,
+   "title": "Bienvenue · clair",
+   "radius": 48,
+   "is_interactive": true
+  },
+  "BienvenueSombre.dc.html": {
+   "x": 0,
+   "y": 1300,
+   "w": 393,
+   "h": 852,
+   "title": "Bienvenue · sombre",
+   "radius": 48
+  },
+  "Journal.dc.html": {
+   "x": 473,
+   "y": 0,
+   "w": 393,
+   "h": 852,
+   "title": "Journal · clair",
+   "radius": 48,
+   "is_interactive": true
+  },
+  "JournalSombre.dc.html": {
+   "x": 473,
+   "y": 1300,
+   "w": 393,
+   "h": 852,
+   "title": "Journal · sombre",
+   "radius": 48
+  },
+  "Saisie.dc.html": {
+   "x": 946,
+   "y": 0,
+   "w": 393,
+   "h": 852,
+   "title": "Saisie · clair",
+   "radius": 48,
+   "is_interactive": true
+  },
+  "SaisieSombre.dc.html": {
+   "x": 946,
+   "y": 1300,
+   "w": 393,
+   "h": 852,
+   "title": "Saisie · sombre",
+   "radius": 48
+  },
+  "Detail.dc.html": {
+   "x": 1419,
+   "y": 0,
+   "w": 393,
+   "h": 852,
+   "title": "Détail d'une entrée · clair",
+   "radius": 48,
+   "is_interactive": true
+  },
+  "DetailSombre.dc.html": {
+   "x": 1419,
+   "y": 1300,
+   "w": 393,
+   "h": 852,
+   "title": "Détail d'une entrée · sombre",
+   "radius": 48
+  },
+  "Semaine.dc.html": {
+   "x": 1892,
+   "y": 0,
+   "w": 393,
+   "h": 852,
+   "title": "Ta semaine · clair",
+   "radius": 48,
+   "is_interactive": true
+  },
+  "SemaineSombre.dc.html": {
+   "x": 1892,
+   "y": 1300,
+   "w": 393,
+   "h": 852,
+   "title": "Ta semaine · sombre",
+   "radius": 48
+  },
+  "Modele.dc.html": {
+   "x": 2365,
+   "y": 0,
+   "w": 393,
+   "h": 852,
+   "title": "Téléchargement du modèle · clair",
+   "radius": 48,
+   "is_interactive": true
+  },
+  "ModeleSombre.dc.html": {
+   "x": 2365,
+   "y": 1300,
+   "w": 393,
+   "h": 852,
+   "title": "Téléchargement du modèle · sombre",
+   "radius": 48
+  },
+  "Aide.dc.html": {
+   "x": 2838,
+   "y": 0,
+   "w": 393,
+   "h": 852,
+   "title": "Aide (3114) · clair",
+   "radius": 48,
+   "is_interactive": true
+  },
+  "AideSombre.dc.html": {
+   "x": 2838,
+   "y": 1300,
+   "w": 393,
+   "h": 852,
+   "title": "Aide (3114) · sombre",
+   "radius": 48
+  },
+  "MoodGlyph.dc.html": {
+   "x": 0,
+   "y": 2600,
+   "w": 96,
+   "h": 96,
+   "title": "Composant · bulle de marée"
+  },
+  "TabBar.dc.html": {
+   "x": 176,
+   "y": 2600,
+   "w": 393,
+   "h": 96,
+   "title": "Composant · barre de navigation"
+  },
+  "Enregistre.dc.html": {
+   "x": 3311,
+   "y": 0,
+   "w": 393,
+   "h": 852,
+   "title": "Entrée enregistrée · clair",
+   "radius": 48,
+   "is_interactive": true
+  },
+  "EnregistreSombre.dc.html": {
+   "x": 3311,
+   "y": 1300,
+   "w": 393,
+   "h": 852,
+   "title": "Entrée enregistrée · sombre",
+   "radius": 48
+  },
+  "EnregistreDoux.dc.html": {
+   "x": 3784,
+   "y": 0,
+   "w": 393,
+   "h": 852,
+   "title": "Entrée enregistrée · humeur basse · clair",
+   "radius": 48
+  }
+ },
+ "order": [
+  "Bienvenue.dc.html",
+  "BienvenueSombre.dc.html",
+  "Journal.dc.html",
+  "JournalSombre.dc.html",
+  "Saisie.dc.html",
+  "SaisieSombre.dc.html",
+  "Detail.dc.html",
+  "DetailSombre.dc.html",
+  "Semaine.dc.html",
+  "SemaineSombre.dc.html",
+  "Modele.dc.html",
+  "ModeleSombre.dc.html",
+  "Aide.dc.html",
+  "AideSombre.dc.html",
+  "MoodGlyph.dc.html",
+  "TabBar.dc.html",
+  "Enregistre.dc.html",
+  "EnregistreSombre.dc.html",
+  "EnregistreDoux.dc.html"
+ ],
+ "notes": {
+  "clair": {
+   "x": 0,
+   "y": -300,
+   "text": "Refonte · thème clair",
+   "kind": "title1",
+   "maxW": 4177
+  },
+  "sombre": {
+   "x": 0,
+   "y": 1000,
+   "text": "Refonte · thème sombre",
+   "kind": "title1",
+   "maxW": 4177
+  },
+  "composants": {
+   "x": 0,
+   "y": 2300,
+   "text": "Composants",
+   "kind": "title1",
+   "maxW": 1200
+  }
+ },
+ "designSystems": [
+  {
+   "title": "Tidemark",
+   "namespace": "tidemark",
+   "artifact": "https://claude.ai/artifact/LxwwPXPaLTB1ciS6m7NVeu",
+   "version": null,
+   "copiedAt": "2026-11-05T18:33:58Z"
+  }
+ ],
+ "artifact": "https://claude.ai/artifact/FWqBZBnQUYwoCNoCPQrFP5"
+}

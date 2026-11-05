@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Nouvelle entrée</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f6b}a:hover{color:#0f3f48}
+textarea::placeholder{color:currentColor;opacity:.7}
+button:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #1d5f6b;outline-offset:2px}
+@keyframes tm-swell{to{transform:translateX(-24px)}}
+@keyframes tm-bob{50%{transform:translateY(-3px)}}
+@keyframes tm-rise{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(-520px);opacity:0}}
+.tm-swell{animation:tm-swell 3.2s linear infinite}
+.tm-bob{animation:tm-bob 3.4s ease-in-out infinite}
+.tm-rise{animation:tm-rise 9s ease-in infinite}
+@media (prefers-reduced-motion:reduce){.tm-swell,.tm-bob,.tm-rise{animation:none}}
+</style>
+</helmet>
+<div style="{{root}}">
+  <div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none; overflow: hidden;">
+    <sc-for list="{{bubbles}}" as="b" hint-placeholder-count="6">
+      <div class="tm-rise" style="{{b.style}}"></div>
+    </sc-for>
+  </div>
+
+  <div style="position: relative; display: flex; justify-content: space-between; align-items: center; min-height: 44px;">
+    <a href="Journal.dc.html" aria-label="Annuler" style="width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: {{t.chip}}; color: {{t.ink}};">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </a>
+    <span style="padding: 6px 12px; border-radius: 999px; background: {{t.chip}}; font-size: 14px; line-height: 20px; font-weight: 600;">Mer. 14 oct. · 21:40</span>
+  </div>
+
+  <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+    <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 700; font-size: 22px; line-height: 28px;">Comment va ta marée ?</span>
+    <dc-import name="MoodGlyph" level="{{level}}" size="{{big}}" dark="{{dark}}" hint-size="150px,150px"></dc-import>
+    <div style="display: flex; flex-direction: column; align-items: center;">
+      <h1 aria-live="polite" style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800; font-size: 40px; line-height: 44px; letter-spacing: -1px;">{{label}}</h1>
+      <span style="font-size: 14px; line-height: 20px; font-weight: 600; color: {{t.muted}};">Humeur {{level}} sur 5</span>
+    </div>
+  </div>
+
+  <fieldset style="position: relative; margin: 0; padding: 10px 6px; border: 0; border-radius: 999px; background: {{t.chip}}; display: flex; justify-content: space-between;">
+    <legend style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Ton humeur, de 1 à 5</legend>
+    <sc-for list="{{moods}}" as="m" hint-placeholder-count="5">
+      <button type="button" aria-label="{{m.aria}}" aria-pressed="{{m.selected}}" onClick="{{m.pick}}" style="{{m.btn}}">
+        <dc-import name="MoodGlyph" level="{{m.n}}" size="{{m.size}}" ring="{{m.selected}}" bob="{{no}}" dark="{{dark}}" hint-size="48px,48px"></dc-import>
+      </button>
+    </sc-for>
+  </fieldset>
+
+  <div style="position: relative; display: flex; flex-direction: column; gap: 8px;">
+    <span id="compte" style="font-size: 15px; line-height: 20px; font-weight: 700;">Ce qui a compté</span>
+    <div role="group" aria-labelledby="compte" style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <sc-for list="{{topics}}" as="c" hint-placeholder-count="6">
+        <button type="button" aria-pressed="{{c.on}}" onClick="{{c.toggle}}" style="{{c.style}}">{{c.label}}</button>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="position: relative; display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border-radius: 22px; background: {{t.raised}};">
+    <label for="entry-text" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Ce que tu veux en dire</label>
+    <textarea id="entry-text" placeholder="Une phrase suffit, ou rien du tout." style="height: 48px; resize: none; border: 0; padding: 0; background: transparent; color: {{t.ink}}; font: 400 16px/24px Figtree, system-ui, sans-serif;"></textarea>
+    <span style="display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 18px; color: {{t.muted}};">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+      Chiffré et gardé sur ton téléphone.
+    </span>
+  </div>
+
+  <div style="flex-grow: 1;"></div>
+  <a href="Enregistre.dc.html" style="position: relative; height: 58px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: {{t.tide}}; color: {{t.onTide}}; box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18); font: 700 17px/20px Figtree, system-ui, sans-serif; text-decoration: none;">Enregistrer</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { level: 4, picked: { nature: true, travail: true } }; }
+  renderVals() {
+    const dark = !!this.props.dark;
+    const t = dark
+      ? { raised: '#15252acc', chip: '#ffffff14', ink: '#e6efed', muted: '#b4c5c5', tide: '#7cc5c9', onTide: '#0a2226', on: '#e6efed', onInk: '#0c1719' }
+      : { raised: '#ffffffd9', chip: '#ffffff99', ink: '#14262b', muted: '#4b5e64', tide: '#1d5f6b', onTide: '#ffffff', on: '#14262b', onInk: '#ffffff' };
+    const BG = dark ? ['#1a2136', '#172536', '#142a29', '#2c271c', '#30231d'] : ['#e4e8f8', '#e2edfa', '#dff3ed', '#fcefcc', '#ffe3d3'];
+    const labels = ['Très bas', 'Bas', 'Neutre', 'Bien', 'Très bien'];
+    const level = this.state.level;
+    const moods = [1, 2, 3, 4, 5].map((n) => ({
+      n,
+      size: n === level ? 52 : 44,
+      selected: n === level,
+      aria: labels[n - 1] + ', humeur ' + n + ' sur 5',
+      btn: 'width: 60px; height: 60px; padding: 0; border: 0; background: transparent; border-radius: 50%; display: grid; place-items: center; cursor: pointer;',
+      pick: () => this.setState({ level: n })
+    }));
+    const picked = this.state.picked;
+    const rot = [-2, 1.5, -1, 2, -1.5, 1];
+    const topics = ['sommeil', 'travail', 'amis', 'famille', 'sport', 'nature'].map((label, i) => {
+      const on = !!picked[label];
+      return {
+        label, on,
+        toggle: () => this.setState({ picked: { ...picked, [label]: !on } }),
+        style: 'min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; cursor: pointer; font: 600 15px/20px Figtree, system-ui, sans-serif; transform: rotate(' + rot[i] + 'deg); transition: transform .15s; box-shadow: 0 3px 0 rgba(20, 38, 43, 0.14); background: ' + (on ? t.on : (dark ? '#15252a' : '#ffffff')) + '; color: ' + (on ? t.onInk : t.ink) + ';'
+      };
+    });
+    const bubbles = [[40, 14, 0], [96, 8, 2.5], [300, 18, 1.2], [350, 10, 4], [190, 12, 5.5], [250, 7, 3.2]].map(([x, s, d]) => ({
+      style: 'position: absolute; left: ' + x + 'px; bottom: -20px; width: ' + s + 'px; height: ' + s + 'px; border-radius: 50%; border: 2px solid ' + (dark ? '#ffffff33' : '#ffffffcc') + '; animation-delay: ' + d + 's;'
+    }));
+    return {
+      t, dark, level, moods, topics, bubbles, big: 150, no: false,
+      label: labels[level - 1],
+      root: 'width: 393px; height: 852px; position: relative; overflow: hidden; box-sizing: border-box; padding: 54px 20px 36px; display: flex; flex-direction: column; gap: 16px; background: ' + BG[level - 1] + '; color: ' + t.ink + '; font-family: Figtree, system-ui, sans-serif; transition: background .4s;'
+    };
+  }
+}
+</script>
+</body>
+</html>

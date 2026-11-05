@@ -15,7 +15,7 @@ Hors périmètre :
 - Toute IA distante : l'analyse se fait sur le téléphone ou pas du tout.
 - Conseil médical, diagnostic, accompagnement thérapeutique.
 - Dictée et classifieur de détresse (décisions de Yanis du 2026-10-14, motifs dans le [plan](plan.md#décisions)).
-- Notifications et rappels, thèmes personnalisés par l'utilisateur.
+- Notifications et rappels, séries de jours, badges, thèmes personnalisés par l'utilisateur.
 
 ## Acteurs et droits
 
@@ -66,6 +66,11 @@ Les termes du métier et leur nom dans le code. Les specs, le code et les PR uti
 | Feuille de partage | `ShareSheet` | Interface de la feuille de partage du système, seule voie de sortie du fichier d'export (RM23, [ADR-003](adr/003-export-par-la-feuille-de-partage.md)). |
 | Suppression totale | `wipe`, `JournalWiper` | Effacement de toutes les données de l'app sur le téléphone, qui revient à l'état du premier lancement (RM12, RM42). `JournalWiper` en exécute les étapes. |
 | Suppression en cours | `wipe-pending` (fichier) | Marqueur écrit avant la première étape de la suppression totale et effacé après la dernière ; tant qu'il existe, la base n'est pas ouverte et la suppression reprend (RM43). |
+| Sujet | `Topic` | Ce qui a compté pour la personne, qu'elle choisit elle-même à la saisie dans une liste fixe de six : sommeil, travail, amis, famille, sport, nature (RM62, [spec 010](specs/010-ce-qui-a-compte-et-coquillage.md)). Distinct d'une étiquette, que propose le modèle. |
+| Humeur du jour | `dayMood` | Humeur de la dernière entrée d'un jour local, dessinée sur la plage de la semaine et dans l'en-tête du bilan (RM65, [spec 009](specs/009-accueil-et-navigation.md)). |
+| Coquillage | (image) | Représentation d'une entrée sur la plage de la semaine et à la célébration ; pas une donnée distincte de l'entrée ([spec 010](specs/010-ce-qui-a-compte-et-coquillage.md)). |
+| Bienvenue | `WelcomeScreen`, `welcomeShown` | Écran du premier lancement, affiché une fois, puis de nouveau après une suppression totale (RM64, [spec 009](specs/009-accueil-et-navigation.md)). |
+| Bulle de marée | `MoodBubble` | Dessin d'une humeur : une bulle dont le niveau d'eau et le visage changent avec l'humeur ([spec 008](specs/008-charte-ludique.md)). |
 | Marqueur d'installation | `installed` (fichier) | Fichier vide créé au premier lancement et effacé par le système à la désinstallation ; son absence signale une nouvelle installation (RM45, ADR-002). |
 
 ## Règles métier
@@ -112,7 +117,7 @@ Les numéros RM37 à RM39 et RM46 à RM49 ne sont pas attribués : les specs des
 - RM17 : une entrée où la détresse est détectée est enregistrée, sans analyse (source : décision de Yanis du 2026-10-14).
 - RM18 : le modèle local est proposé au téléchargement à la première entrée à analyser, quel que soit le réseau (Wi-Fi ou données mobiles), toujours après l'annonce de sa taille (source : décision de Yanis du 2026-10-14).
 - RM19 : les étiquettes viennent d'une liste fermée d'émotions et de thèmes, définie dans la spec de l'étiquetage ; la personne ne peut pas les corriger dans le MVP (source : décision de Yanis du 2026-10-14).
-- RM20 : l'export produit un fichier JSON qui contient toutes les entrées et leurs étiquettes (source : décision de Yanis du 2026-10-14 ; format : [spec 005](specs/005-export-et-suppression-totale.md)).
+- RM20 : l'export produit un fichier JSON qui contient toutes les entrées, leurs étiquettes et leurs sujets (format version 2, [spec 010](specs/010-ce-qui-a-compte-et-coquillage.md)) (source : décision de Yanis du 2026-10-14 ; format : [spec 005](specs/005-export-et-suppression-totale.md)).
 - RM21 : le bilan porte sur une semaine du lundi au dimanche, et n'est produit qu'à partir de 3 entrées dans la semaine (source : décision de Yanis du 2026-10-14).
 - RM22 : l'app est en français seulement ; l'étiquetage et le bilan sont évalués en français (source : décision de Yanis du 2026-10-14).
 - RM23 : la personne exporte vers la destination de son choix, par la feuille de partage du système (Fichiers, AirDrop, mail…). C'est la seule exception à RM1 : elle est toujours déclenchée par la personne, jamais par l'app, et l'[ADR-003](adr/003-export-par-la-feuille-de-partage.md) la documente (source : décision de Yanis du 2026-10-14).
@@ -141,7 +146,7 @@ Les numéros RM37 à RM39 et RM46 à RM49 ne sont pas attribués : les specs des
 - RM52 : une semaine dont une entrée est à « Très bas » ou en détresse n'a pas de texte généré : son bilan s'en tient aux chiffres, sans mention de l'écran d'aide (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
 - RM53 : le texte du bilan n'est montré que s'il passe des règles déterministes : aucun chiffre ni mot de nombre, aucune expression de conseil, de soin ou de jugement de la liste de la spec, aucune détresse détectée, 300 caractères visibles au plus. Sinon, le bilan s'affiche avec ses seuls chiffres, sans plantage (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
 - RM54 : le texte du bilan n'est jamais enregistré ; il reste en mémoire tant que l'app est ouverte (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
-- RM55 : le bilan s'ouvre depuis la liste, sur la semaine en cours ; la personne peut remonter semaine par semaine jusqu'à celle de sa première entrée (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
+- RM55 : le bilan s'ouvre par l'onglet « Semaine » et par la plage de la semaine de l'accueil ([spec 009](specs/009-accueil-et-navigation.md)), sur la semaine en cours ; la personne peut remonter semaine par semaine jusqu'à celle de sa première entrée (spec : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md)).
 
 Règles tranchées le 2026-10-16 à partir des questions ouvertes des specs 004 (PR #25) et 006. Yanis (« je valide tout ») a retenu le comportement actuel pour RM56, RM58 et RM59, et accepté de corriger le défaut ou le manque de RM57, RM60 et RM61 ; le contenu de ces trois règles cibles est de l'agent, par délégation de Yanis du même jour. RM57, RM60 et RM61 sont mises en œuvre par la PR #37 ; le détail est dans la spec citée.
 
@@ -152,17 +157,25 @@ Règles tranchées le 2026-10-16 à partir des questions ouvertes des specs 004 
 - RM60 : dans la section « Étiquettes » du détail, chaque changement de statut de l'analyse est annoncé au lecteur d'écran : l'apparition de « Analyse en cours sur ton téléphone… », puis la fin de l'analyse, avec les étiquettes ou « Aucune étiquette n'a été proposée », une seule fois ; ouvrir le détail d'une entrée déjà analysée n'annonce rien. Dans la liste, la mention d'analyse n'a pas d'annonce propre : elle se lit avec le libellé de la carte (spec : [`docs/specs/004-etiquetage-automatique.md`](specs/004-etiquetage-automatique.md), CA28).
 - RM61 : partout où l'app écrit une date (bilan, intertitres de la liste, détail d'une entrée), le premier jour d'un mois s'écrit « 1er », selon l'usage français (« Du lundi 26 octobre au dimanche 1er novembre », « Dimanche 1er novembre »), y compris dans le libellé lu par le lecteur d'écran ; les autres jours restent en chiffres seuls (specs : [`docs/specs/006-bilan-de-la-semaine.md`](specs/006-bilan-de-la-semaine.md), CA38 ; [`docs/specs/001-saisie-et-liste-des-entrees.md`](specs/001-saisie-et-liste-des-entrees.md), CA3).
 
+Règles de la refonte ludique (2026-11-05), rédigées par l'agent par délégation de Yanis, à valider au merge de la PR de l'[issue #48](https://github.com/yanis-vroland/Tidemark/issues/48) :
+
+- RM62 : à la saisie, la personne peut choisir de 0 à 6 sujets dans une liste fixe ; ils sont enregistrés avec l'entrée et ne changent jamais après (RM15). Ils ne sont transmis ni au modèle (RM36) ni au détecteur de détresse, et n'entrent pas dans le bilan (spec : [`docs/specs/010-ce-qui-a-compte-et-coquillage.md`](specs/010-ce-qui-a-compte-et-coquillage.md)).
+- RM63 : après un enregistrement sans détresse, l'app montre une célébration : complète pour une humeur de 3 à 5, douce (sans animation ni rang) pour une humeur de 1 ou 2. Jamais de célébration en cas de détresse : l'écran d'aide s'affiche directement (RM7). La célébration ne compare jamais à un objectif ni à une série (spec : [`docs/specs/010-ce-qui-a-compte-et-coquillage.md`](specs/010-ce-qui-a-compte-et-coquillage.md)).
+- RM64 : la bienvenue s'affiche au lancement tant qu'elle n'a pas été passée et que le journal est vide ; une suppression totale la fait revenir (spec : [`docs/specs/009-accueil-et-navigation.md`](specs/009-accueil-et-navigation.md)).
+- RM65 : l'humeur du jour est celle de la dernière entrée du jour local ; elle ne sert qu'aux dessins (plage, en-tête du bilan), jamais aux chiffres du bilan (RM50) (spec : [`docs/specs/009-accueil-et-navigation.md`](specs/009-accueil-et-navigation.md)).
+- RM66 : les animations d'ambiance (bulles, vagues) s'arrêtent quand le téléphone demande de réduire les animations. L'écran d'aide n'a ni bulle, ni animation, ni célébration (spec : [`docs/specs/008-charte-ludique.md`](specs/008-charte-ludique.md)).
+
 ## Parcours utilisateur
 
 ### Personne qui tient son journal
 
-1. Elle ouvre l'app pour la première fois et découvre qu'elle fonctionne sans compte.
-2. Le soir, elle note son humeur et, si elle veut, quelques mots (saisie d'une entrée).
+1. Elle ouvre l'app pour la première fois : la bienvenue lui explique en un écran comment noter et que rien ne quitte son téléphone (bienvenue).
+2. Le soir, elle touche une bulle sur l'accueil, ajoute si elle veut quelques mots et ce qui a compté, puis ramasse un coquillage (saisie d'une entrée, célébration).
 3. À sa première entrée à analyser, elle accepte de télécharger le modèle local, après avoir vu sa taille (téléchargement du modèle).
 4. Si son texte contient des signes de détresse, ou si ses dernières humeurs sont toutes « Très bas », l'écran d'aide s'affiche à la place de la liste, et l'entrée n'est jamais analysée (détection de détresse). Elle choisit dans les Réglages la sensibilité aux humeurs basses.
 5. Sinon, l'app propose des étiquettes, analysées sur le téléphone, en arrière-plan, dès que le modèle est prêt (étiquetage automatique).
 6. Elle parcourt ses entrées passées et leurs étiquettes, et peut en supprimer une (saisie d'une entrée, liste).
-7. Depuis la liste, elle ouvre le bilan de sa semaine, ou d'une semaine passée : ses chiffres et, quand c'est possible, un court texte écrit sur le téléphone (bilan de la semaine).
+7. Depuis la plage de l'accueil ou l'onglet « Semaine », elle ouvre le bilan de sa semaine, ou d'une semaine passée : ses chiffres et, quand c'est possible, un court texte écrit sur le téléphone (bilan de la semaine).
 8. Elle peut à tout moment exporter ses données, ou tout supprimer (export et suppression totale).
 
 ## Fonctionnalités
@@ -177,7 +190,10 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 | MVP (lot G) | Étiquetage automatique | [004](specs/004-etiquetage-automatique.md) | livrée (PR #23, test humain positif le 2026-10-19) |
 | MVP (lot H) | Export et suppression totale | [005](specs/005-export-et-suppression-totale.md) | livrée (PR #28, test humain positif le 2026-10-19) |
 | Si le temps le permet (lot I) | Bilan de la semaine | [006](specs/006-bilan-de-la-semaine.md) | livrée (PR #27, test humain positif le 2026-10-19) |
-| Publication | Logo : icône, écran de lancement, état vide de la liste | [007](specs/007-logo.md) | spec validée ; implémentée dans la PR en cours, test humain en attente |
+| Publication | Logo : icône, écran de lancement, état vide de la liste | [007](specs/007-logo.md) | implémentée (PR #47 mergée), test humain en attente |
+| Refonte ludique | Charte v2, bulles de marée, mouvement, restyle des écrans | [008](specs/008-charte-ludique.md) | spec proposée ; implémentée dans la PR de l'issue #48, test humain en attente |
+| Refonte ludique | Bienvenue, accueil (check-in, plage), barre de navigation, en-tête du bilan | [009](specs/009-accueil-et-navigation.md) | spec proposée ; implémentée dans la PR de l'issue #48, test humain en attente |
+| Refonte ludique | Sujets « Ce qui a compté », coquillage ramassé | [010](specs/010-ce-qui-a-compte-et-coquillage.md) | spec proposée ; implémentée dans la PR de l'issue #48, test humain en attente |
 
 ## Questions ouvertes
 

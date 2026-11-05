@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Bienvenue</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f6b}a:hover{color:#0f3f48}
+@keyframes tm-swell{to{transform:translateX(-24px)}}
+@keyframes tm-bob{50%{transform:translateY(-3px)}}
+@keyframes tm-float{50%{transform:translateY(-8px) rotate(3deg)}}
+@keyframes tm-drift{to{transform:translateX(-131px)}}
+.tm-swell{animation:tm-swell 3.2s linear infinite}
+.tm-bob{animation:tm-bob 3.4s ease-in-out infinite}
+.tm-float{animation:tm-float 4s ease-in-out infinite}
+.tm-drift{animation:tm-drift 9s linear infinite}
+.tm-drift-slow{animation:tm-drift 15s linear infinite}
+@media (prefers-reduced-motion:reduce){.tm-swell,.tm-bob,.tm-float,.tm-drift,.tm-drift-slow{animation:none}}
+</style>
+</helmet>
+<div style="width: 393px; height: 852px; overflow: hidden; display: flex; flex-direction: column; background: {{t.surface}}; color: {{t.ink}}; font-family: Figtree, system-ui, sans-serif;">
+
+  <div style="position: relative; height: 430px; flex-shrink: 0; overflow: hidden; background: {{t.sky}};">
+    <svg width="393" height="430" viewBox="0 0 393 430" aria-hidden="true" style="position: absolute; inset: 0; display: block;">
+      <circle cx="310" cy="120" r="44" fill="#fdd77a"></circle>
+      <circle cx="310" cy="120" r="62" fill="#fdd77a" fill-opacity="0.25"></circle>
+      <path d="M70 110 q6 -6 12 0 q6 -6 12 0" fill="none" stroke="{{t.skyInk}}" stroke-opacity="0.5" stroke-width="2.2" stroke-linecap="round"></path>
+      <path d="M104 132 q4 -4 8 0 q4 -4 8 0" fill="none" stroke="{{t.skyInk}}" stroke-opacity="0.5" stroke-width="2.2" stroke-linecap="round"></path>
+      <g class="tm-drift-slow"><path d="M-131 250 Q-98 236 -65.5 250 T0 250 T65.5 250 T131 250 T196.5 250 T262 250 T327.5 250 T393 250 T458.5 250 T524 250 V430 H-131 Z" fill="{{t.w1}}"></path></g>
+      <g class="tm-drift"><path d="M-131 300 Q-98 286 -65.5 300 T0 300 T65.5 300 T131 300 T196.5 300 T262 300 T327.5 300 T393 300 T458.5 300 T524 300 V430 H-131 Z" fill="{{t.w2}}"></path></g>
+      <path d="M0 380 C90 366 160 394 240 380 S340 370 393 378 V430 H0 Z" fill="{{t.surface}}"></path>
+      <path d="M232 392 Q234 384 240 383 Q243 380 247 382 Q251 380 254 383 Q260 384 262 392 L247 404 Z" fill="#f78b52"></path>
+      <path d="M120 400 l3 -9 3 9 9 0 -7 5 3 9 -8 -6 -8 6 3 -9 -7 -5 Z" fill="#f0b84a"></path>
+    </svg>
+    <div class="tm-float" style="position: absolute; left: 40px; top: 210px; animation-delay: 0.4s;">
+      <dc-import name="MoodGlyph" level="{{two}}" size="{{s1}}" bob="{{no}}" hint-size="64px,64px"></dc-import>
+    </div>
+    <div class="tm-float" style="position: absolute; left: 150px; top: 236px; animation-delay: 1.2s;">
+      <dc-import name="MoodGlyph" level="{{five}}" size="{{s2}}" bob="{{no}}" hint-size="96px,96px"></dc-import>
+    </div>
+    <div class="tm-float" style="position: absolute; left: 286px; top: 222px; animation-delay: 2s;">
+      <dc-import name="MoodGlyph" level="{{three}}" size="{{s3}}" bob="{{no}}" hint-size="72px,72px"></dc-import>
+    </div>
+    <div style="position: absolute; left: 24px; top: 62px; display: flex; align-items: center; gap: 10px;">
+      <svg width="44" height="44" viewBox="0 0 48 48" aria-hidden="true" style="display: block;"><rect width="48" height="48" rx="11" fill="#1d5f6b"></rect><g fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 16 Q13.5 12.8 17 16 Q20.5 19.2 24 16 Q27.5 12.8 31 16 Q34.5 19.2 38 16"></path><path d="M24 22 L24 37"></path></g><circle cx="31.5" cy="37" r="2.6" fill="#e2b55a"></circle></svg>
+      <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800; font-size: 24px; line-height: 28px; color: {{t.skyInk}};">Tidemark</span>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1; padding: 0 24px 40px; display: flex; flex-direction: column; gap: 20px;">
+    <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800; font-size: 34px; line-height: 38px; letter-spacing: -1px;">Comment va ta marée aujourd'hui ?</h1>
+    <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px;">
+      <li style="display: flex; gap: 12px; align-items: center;">
+        <span aria-hidden="true" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: #fdf0cf; color: #14262b; display: grid; place-items: center; font: 800 17px/1 'Bricolage Grotesque', system-ui, sans-serif;">1</span>
+        <span style="font-size: 16px; line-height: 22px;"><strong style="font-weight: 700;">Choisis une bulle</strong>, ajoute un mot si tu veux.</span>
+      </li>
+      <li style="display: flex; gap: 12px; align-items: center;">
+        <span aria-hidden="true" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: #d9f1eb; color: #14262b; display: grid; place-items: center; font: 800 17px/1 'Bricolage Grotesque', system-ui, sans-serif;">2</span>
+        <span style="font-size: 16px; line-height: 22px;"><strong style="font-weight: 700;">Ramasse un coquillage</strong> à chaque entrée.</span>
+      </li>
+      <li style="display: flex; gap: 12px; align-items: center;">
+        <span aria-hidden="true" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: #dde9f9; color: #14262b; display: grid; place-items: center; font: 800 17px/1 'Bricolage Grotesque', system-ui, sans-serif;">3</span>
+        <span style="font-size: 16px; line-height: 22px;"><strong style="font-weight: 700;">Regarde ta semaine</strong> monter et descendre.</span>
+      </li>
+    </ul>
+    <span style="display: flex; align-items: center; gap: 6px; font-size: 14px; line-height: 20px; font-weight: 600; color: {{t.muted}};">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+      Rien ne quitte ton téléphone.
+    </span>
+    <div style="flex-grow: 1;"></div>
+    <a href="Journal.dc.html" style="height: 58px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: {{t.tide}}; color: {{t.onTide}}; box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18); font: 700 17px/20px Figtree, system-ui, sans-serif; text-decoration: none;">C'est parti</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dark = !!this.props.dark;
+    const t = dark
+      ? { surface: '#0c1719', ink: '#e6efed', muted: '#b4c5c5', tide: '#7cc5c9', onTide: '#0a2226', sky: '#0f2d3d', skyInk: '#e6efed', w1: '#13454c', w2: '#1d5f6b' }
+      : { surface: '#f7f3ec', ink: '#14262b', muted: '#4b5e64', tide: '#1d5f6b', onTide: '#ffffff', sky: '#cfe9ec', skyInk: '#0f3f48', w1: '#3b8b93', w2: '#1d5f6b' };
+    return { t, two: 2, three: 3, five: 5, s1: 64, s2: 96, s3: 72, no: false };
+  }
+}
+</script>
+</body>
+</html>

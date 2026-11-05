@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Ta semaine</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f6b}a:hover{color:#0f3f48}
+@keyframes tm-swell{to{transform:translateX(-24px)}}
+@keyframes tm-bob{50%{transform:translateY(-3px)}}
+.tm-swell{animation:tm-swell 3.2s linear infinite}
+.tm-bob{animation:tm-bob 3.4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.tm-swell,.tm-bob{animation:none}}
+</style>
+</helmet>
+<div style="width: 393px; height: 852px; position: relative; overflow: hidden; display: flex; flex-direction: column; background: {{t.surface}}; color: {{t.ink}}; font-family: Figtree, system-ui, sans-serif;">
+
+  <header style="position: relative; flex-shrink: 0; padding: 56px 20px 0; background: {{t.sky}}; color: {{t.skyInk}}; display: flex; flex-direction: column; gap: 4px;">
+    <svg width="393" height="120" viewBox="0 0 393 120" aria-hidden="true" style="position: absolute; left: 0; top: 0; display: block;">
+      <circle cx="340" cy="70" r="22" fill="#fdd77a"></circle>
+      <path d="M90 64 q5 -5 10 0 q5 -5 10 0" fill="none" stroke="{{t.skyInk}}" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round"></path>
+      <path d="M118 80 q4 -4 8 0 q4 -4 8 0" fill="none" stroke="{{t.skyInk}}" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round"></path>
+    </svg>
+    <div style="position: relative; display: flex; justify-content: space-between; align-items: center;">
+      <h1 style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800; font-size: 38px; line-height: 42px; letter-spacing: -1px;">Ta semaine</h1>
+    </div>
+    <div style="position: relative; display: flex; align-items: center; gap: 4px; margin-left: -10px;">
+      <button type="button" aria-label="Semaine précédente" style="width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: {{t.skyInk}}; display: grid; place-items: center; cursor: pointer;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+      <span style="font-size: 15px; line-height: 20px; font-weight: 700;">6 – 12 octobre</span>
+      <button type="button" aria-label="Semaine suivante" disabled="{{yes}}" style="width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: {{t.skyFaint}}; display: grid; place-items: center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg>
+      </button>
+    </div>
+
+    <figure aria-label="Humeur par jour : lundi bien, mardi neutre, mercredi bas, jeudi bien, vendredi très bien, samedi bien, dimanche pas d'entrée" style="position: relative; margin: 0 -20px; height: 220px;">
+      <svg width="393" height="220" viewBox="0 0 393 220" aria-hidden="true" style="position: absolute; inset: 0; display: block;">
+        <path d="{{area}}" fill="{{t.sea}}"></path>
+        <path d="{{line}}" fill="none" stroke="#ffffff" stroke-opacity="0.85" stroke-width="2.5" stroke-dasharray="1 7" stroke-linecap="round"></path>
+        <path d="M0 186 C80 176 150 196 230 186 S350 178 393 184 V220 H0 Z" fill="{{t.sand}}"></path>
+      </svg>
+      <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+        <div style="{{d.pos}}">
+          <sc-if value="{{d.has}}" hint-placeholder-val="{{true}}">
+            <dc-import name="MoodGlyph" level="{{d.mood}}" size="{{gs}}" delay="{{d.delay}}" dark="{{dark}}" hint-size="40px,40px"></dc-import>
+          </sc-if>
+          <sc-if value="{{d.none}}" hint-placeholder-val="{{false}}">
+            <div style="width: 34px; height: 34px; box-sizing: border-box; border-radius: 50%; border: 2.5px dashed #ffffffcc;"></div>
+          </sc-if>
+        </div>
+      </sc-for>
+      <div style="position: absolute; left: 0; right: 0; bottom: 6px; display: flex; justify-content: space-around; padding: 0 6px; font-size: 13px; line-height: 18px; font-weight: 800; color: {{t.sandInk}};">
+        <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+      </div>
+    </figure>
+  </header>
+
+  <div style="padding: 16px 16px 0; display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+      <div style="padding: 12px; border-radius: 20px; background: #dde9f9; color: #14262b; transform: rotate(-2deg); box-shadow: 0 4px 0 rgba(20, 38, 43, 0.10); display: flex; flex-direction: column;">
+        <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800; font-size: 30px; line-height: 34px;">3,7</span>
+        <span style="font-size: 13px; line-height: 17px; font-weight: 600;">humeur moyenne</span>
+      </div>
+      <div style="padding: 12px; border-radius: 20px; background: #d9f1eb; color: #14262b; transform: rotate(1.5deg); box-shadow: 0 4px 0 rgba(20, 38, 43, 0.10); display: flex; flex-direction: column;">
+        <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800; font-size: 30px; line-height: 34px;">6<span style="font-size: 18px;">/7</span></span>
+        <span style="font-size: 13px; line-height: 17px; font-weight: 600;">jours notés</span>
+      </div>
+      <div style="padding: 12px; border-radius: 20px; background: #ffe2d1; color: #14262b; transform: rotate(-1deg); box-shadow: 0 4px 0 rgba(20, 38, 43, 0.10); display: flex; flex-direction: column;">
+        <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800; font-size: 30px; line-height: 34px;">7</span>
+        <span style="font-size: 13px; line-height: 17px; font-weight: 600;">entrées</span>
+      </div>
+    </div>
+
+    <section aria-label="Bilan en quelques mots" style="position: relative; padding: 16px 16px 14px; border-radius: 24px; background: {{t.raised}}; display: flex; flex-direction: column; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="{{t.tide}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2h4v3l2 3v12a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V8l2-3z"></path><path d="M10 13h4M10 16h3"></path></svg>
+        <span style="font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 17px; line-height: 22px; font-weight: 700; color: {{t.tide}};">Le mot de la semaine</span>
+      </div>
+      <p style="margin: 0; font-size: 16px; line-height: 23px;">Une semaine notée presque chaque jour, le plus souvent du côté de « Bien ». La fatigue et le travail reviennent souvent, le calme aussi.</p>
+      <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; color: {{t.muted}};">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+        Mis en mots sur ton téléphone
+      </span>
+    </section>
+
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+      <span style="font-size: 14px; line-height: 20px; font-weight: 700; color: {{t.muted}}; margin-right: 2px;">Ce qui revient</span>
+      <span style="padding: 5px 12px; border-radius: 999px; background: {{t.raised}}; transform: rotate(-2deg); box-shadow: 0 2px 0 rgba(20, 38, 43, 0.12); font-size: 14px; line-height: 20px; font-weight: 600;">fatigue ×4</span>
+      <span style="padding: 5px 12px; border-radius: 999px; background: {{t.raised}}; transform: rotate(1.5deg); box-shadow: 0 2px 0 rgba(20, 38, 43, 0.12); font-size: 14px; line-height: 20px; font-weight: 600;">travail ×4</span>
+      <span style="padding: 5px 12px; border-radius: 999px; background: {{t.raised}}; transform: rotate(-1deg); box-shadow: 0 2px 0 rgba(20, 38, 43, 0.12); font-size: 14px; line-height: 20px; font-weight: 600;">calme ×3</span>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 0; bottom: 0;">
+    <dc-import name="TabBar" active="semaine" dark="{{dark}}" hint-size="393px,96px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dark = !!this.props.dark;
+    const t = dark
+      ? { surface: '#0c1719', raised: '#15252a', ink: '#e6efed', muted: '#b4c5c5', tide: '#7cc5c9', sky: '#0f2d3d', skyInk: '#e6efed', skyFaint: '#e6efed59', sea: '#1d5f6b', sand: '#3a3222', sandInk: '#e8d9b5' }
+      : { surface: '#f7f3ec', raised: '#ffffff', ink: '#14262b', muted: '#4b5e64', tide: '#1d5f6b', sky: '#cfe9ec', skyInk: '#0f3f48', skyFaint: '#0f3f4859', sea: '#3b8b93', sand: '#f6e4bd', sandInk: '#6b5320' };
+    const levels = [4, 3, 2, 4, 5, 4, 0];
+    const xs = levels.map((_, i) => 28 + i * 56);
+    const yOf = (l) => 160 - (l - 1) * 28;
+    const pts = levels.map((l, i) => [xs[i], yOf(l || 3)]);
+    let line = 'M0 ' + pts[0][1] + ' L' + pts[0][0] + ' ' + pts[0][1];
+    for (let i = 1; i < pts.length; i++) {
+      const [x0, y0] = pts[i - 1]; const [x1, y1] = pts[i]; const mx = (x0 + x1) / 2;
+      line += ' C' + mx + ' ' + y0 + ' ' + mx + ' ' + y1 + ' ' + x1 + ' ' + y1;
+    }
+    line += ' L393 ' + pts[pts.length - 1][1];
+    const area = line + ' V220 H0 Z';
+    const gs = 40;
+    const days = levels.map((l, i) => ({
+      mood: l || 3,
+      has: l > 0,
+      none: l === 0,
+      delay: i * 0.3,
+      pos: 'position: absolute; left: ' + (xs[i] - (l ? gs : 34) / 2) + 'px; top: ' + (pts[i][1] - (l ? gs : 34) / 2 - 6) + 'px;'
+    }));
+    return { t, dark, days, area, line, gs, yes: true };
+  }
+}
+</script>
+</body>
+</html>

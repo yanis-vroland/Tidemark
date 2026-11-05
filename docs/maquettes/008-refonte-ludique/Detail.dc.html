@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Détail d'une entrée</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f6b}a:hover{color:#0f3f48}
+@keyframes tm-swell{to{transform:translateX(-24px)}}
+@keyframes tm-bob{50%{transform:translateY(-3px)}}
+@keyframes tm-rise{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(-300px);opacity:0}}
+.tm-swell{animation:tm-swell 3.2s linear infinite}
+.tm-bob{animation:tm-bob 3.4s ease-in-out infinite}
+.tm-rise{animation:tm-rise 8s ease-in infinite}
+@media (prefers-reduced-motion:reduce){.tm-swell,.tm-bob,.tm-rise{animation:none}}
+</style>
+</helmet>
+<div style="width: 393px; height: 852px; overflow: hidden; display: flex; flex-direction: column; background: {{t.surface}}; color: {{t.ink}}; font-family: Figtree, system-ui, sans-serif;">
+
+  <header style="position: relative; overflow: hidden; padding: 54px 20px 56px; background: #fcefcc; color: #14262b; display: flex; flex-direction: column; gap: 16px;">
+    <div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none;">
+      <sc-for list="{{bubbles}}" as="b" hint-placeholder-count="5">
+        <div class="tm-rise" style="{{b}}"></div>
+      </sc-for>
+    </div>
+    <div style="position: relative; display: flex; justify-content: space-between;">
+      <a href="Journal.dc.html" aria-label="Retour au journal" style="width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: #ffffffb3; color: #14262b;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+      </a>
+      <span style="align-self: center; padding: 6px 12px; border-radius: 999px; background: #ffffffb3; font-size: 14px; line-height: 20px; font-weight: 600;">Mer. 14 oct. · 21:40</span>
+    </div>
+    <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <dc-import name="MoodGlyph" level="{{four}}" size="{{glyph}}" dark="{{dark}}" hint-size="120px,120px"></dc-import>
+      <h1 style="margin: 4px 0 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800; font-size: 40px; line-height: 44px; letter-spacing: -1px;">Bien</h1>
+      <span style="font-size: 14px; line-height: 20px; font-weight: 600; color: #4b5e64;">Humeur 4 sur 5</span>
+    </div>
+    <svg width="393" height="40" viewBox="0 0 393 40" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; left: 0; bottom: 0; display: block;">
+      <path d="M0 22 C70 8 130 36 200 22 S330 6 393 18 V40 H0 Z" fill="{{t.surface}}"></path>
+    </svg>
+  </header>
+
+  <div style="padding: 4px 20px 0; display: flex; flex-direction: column; gap: 20px;">
+    <p style="margin: 0; font-size: 18px; line-height: 28px; white-space: pre-line;">Longue journée au travail, mais la balade du soir au bord de l'eau m'a fait du bien.
+Le vent était tombé, la lumière était belle. J'ai pensé à rien pendant une heure.</p>
+
+    <section aria-labelledby="compte" style="display: flex; flex-direction: column; gap: 10px;">
+      <h2 id="compte" style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 700; font-size: 20px; line-height: 26px;">Ce qui a compté</h2>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <span style="padding: 8px 16px; border-radius: 999px; background: {{t.ink}}; color: {{t.surface}}; transform: rotate(-2deg); box-shadow: 0 3px 0 rgba(20, 38, 43, 0.14); font-size: 16px; line-height: 20px; font-weight: 700;">travail</span>
+        <span style="padding: 8px 16px; border-radius: 999px; background: {{t.ink}}; color: {{t.surface}}; transform: rotate(1.5deg); box-shadow: 0 3px 0 rgba(20, 38, 43, 0.14); font-size: 16px; line-height: 20px; font-weight: 700;">nature</span>
+      </div>
+    </section>
+
+    <section aria-labelledby="lu" style="display: flex; flex-direction: column; gap: 12px;">
+      <h2 id="lu" style="margin: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 700; font-size: 20px; line-height: 26px;">Étiquettes</h2>
+      <div aria-label="Émotions : fatigue, calme ; thèmes : travail, nature" style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <span style="padding: 8px 16px; border-radius: 999px; background: #dde9f9; color: #14262b; transform: rotate(-3deg); box-shadow: 0 3px 0 rgba(20, 38, 43, 0.14); font-size: 16px; line-height: 20px; font-weight: 700;">fatigue</span>
+        <span style="padding: 8px 16px; border-radius: 999px; background: #d9f1eb; color: #14262b; transform: rotate(2deg); box-shadow: 0 3px 0 rgba(20, 38, 43, 0.14); font-size: 16px; line-height: 20px; font-weight: 700;">calme</span>
+        <span style="padding: 8px 16px; border-radius: 999px; background: {{t.raised}}; color: {{t.ink}}; border: 2px dashed {{t.line}}; transform: rotate(-1deg); font-size: 16px; line-height: 20px; font-weight: 600;">travail</span>
+        <span style="padding: 8px 16px; border-radius: 999px; background: {{t.raised}}; color: {{t.ink}}; border: 2px dashed {{t.line}}; transform: rotate(2.5deg); font-size: 16px; line-height: 20px; font-weight: 600;">nature</span>
+      </div>
+      <span style="font-size: 13px; line-height: 18px; color: {{t.muted}};">En couleur, les émotions ; en pointillés, les thèmes.</span>
+      <span style="display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 18px; color: {{t.muted}};">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+        Analysé sur ton téléphone
+      </span>
+    </section>
+
+    <button type="button" style="align-self: center; min-height: 44px; padding: 0 16px; border: 0; background: transparent; font: 700 15px/20px Figtree, system-ui, sans-serif; color: {{t.danger}}; cursor: pointer;">Supprimer l'entrée</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dark = !!this.props.dark;
+    const t = dark
+      ? { surface: '#0c1719', raised: '#15252a', ink: '#e6efed', muted: '#b4c5c5', line: '#7d9599', danger: '#f39582' }
+      : { surface: '#f7f3ec', raised: '#ffffff', ink: '#14262b', muted: '#4b5e64', line: '#76898d', danger: '#a3392a' };
+    const bubbles = [[36, 12, 0], [90, 8, 2.4], [300, 16, 1.1], [344, 9, 3.6], [250, 11, 5]].map(([x, s, d]) => 'position: absolute; left: ' + x + 'px; bottom: 10px; width: ' + s + 'px; height: ' + s + 'px; border-radius: 50%; border: 2px solid #ffffffcc; animation-delay: ' + d + 's;');
+    return { t, dark, four: 4, glyph: 120, bubbles };
+  }
+}
+</script>
+</body>
+</html>

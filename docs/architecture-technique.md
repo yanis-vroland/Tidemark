@@ -60,19 +60,28 @@ erDiagram
     int position
   }
   ENTRIES ||--o{ TAGS : "a"
+  ENTRY_TOPICS {
+    int id PK
+    int entry_id FK "ON DELETE CASCADE"
+    text topic "liste fixe de six"
+    int position
+  }
+  ENTRIES ||--o{ ENTRY_TOPICS : "a"
   SETTINGS {
     int id PK "toujours 1"
     text low_mood_sensitivity "high, normal, low"
     bool model_offer_shown "proposition du modèle déjà affichée"
+    bool welcome_shown "bienvenue passée (spec 009)"
   }
 ```
 
-Schéma en version 4 : la version 2 crée la table `settings` (spec 002), la version 3 y ajoute `model_offer_shown` (spec 003), la version 4 crée la table `tags` (spec 004). `PRAGMA foreign_keys = ON` à chaque ouverture, pour la suppression en cascade des étiquettes.
+Schéma en version 5 : la version 2 crée la table `settings` (spec 002), la version 3 y ajoute `model_offer_shown` (spec 003), la version 4 crée la table `tags` (spec 004), la version 5 crée la table `entry_topics` et ajoute `welcome_shown`, à faux (specs 009 et 010). `PRAGMA foreign_keys = ON` à chaque ouverture, pour la suppression en cascade des étiquettes.
 
 | Entité | Contraintes et invariants | Règle métier |
 | --- | --- | --- |
 | `Entry` (table `entries`) | `mood` entre 1 et 5 (contrainte `CHECK`) ; texte absent plutôt que vide ; date de saisie en UTC avec le décalage local, pour ranger l'entrée dans son jour local ; statut décidé par le garde-fou : `skipped` sans texte ou en détresse, `pending` sinon | RM3, RM13, RM16, RM17, RM24, RM27 ([spec 001](specs/001-saisie-et-liste-des-entrees.md), [spec 002](specs/002-garde-fou-detresse.md)) |
-| Réglages (table `settings`) | Une seule ligne (`CHECK id = 1`) ; degré stocké par son nom ; absent ou inconnu → `normal`, jamais désactivé ; proposition du modèle affichée une seule fois | RM25, RM29, RM31 ([spec 002](specs/002-garde-fou-detresse.md), [spec 003](specs/003-telechargement-du-modele.md)) |
+| Réglages (table `settings`) | Une seule ligne (`CHECK id = 1`) ; degré stocké par son nom ; absent ou inconnu → `normal`, jamais désactivé ; proposition du modèle affichée une seule fois ; bienvenue passée | RM25, RM29, RM31, RM64 ([spec 002](specs/002-garde-fou-detresse.md), [spec 003](specs/003-telechargement-du-modele.md), [spec 009](specs/009-accueil-et-navigation.md)) |
+| Sujets (table `entry_topics`) | Libellé de la liste fixe (`Topic`, stocké par son nom) ; au plus un par sujet et par entrée ; position dans l'ordre de la liste ; effacés avec l'entrée | RM62 ([spec 010](specs/010-ce-qui-a-compte-et-coquillage.md)) |
 
 Fichiers de l'app ([spec 005](specs/005-export-et-suppression-totale.md)) ; dossier de la base et cache de l'app réunis dans `AppStorage` (`lib/storage/app_storage.dart`) :
 
@@ -90,8 +99,8 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 
 | Contrat | Producteur | Consommateurs | Format | Fichier |
 | --- | --- | --- | --- | --- |
-| `EntryRepository` | `DriftEntryRepository` ; `FakeEntryRepository` dans `test/support/` | Écrans, garde-fou (`saveEntryWithGuard`), vérification au démarrage | Interface Dart : `watchEntries`, `watchEntry(id)` (détail : l'entrée et ses étiquettes, `null` si elle n'existe plus, réémise seulement quand elle change, issue #39), `addEntry(mood, text, status)`, `deleteEntry`, `latestEntries(count)`, `pendingEntriesWithText`, `markSkipped(ids)`, `saveAnalysis(entryId, result)` (spec 004 : étiquettes et statut « étiquetée » dans une même transaction, ou statut « sans étiquette » ; sans effet si l'entrée n'existe plus ou n'est plus « en attente »), `allEntriesWithTags` (export, de la plus ancienne à la plus récente) | `lib/entries/entry_repository.dart` |
-| `SettingsRepository` | `DriftSettingsRepository` ; `FakeSettingsRepository` dans `test/support/` | `SettingsScreen`, garde-fou | Interface Dart : `watchLowMoodSensitivity`, `readLowMoodSensitivity`, `setLowMoodSensitivity` | `lib/settings/settings_repository.dart` |
+| `EntryRepository` | `DriftEntryRepository` ; `FakeEntryRepository` dans `test/support/` | Écrans, garde-fou (`saveEntryWithGuard`), vérification au démarrage | Interface Dart : `watchEntries`, `watchEntry(id)` (détail : l'entrée et ses étiquettes, `null` si elle n'existe plus, réémise seulement quand elle change, issue #39), `addEntry(mood, text, status, topics)` (sujets : spec 010), `watchEntry(id)` rend aussi les sujets, `deleteEntry`, `latestEntries(count)`, `pendingEntriesWithText`, `markSkipped(ids)`, `saveAnalysis(entryId, result)` (spec 004 : étiquettes et statut « étiquetée » dans une même transaction, ou statut « sans étiquette » ; sans effet si l'entrée n'existe plus ou n'est plus « en attente »), `allEntriesWithTags` (export, de la plus ancienne à la plus récente) | `lib/entries/entry_repository.dart` |
+| `SettingsRepository` | `DriftSettingsRepository` ; `FakeSettingsRepository` dans `test/support/` | `SettingsScreen`, garde-fou | Interface Dart : `watchLowMoodSensitivity`, `readLowMoodSensitivity`, `setLowMoodSensitivity`, `watchModelOfferShown`, `readModelOfferShown`, `setModelOfferShown`, `readWelcomeShown`, `setWelcomeShown` (spec 009) | `lib/settings/settings_repository.dart` |
 | `DistressDetector` | Code Dart pur, liste de termes reprise de la spec 002 (vérifiée par un test) | Garde-fou à l'enregistrement, vérification au démarrage, analyse (lot G, juste avant chaque appel au modèle) | `detectInText(text)`, `detectLowMoodSeries(latest, sensitivity)` | `lib/distress/` |
 | `ModelDownloader` | `HttpModelDownloader` ; `FakeModelDownloader` dans `test/support/` | Écran du modèle, Réglages, saisie (proposition), démarrage, suppression totale (lot H), analyse (lot G) | Interface Dart : `watch`, `current`, `start`, `cancel`, `checkAtStartup`, `deleteModel`, `verifyAfterLoadFailure`, `verifyBeforeFirstLoad` (rend `true` si le modèle peut être chargé ; empreinte calculée une fois par lancement par le `hashFile` reçu, qui sert aussi à `verifyAfterLoadFailure` : `modelSha256OfFile` dans l'app (canal natif, repli `sha256OfFile` dans un isolat), `sha256OfFile` par défaut ; appelée par `AnalysisQueue` avant chaque `prepare` et par `ReviewNarrator` avant le rédacteur) ; état `ModelState` (`ModelAbsent`, `ModelDownloading`, `ModelReady`) | `lib/model/model_downloader.dart` |
 | Canal `dev.tidemark/model_hash` | `ModelHashChannel.swift` (CryptoKit) sur iOS, `MainActivity.kt` (`MessageDigest`) sur Android ; simulé par `setMockMethodCallHandler` dans les tests, absent sur ordinateur | `SystemFileHasher` (`modelSha256OfFile`), passé à `HttpModelDownloader` par `openJournal` ([ADR-004](adr/004-integrite-du-moteur-et-du-modele.md), option F) | MethodChannel : méthode `sha256OfFile`, argument `{path: String}`, rend l'empreinte en hexadécimal minuscule, ou une erreur (`bad_arguments`, `unreadable`, sans chemin ni contenu) ; calcul sur un fil d'arrière-plan natif. Côté Dart, seule une réponse égale à l'empreinte attendue est crue (l'empreinte attendue n'est jamais envoyée) ; tout le reste, y compris l'absence de réponse après 60 s, passe par `sha256OfFile` | `lib/model/system_file_hasher.dart` |
@@ -103,10 +112,16 @@ Les composants ne communiquent que par ces contrats. Le fichier de contrat fait 
 | `ModelGate` | `lib/model/model_gate.dart` | `GatedMoodAnalyzer`, `GatedReviewWriter`, créés ensemble dans `openJournal` | `acquire({abandon})` rend la fonction de libération, dans l'ordre d'arrivée ([ADR-005](adr/005-partage-du-modele-local.md)) | `lib/model/model_gate.dart` |
 | `LocalEngine` | Implémentation sur `llamadart` (seul code qui touche au modèle) ; moteurs factices dans les tests | `LlamaMoodAnalyzer` | Interface Dart : `generate(text)` (consigne et schéma de la spec 004), `cancelGeneration`, `dispose` ; `cancel()` de l'analyseur attend la génération, 5 s au plus, puis libère le moteur (spec 004, CA35) | `lib/analysis/llama_mood_analyzer.dart` |
 | Cycle de vie de l'app | `appLifecycleStates()` (`AppLifecycleListener`) dans `main` ; flux factice dans les tests | `AnalysisQueue` (spec 004, CA32, CA33) | `Stream<AppLifecycleState>` passé à `startApp` : `hidden`, `paused`, `detached` interrompent la file, `resumed` la relance | `lib/main.dart` |
-| Fichier d'export, version 1 | `JournalExporter` (`JournalExport` l'écrit dans le cache et le passe à `ShareSheet`) | La personne, hors de l'app (lecture, archivage) | JSON versionné par `formatVersion` ; tout changement l'augmente | Section « Format » de la [spec 005](specs/005-export-et-suppression-totale.md) |
+| Fichier d'export, version 2 | `JournalExporter` (`JournalExport` l'écrit dans le cache et le passe à `ShareSheet`) | La personne, hors de l'app (lecture, archivage) | JSON versionné par `formatVersion` ; tout changement l'augmente. Version 2 : `topics` ajouté à chaque entrée ([spec 010](specs/010-ce-qui-a-compte-et-coquillage.md), CA11) | Section « Format » de la [spec 005](specs/005-export-et-suppression-totale.md) et spec 010 |
 | `ShareSheet` | `SharePlusShareSheet` (`share_plus` 13.3.1, ADR-003) ; `FakeShareSheet` dans `test/support/` | `JournalExport` (Réglages, « Exporter mes données ») | Interface Dart : `shareFile(file, mimeType)` ouvre la feuille de partage du système et rend la main à sa fermeture | `lib/export/share_sheet.dart` |
 | `KeyStore` | `SecureKeyStore` (`flutter_secure_storage`) ; trousseaux en mémoire dans les tests | `openJournal`, `JournalWiper`, marqueur d'installation | Interface Dart : `read`, `write(key)`, `deleteAll` | `lib/storage/database_key.dart` |
 | `WipeFiles` | `IoWipeFiles` (`dart:io`) ; variantes en échec dans les tests | `JournalWiper`, marqueur d'installation | Interface Dart : `createFile`, `deleteFile`, `deleteDirectory`, idempotents | `lib/wipe/journal_wiper.dart` |
+
+### Interface et mouvement
+
+- Thème construit uniquement depuis les jetons de la charte v2 ([spec 008](specs/008-charte-ludique.md)) : `lib/ui/theme/` est le seul endroit où une couleur s'écrit en dur, y compris pour les peintres (`MoodBubble`, vagues, coquillages).
+- **`AmbientMotion`** (`lib/ui/motion/`) : `InheritedWidget` qui autorise les animations d'ambiance. Activé seulement par `main` ; absent dans les tests, qui restent déterministes. Chaque élément animé vérifie aussi `MediaQuery.disableAnimations` (RM66).
+- Navigation : `HomeShell` porte deux onglets (`EntryListScreen`, `WeeklyReviewScreen`) dans un `IndexedStack`, et la barre de navigation ; les autres écrans s'ouvrent par-dessus, sans la barre ([spec 009](specs/009-accueil-et-navigation.md)).
 
 ## Conventions d'API
 

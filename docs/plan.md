@@ -169,6 +169,16 @@ Branche : `docs/readme-final`.
 - [x] Frictions de la chaîne remontées en issues dans `agentic-dev-workflow`.
 - [x] `docs/projets/tidemark.md` de l'espace de travail mis à jour : bilan et retour à P2 (2026-10-16).
 
+## Lot K : refonte ludique
+
+Branche : `feat/refonte-ludique`, [issue #48](https://github.com/yanis-vroland/Tidemark/issues/48). Après le timebox de 3 semaines : décision de Yanis du 2026-11-05 (« trop vide, trop fade, trop simple »), malgré le rappel de l'agent sur le retour à P2.
+
+- [x] Maquette de la refonte dans l'artefact « Design » *Tidemark : tous les écrans*, validée par Yanis (« on garde tout ») ; copie dans `docs/maquettes/008-refonte-ludique/`.
+- [x] Specs [008](specs/008-charte-ludique.md) (charte ludique), [009](specs/009-accueil-et-navigation.md) (accueil et navigation), [010](specs/010-ce-qui-a-compte-et-coquillage.md) (sujets et célébration), au statut « proposée » : Yanis a demandé le plan, les specs et le développement en autonomie, validés ensemble au merge.
+- [ ] Tests d'abord (`test-writer`), committés rouges, puis implémentation jusqu'au vert ; garde-fous contrôlés par mutation.
+- [ ] Revues `reviewer` et `security-reviewer` ; PR en brouillon jusqu'au test humain.
+- [ ] Après le merge : README, captures, visuel GitHub et vidéo de démo refaits sur le nouveau design **[Yanis valide]**.
+
 ## Décisions
 
 Décisions de cadrage de Yanis (2026-10-14). Leurs effets sur le produit (hors périmètre, RM6) sont dans le [cahier des charges](cahier-des-charges-fonctionnel.md) ; leurs motifs restent ici.
@@ -178,6 +188,8 @@ Décisions de cadrage de Yanis (2026-10-14). Leurs effets sur le produit (hors p
 3. **Appareils : iPhone 15 Pro physique, émulateur Android et simulateurs iOS sur le Mac.** Aucun Android physique : les mesures de performance ne valent que pour l'iPhone, Android n'est vérifié qu'en fonctionnement. Cette limite figure dans l'ADR-001 et dans le README.
 4. **Écrans soignés, maquettés en artefacts Claude** puis transcrits en Flutter : voir « Exigence de finition » et « Maquettes en artefacts Claude ».
 5. **Délégation des décisions à l'agent (Yanis, 2026-10-16).** « Oui à tout, fonce, sois autonome sur les décisions » : l'agent tranche lui-même une ambiguïté de spec ou un choix d'implémentation, de la façon la plus simple et la plus sûre compatible avec le `CLAUDE.md`, et le consigne dans le journal et la PR (« agent, par délégation de Yanis du 2026-10-16 ») ; un choix structurant donne quand même un ADR. Limite : restent à Yanis le merge, la mise en public du dépôt, le test humain, le push sur `main` et le force-push. Restent aussi soumis à lui les interdits du `CLAUDE.md` (issues et labels sans son accord, dépendance non justifiée). Un ADR peut passer « accepté (agent, par délégation de Yanis) », mais Yanis le valide en mergeant sa PR (ADR-002 de la chaîne).
+
+6. **Refonte ludique en autonomie (Yanis, 2026-11-05).** « Tu me fais le plan, les specs puis le dev à faire (esprit SDD), et tu me fais tout dans un ticket en autonomie ; une fois fait, je valide la merge. » Les specs 008 à 010 et leurs maquettes sont donc validées au merge, et non avant les tests comme le veut la méthode ; le test humain reste à Yanis avant le merge.
 
 ## Frictions de la chaîne
 

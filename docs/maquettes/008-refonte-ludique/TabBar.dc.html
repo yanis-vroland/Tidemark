@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Barre de navigation</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<nav aria-label="Navigation principale" style="width: 393px; height: 96px; position: relative; box-sizing: border-box; padding: 10px 28px 30px; display: flex; justify-content: space-between; align-items: center; background: {{t.bar}}; border-radius: 28px 28px 0 0; box-shadow: 0 -6px 24px rgba(20, 38, 43, 0.08); font-family: Figtree, system-ui, sans-serif;">
+  <a href="Journal.dc.html" aria-current="{{journal.current}}" style="{{journal.style}}">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM8 8h8M8 12h8M8 16h5"></path></svg>
+    Journal
+  </a>
+  <a href="Saisie.dc.html" style="position: absolute; left: 50%; top: -26px; margin-left: -50px; width: 100px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: {{t.on}}; font-size: 12px; line-height: 16px; font-weight: 700;">
+    <span aria-hidden="true" style="width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: {{t.tide}}; color: {{t.onTide}}; box-shadow: 0 0 0 6px {{t.bar}}, 0 10px 24px rgba(20, 38, 43, 0.25);">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+    </span>
+    Nouvelle entrée
+  </a>
+  <a href="Semaine.dc.html" aria-current="{{semaine.current}}" style="{{semaine.style}}">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17c2.5 0 2.5-6 5-6s2.5 4 5 4 2.5-9 5-9 2 3 3 3M3 21h18"></path></svg>
+    Semaine
+  </a>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["journal","semaine"],"default":"journal"},"dark":{"editor":"boolean","default":false},"$preview":{"width":393,"height":96}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dark = !!this.props.dark;
+    const t = dark
+      ? { bar: '#15252a', ink: '#b4c5c5', on: '#e6efed', pill: '#1e383c', tide: '#7cc5c9', onTide: '#0a2226' }
+      : { bar: '#ffffff', ink: '#4b5e64', on: '#0f3f48', pill: '#dbeae9', tide: '#1d5f6b', onTide: '#ffffff' };
+    const active = this.props.active ?? 'journal';
+    const tab = (id) => {
+      const on = id === active;
+      return {
+        current: on ? 'page' : 'false',
+        style: 'min-width: 112px; height: 48px; padding: 0 14px; box-sizing: border-box; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-size: 15px; line-height: 20px; font-weight: 700; color: ' + (on ? t.on : t.ink) + '; background: ' + (on ? t.pill : 'transparent') + ';'
+      };
+    };
+    return { t, journal: tab('journal'), semaine: tab('semaine') };
+  }
+}
+</script>
+</body>
+</html>
