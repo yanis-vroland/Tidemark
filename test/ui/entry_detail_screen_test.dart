@@ -213,6 +213,12 @@ void main() {
       await tester.pumpWidget(env.app());
       await settle(tester);
       expect(find.text('Hier'), findsOneWidget);
+      // L'accueil de la spec 009 (en-tête, check-in, plage) pousse ceci sous la
+      // ligne de flottaison : on fait défiler, comme le ferait la personne.
+      await tester.ensureVisible(
+        find.textContaining('Encore une nuit trop courte'),
+      );
+      await tester.pump();
       await tester.tap(find.textContaining('Encore une nuit trop courte'));
       await settle(tester);
       await tester.tap(find.text('Supprimer cette entrée'));

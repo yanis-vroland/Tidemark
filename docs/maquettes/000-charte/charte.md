@@ -63,7 +63,7 @@ Elles ne tournent que si l'app les autorise (`AmbientMotion`, activé par `main`
 
 ## L'écran d'aide fait exception
 
-L'écran d'aide (3114) reste calme : aucune bulle, aucun autocollant pivoté, aucune animation, aucune célébration. Il garde `ink` sur `surface`, le numéro en grand et un seul bouton `tide` pour appeler ; `danger` n'y sert pas. Le jeu de la charte v2 s'arrête là où commence une détresse.
+L'écran d'aide (3114) reste calme : aucune bulle, aucun autocollant pivoté, aucune animation, aucune célébration. Il garde `ink` sur `surface`, un titre en `title` (pas en `display`), le numéro en `stat` et un seul bouton `tide` pour appeler ; `danger` n'y sert pas. Le jeu de la charte v2 s'arrête là où commence une détresse.
 
 ## Iconographie
 

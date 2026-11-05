@@ -7,7 +7,7 @@ import '../theme/tidemark_typography.dart';
 import 'sticker.dart';
 
 /// Puce d'étiquette (charte v2 : autocollant, spec 008) : `ink` sur
-/// `surface-raised`, ombre `shadow-sticker`, rotation fixe ; ni cliquable ni
+/// `tide-soft`, même couleur pour toutes les étiquettes (spec 004, CA26), ombre `shadow-sticker`, rotation fixe ; ni cliquable ni
 /// modifiable (RM19, RM58).
 class TagChip extends StatelessWidget {
   const TagChip({super.key, required this.label});
@@ -19,7 +19,7 @@ class TagChip extends StatelessWidget {
     final colors = context.colors;
     return Sticker(
       text: label,
-      background: colors.surfaceRaised,
+      background: colors.tideSoft,
       foreground: colors.ink,
       style: TidemarkTypography.label,
     );

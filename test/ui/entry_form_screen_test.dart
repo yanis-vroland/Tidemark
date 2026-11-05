@@ -356,7 +356,9 @@ void main() {
 
       await expectBackOnList(tester);
       expect(find.text("Aujourd'hui"), findsOneWidget);
-      expect(find.text('Bien'), findsOneWidget);
+      // « Bien » : la carte de l'entrée, plus le libellé de la bulle du
+      // check-in (spec 009, CA11).
+      expect(find.text('Bien'), findsNWidgets(2));
       expect(find.text('21:40'), findsOneWidget);
       final saved = await env.entries(tester);
       expect(saved, hasLength(1));

@@ -130,6 +130,9 @@ void main() {
         ),
       );
       await tester.pump();
+      // À 200 %, le sélecteur est sous la ligne de flottaison (spec 008).
+      await tester.ensureVisible(find.bySemanticsLabel(moodSemantics(4)));
+      await tester.pump();
       await tester.tap(find.bySemanticsLabel(moodSemantics(4)));
       await tester.pump();
 
@@ -237,6 +240,10 @@ void main() {
       await env.seedJournal(tester);
       await tester.pumpWidget(env.app());
       await settle(tester);
+      // L'accueil de la spec 009 (en-tête, check-in, plage) pousse ceci sous la
+      // ligne de flottaison : on fait défiler, comme le ferait la personne.
+      await tester.ensureVisible(find.text('Neutre').last);
+      await tester.pump();
       await tester.tap(find.text('Neutre').last);
       await settle(tester);
 

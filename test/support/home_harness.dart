@@ -162,7 +162,13 @@ Future<void> showHome(
 }
 
 /// Bouton de la barre de navigation : « Journal » ou « Semaine ».
-Finder tab(String name) => find.bySemanticsLabel(RegExp('^$name\$'));
+/// Onglet [name] de la barre de navigation. Cherché dans `HomeShell`, pour ne pas
+/// confondre « Journal » avec le bouton retour du même nom d'un écran ouvert
+/// par-dessus (détail, Réglages).
+Finder tab(String name) => find.descendant(
+  of: find.byType(HomeShell),
+  matching: find.bySemanticsLabel(RegExp('^$name\$')),
+);
 
 bool isSelectedTab(WidgetTester tester, String name) =>
     tester.getSemantics(tab(name)).flagsCollection.isSelected ==
