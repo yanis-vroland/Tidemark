@@ -2,6 +2,7 @@
 // `showWelcome: true` : le constructeur de `WelcomeScreen` n'est pas figé par la spec.
 // Dépôt et réglages factices, aucune base.
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tidemark/ui/screens/home_shell.dart';
 import 'package:tidemark/ui/screens/welcome_screen.dart';
@@ -180,6 +181,68 @@ void main() {
       },
       tall: false,
     );
+
+    // Non-régression (revue IA de la PR #49) : la pastille du numéro avait une
+    // taille fixe de 40 ; à 200 %, le chiffre en débordait.
+    for (final scale in [1.0, 2.0]) {
+      homeTest('CA27 : à ${(scale * 100).round()} %, chaque numéro d\'étape '
+          'tient dans sa pastille ronde, d\'au moins 40 de côté', (
+        tester,
+      ) async {
+        tester.platformDispatcher.textScaleFactorTestValue = scale;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+        await showWelcome(tester, env());
+
+        for (final number in ['1', '2', '3']) {
+          final text = find.descendant(
+            of: find.byType(WelcomeScreen),
+            matching: find.text(number),
+          );
+          expect(text, findsOneWidget, reason: 'numéro $number');
+          final badge = find
+              .ancestor(
+                of: text,
+                matching: find.byWidgetPredicate(
+                  (w) =>
+                      w is DecoratedBox &&
+                      w.decoration is BoxDecoration &&
+                      (w.decoration as BoxDecoration).shape == BoxShape.circle,
+                ),
+              )
+              .first;
+          // Taille du texte mis en page sans contrainte : une boîte trop petite
+          // rogne la taille rendue du RenderParagraph, pas le dessin du chiffre.
+          final paragraph = tester.renderObject<RenderParagraph>(text);
+          final textSize = paragraph.getDryLayout(const BoxConstraints());
+          final textRect = Rect.fromCenter(
+            center: tester.getCenter(text),
+            width: textSize.width,
+            height: textSize.height,
+          );
+          final badgeRect = tester.getRect(badge);
+          expect(
+            badgeRect.width,
+            closeTo(badgeRect.height, 0.01),
+            reason: 'pastille $number ronde',
+          );
+          expect(
+            badgeRect.width,
+            greaterThanOrEqualTo(40),
+            reason: 'pastille $number',
+          );
+          if (scale == 1.0) {
+            expect(badgeRect.size, const Size.square(40), reason: 'à 100 %');
+          }
+          expect(
+            badgeRect.inflate(0.01).contains(textRect.topLeft) &&
+                badgeRect.inflate(0.01).contains(textRect.bottomRight),
+            isTrue,
+            reason: 'numéro $number ($textRect) dans sa pastille ($badgeRect)',
+          );
+        }
+      });
+    }
   });
 
   group('thème (CA28)', () {

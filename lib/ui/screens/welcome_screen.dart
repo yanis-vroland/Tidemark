@@ -26,6 +26,19 @@ class WelcomeScreen extends StatelessWidget {
       fontWeight: FontWeight.w700,
       fontVariations: const [FontVariation.weight(700)],
     );
+    final numberStyle = TidemarkTypography.headline.copyWith(
+      fontFamily: TidemarkTypography.displayFamily,
+      fontWeight: FontWeight.w800,
+      fontVariations: const [FontVariation.weight(800)],
+      color: colors.onMood,
+    );
+    // Pastille ronde : `stepBadge` de côté, ou l'interligne du chiffre s'il est
+    // plus grand (texte agrandi par le système).
+    final badgeSide = math.max(
+      TidemarkSize.stepBadge,
+      MediaQuery.textScalerOf(context).scale(numberStyle.fontSize!) *
+          numberStyle.height!,
+    );
     final steps = [
       ('Choisis une bulle', ', ajoute un mot si tu veux.', colors.mood4Soft),
       ('Ramasse un coquillage', ' à chaque entrée.', colors.mood3Soft),
@@ -49,7 +62,7 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: 20,
+                    spacing: TidemarkSpacing.space5,
                     children: [
                       Semantics(
                         header: true,
@@ -73,21 +86,19 @@ class WelcomeScreen extends StatelessWidget {
                                       color: tint,
                                       shape: BoxShape.circle,
                                     ),
-                                    child: SizedBox.square(
-                                      dimension: 40,
+                                    // Taille minimale, pas fixe : à 200 %, la
+                                    // pastille grandit avec le chiffre (CA27).
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        minWidth: badgeSide,
+                                        minHeight: badgeSide,
+                                      ),
                                       child: Center(
+                                        widthFactor: 1,
+                                        heightFactor: 1,
                                         child: Text(
                                           '${i + 1}',
-                                          style: TidemarkTypography.headline
-                                              .copyWith(
-                                                fontFamily: TidemarkTypography
-                                                    .displayFamily,
-                                                fontWeight: FontWeight.w800,
-                                                fontVariations: const [
-                                                  FontVariation.weight(800),
-                                                ],
-                                                color: colors.onMood,
-                                              ),
+                                          style: numberStyle,
                                         ),
                                       ),
                                     ),
@@ -116,7 +127,7 @@ class WelcomeScreen extends StatelessWidget {
                             size: TidemarkSize.iconSm,
                             color: colors.inkMuted,
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: TidemarkSpacing.space1_5),
                           Expanded(
                             child: Text(
                               'Rien ne quitte ton téléphone.',
@@ -237,7 +248,7 @@ class _WelcomeSkyState extends State<_WelcomeSky>
             child: Row(
               children: [
                 const ExcludeSemantics(child: TidemarkLogo(size: 44)),
-                const SizedBox(width: 10),
+                const SizedBox(width: TidemarkSpacing.space2_5),
                 Flexible(
                   child: Text(
                     'Tidemark',
