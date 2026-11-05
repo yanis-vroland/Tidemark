@@ -156,6 +156,32 @@ class FakeEntryRepository implements EntryRepository {
     return entries.take(count).toList();
   }
 
+  /// Si non nul, [entriesBetween] lève cette erreur (lecture de la semaine).
+  Object? entriesBetweenError;
+
+  /// Appels à [entriesBetween], dans l'ordre, y compris ceux qui ont échoué.
+  final List<({DateTime fromUtc, DateTime toUtc})> entriesBetweenCalls = [];
+
+  /// Comme le vrai dépôt : début compris, fin exclue, de la plus ancienne à la
+  /// plus récente (instant, puis identifiant), sans étiquettes ni sujets.
+  @override
+  Future<List<Entry>> entriesBetween(DateTime fromUtc, DateTime toUtc) async {
+    entriesBetweenCalls.add((fromUtc: fromUtc, toUtc: toUtc));
+    if (entriesBetweenError != null) throw entriesBetweenError!;
+    return [
+      for (final e in entries.reversed)
+        if (!e.createdAt.isBefore(fromUtc) && e.createdAt.isBefore(toUtc))
+          Entry(
+            id: e.id,
+            mood: e.mood,
+            text: e.text,
+            createdAt: e.createdAt,
+            utcOffset: e.utcOffset,
+            analysisStatus: e.analysisStatus,
+          ),
+    ];
+  }
+
   @override
   Future<List<Entry>> pendingEntriesWithText() async => entries
       .where(

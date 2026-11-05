@@ -29,6 +29,15 @@ class LocalWeek implements Comparable<LocalWeek> {
     for (var i = 0; i < 7; i++) monday.add(Duration(days: i)),
   ];
 
+  /// Fenêtre d'instants UTC qui contient toutes les saisies de la semaine, quel
+  /// que soit leur décalage (de UTC-12 à UTC+14) : la semaine élargie d'un jour de
+  /// chaque côté, [fromUtc] compris, [toUtc] exclu. Elle en contient aussi
+  /// d'autres : filtrer ensuite avec [containsDay] (issue #51).
+  ({DateTime fromUtc, DateTime toUtc}) get utcWindow => (
+    fromUtc: monday.subtract(const Duration(days: 1)),
+    toUtc: monday.add(const Duration(days: 8)),
+  );
+
   LocalWeek get previous =>
       LocalWeek._(monday.subtract(const Duration(days: 7)));
 

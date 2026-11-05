@@ -30,6 +30,13 @@ abstract interface class EntryRepository {
   /// (même ordre que [watchEntries]).
   Future<List<Entry>> latestEntries(int count);
 
+  /// Entrées saisies de [fromUtc] compris à [toUtc] exclu (instants UTC), de la
+  /// plus ancienne à la plus récente (instant de saisie, puis identifiant), sans
+  /// étiquettes ni sujets. Lecture bornée : seule la fenêtre est lue (issue #51).
+  /// Pour une semaine locale, l'appelant élargit la fenêtre (`LocalWeek.utcWindow`)
+  /// puis range chaque entrée dans son jour local de saisie (spec 006, CA7).
+  Future<List<Entry>> entriesBetween(DateTime fromUtc, DateTime toUtc);
+
   /// Entrées « en attente » qui ont un texte (vérification au démarrage, spec 002).
   Future<List<Entry>> pendingEntriesWithText();
 

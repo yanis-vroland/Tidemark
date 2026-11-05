@@ -119,13 +119,19 @@ class _CelebrationScreenState extends State<CelebrationScreen>
     super.dispose();
   }
 
-  /// Humeurs des entrées de la semaine locale de l'entrée, elle comprise.
+  /// Humeurs des entrées de la semaine locale de l'entrée, elle comprise. Seule
+  /// la fenêtre de la semaine est lue (issue #51), puis chaque entrée est rangée
+  /// dans son jour local de saisie.
   Future<List<int>> _readWeek() async {
     final entry = widget.entry;
-    final all = await widget.repository.watchEntries().first;
     final week = LocalWeek.containing(entry.localCreatedAt);
+    final window = week.utcWindow;
+    final read = await widget.repository.entriesBetween(
+      window.fromUtc,
+      window.toUtc,
+    );
     final inWeek = [
-      for (final e in all)
+      for (final e in read)
         if (week.containsDay(e.localCreatedAt)) e,
     ];
     if (!inWeek.any((e) => e.id == entry.id)) inWeek.add(entry);
