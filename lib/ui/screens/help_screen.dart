@@ -52,7 +52,7 @@ class _HelpScreenState extends State<HelpScreen> {
                       header: true,
                       child: Text(
                         'Parler peut aider',
-                        style: Theme.of(context).textTheme.displaySmall,
+                        style: TidemarkTypography.title,
                       ),
                     ),
                     const SizedBox(height: TidemarkSpacing.space3),
@@ -84,7 +84,7 @@ class _HelpScreenState extends State<HelpScreen> {
                               excludeSemantics: true,
                               child: Text(
                                 '3114',
-                                style: TidemarkTypography.display.copyWith(
+                                style: TidemarkTypography.stat.copyWith(
                                   color: colors.tide,
                                 ),
                               ),

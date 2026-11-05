@@ -1569,7 +1569,8 @@ void main() {
       expect(barWidth(tester, dark.mood3), closeTo(full * 2 / 3, 1.5));
       expect(barWidth(tester, dark.mood2), closeTo(full / 3, 1.5));
       expect(barWidth(tester, dark.mood5), closeTo(full / 3, 1.5));
-      expect(barWidths(tester, light.mood4), isEmpty);
+      // `mood-n` est identique dans les deux thèmes (spec 008, « Couleurs ») :
+      // l'absence des valeurs de l'autre thème n'a plus de sens.
       expect(sameRowTexts(tester, 'Bien'), contains('3'));
     });
 
@@ -1621,7 +1622,7 @@ void main() {
       await showReview(tester, env);
 
       expect(barWidth(tester, light.mood4), greaterThan(30));
-      expect(barWidths(tester, dark.mood4), isEmpty);
+      // `mood-n` est identique dans les deux thèmes (spec 008, « Couleurs »).
     });
   });
 }

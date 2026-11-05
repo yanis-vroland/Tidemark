@@ -669,7 +669,8 @@ void main() {
         expect(colors, contains(TidemarkColors.dark.ink));
         expect(colors, contains(TidemarkColors.dark.tide));
         expect(colors, isNot(contains(TidemarkColors.light.surface)));
-        expect(colors, isNot(contains(TidemarkColors.light.ink)));
+        // `ink` clair vaut `on-mood`, texte des autocollants de l'illustration
+        // dans les deux thèmes (spec 008, CA15) : il n'est plus interdit ici.
         expect(colors, isNot(contains(TidemarkColors.light.tide)));
         expect(colors, isNot(contains(TidemarkColors.light.danger)));
       });

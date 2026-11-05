@@ -45,6 +45,11 @@ Future<void> pop(WidgetTester tester) async {
 /// Journal d'exemple : quatre entrées de la semaine, midi.
 FakeEntryRepository sample() => weekJournal({1: 4, 2: 3, 3: 2, 4: 5});
 
+/// [sample], plus une entrée la semaine précédente : sans elle, « Semaine
+/// précédente » reste désactivée (spec 006, CA5 ; RM55).
+FakeEntryRepository sampleWithLastWeek() =>
+    sample()..seed(mood: 3, createdAt: DateTime(2026, 10, 7, 12));
+
 void main() {
   group('l\'accueil de l\'app (CA19)', () {
     homeTest(
@@ -223,7 +228,7 @@ void main() {
 
     homeTest('CA21 : la semaine affichée du bilan est gardée en passant par '
         '« Journal »', (tester) async {
-      await showHome(tester, HomeEnv(sample()));
+      await showHome(tester, HomeEnv(sampleWithLastWeek()));
       await openTab(tester, 'Semaine');
       await tester.tap(find.bySemanticsLabel('Semaine précédente'));
       await settle(tester);
@@ -375,7 +380,7 @@ void main() {
     homeTest('CA23 : les flèches changent de semaine (spec 006, CA5)', (
       tester,
     ) async {
-      await showHome(tester, HomeEnv(sample()));
+      await showHome(tester, HomeEnv(sampleWithLastWeek()));
       await openTab(tester, 'Semaine');
 
       await tester.tap(find.bySemanticsLabel('Semaine précédente'));

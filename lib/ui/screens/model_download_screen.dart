@@ -272,7 +272,7 @@ class _OfferIllustration extends StatelessWidget {
                     right: 0,
                     bottom: 0,
                     height: 56,
-                    child: ColoredBox(color: colors.sea),
+                    child: ColoredBox(color: colors.heroWave2),
                   ),
                   const Align(
                     alignment: Alignment(0, -0.1),
