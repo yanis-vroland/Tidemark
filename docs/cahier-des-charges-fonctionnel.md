@@ -191,9 +191,9 @@ Une ligne par fonctionnalité, regroupées par phase. Statuts : à spécifier, s
 | MVP (lot H) | Export et suppression totale | [005](specs/005-export-et-suppression-totale.md) | livrée (PR #28, test humain positif le 2026-10-19) |
 | Si le temps le permet (lot I) | Bilan de la semaine | [006](specs/006-bilan-de-la-semaine.md) | livrée (PR #27, test humain positif le 2026-10-19) |
 | Publication | Logo : icône, écran de lancement, état vide de la liste | [007](specs/007-logo.md) | implémentée (PR #47 mergée), test humain en attente |
-| Refonte ludique | Charte v2, bulles de marée, mouvement, restyle des écrans | [008](specs/008-charte-ludique.md) | spec validée ; implémentée (PR #49 mergée), test humain en attente |
-| Refonte ludique | Bienvenue, accueil (check-in, plage), barre de navigation, en-tête du bilan | [009](specs/009-accueil-et-navigation.md) | spec validée ; implémentée (PR #49 mergée), test humain en attente |
-| Refonte ludique | Sujets « Ce qui a compté », coquillage ramassé | [010](specs/010-ce-qui-a-compte-et-coquillage.md) | spec validée ; implémentée (PR #49 mergée), test humain en attente |
+| Refonte ludique | Charte v2, bulles de marée, mouvement, restyle des écrans | [008](specs/008-charte-ludique.md) | livrée (PR #49, test humain positif sur l'iPhone le 2026-11-05 ; émulateur Android non testé) |
+| Refonte ludique | Bienvenue, accueil (check-in, plage), barre de navigation, en-tête du bilan | [009](specs/009-accueil-et-navigation.md) | livrée (PR #49, test humain positif sur l'iPhone le 2026-11-05 ; émulateur Android non testé) |
+| Refonte ludique | Sujets « Ce qui a compté », coquillage ramassé | [010](specs/010-ce-qui-a-compte-et-coquillage.md) | livrée (PR #49, test humain positif sur l'iPhone le 2026-11-05 ; émulateur Android non testé) |
 
 ## Questions ouvertes
 

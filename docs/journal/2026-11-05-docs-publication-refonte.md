@@ -34,3 +34,22 @@
 ### Prochaine étape
 
 - PR en brouillon, merge par Yanis ; une fois le test humain confirmé, passer les specs 008 à 010 à « livrée ».
+
+## 2026-11-06 01:40
+
+### Fait
+
+- Test humain de la refonte (PR #49) déclaré positif par Yanis, sur l'iPhone. Specs 008 à 010 passées à « livrée » dans le cahier des charges ; README (« Limites ») et plan mis à jour.
+
+### Décisions
+
+- Yanis : test humain positif sur l'iPhone.
+
+### Corrections et limites
+
+- Émulateur Android non testé pour la refonte : consigné dans le cahier des charges et le README.
+- Aucune boucle négative déclarée : rien à capitaliser dans `docs/learnings/`.
+
+### Prochaine étape
+
+- Merge des PR #52 à #55 par Yanis, puis clôture du ticket #48 et retour à P2.
