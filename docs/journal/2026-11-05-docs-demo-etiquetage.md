@@ -39,3 +39,22 @@
 ### Prochaine étape
 
 - PR en brouillon ; relecture et merge par Yanis.
+
+## 2026-11-06 09:40
+
+### Fait
+
+- PR passée de brouillon à prête, pour lancer la revue IA : rien de bloquant, rien à corriger, cinq suggestions.
+- Légende de la démo dans le README : 5,9 s au lieu de 6 s pour le bilan ; mention de l'horloge fixée et de la bienvenue forcée ; sortie du modèle montrée telle quelle, erreurs comprises, avec renvoi vers « Limites » (suggestions 1 à 3).
+
+### Décisions
+
+- Agent : suggestion 4 (poids du GIF, 3,2 Mo) laissée à l'arbitrage de Yanis ; suggestion 5 (case du plan) à cocher après sa validation.
+
+### Corrections et limites
+
+- Aucune.
+
+### Prochaine étape
+
+- Relecture de la vidéo et du GIF, puis merge par Yanis.
